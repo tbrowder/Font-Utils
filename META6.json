@@ -6,6 +6,9 @@
   "build-depends": [
   ],
   "depends": [
+    "Bin::Utils",
+    "File::Find",
+    "Text::Utils"
   ],
   "description": "Provides routines and programs to interrogate TTF and OTF font files",
   "license": "Artistic-2.0",
@@ -16,7 +19,7 @@
   },
   "resources": [
   ],
-  "source-url": "",
+  "source-url": "https://github.com/tbrowder/Font-Utils.git",
   "tags": [
   ],
   "test-depends": [

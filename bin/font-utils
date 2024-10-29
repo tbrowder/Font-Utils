@@ -1,0 +1,15 @@
+#!/usr/bin/env raku
+
+use File::Find;
+use Text::Utils :strip-comment;
+use Bin::Utils;
+
+use Font::Utils;
+
+if not $@*ARGS {
+    help()
+}
+else {
+    use-args @*ARGS
+}
+
