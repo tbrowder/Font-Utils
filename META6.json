@@ -6,6 +6,9 @@
   "build-depends": [
   ],
   "depends": [
+    "QueryOS",
+    "Font::FreeType",
+    "Font::FreeType::Glyph",
     "Bin::Utils",
     "File::Find",
     "Text::Utils"

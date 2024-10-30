@@ -1,6 +1,0 @@
-use Test;
-use Font::Utils;
-
-pass "replace me";
-
-done-testing;
