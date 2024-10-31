@@ -11,11 +11,13 @@ use PDF::Lite;
 
 # Some hard-wired data for the current font collection by sets
 #   (file directories):
-my $Ekey = "E";
-my $Ukey = "U";
-my $Fkey = "F";
-my $Lkey = "L";
+my $Ekey = "E"; # E B Garamond
+my $Ukey = "U"; # URW Base 35
+my $Fkey = "F"; # FreeFonts
+my $Lkey = "L"; # Linux Libertine (may need subsets)
 my $Ckey = "C";
+
+# Additional sets may require two or more letters
 
 class FontData {
     use Font::FreeType;
@@ -23,7 +25,7 @@ class FontData {
     has $.filename is required;
 
     has $.adobe-equiv = "";
-    has $.colkey      = "";
+    has $.colkey      = ""; # one or two letters for the collection key
     has $.famkey      = ""; # digit for alpha order of family in the collection
     has $.style       = ""; # add one or two letters for bold, italic (or oblique)
     has $.code2       = ""; # for the base Adobe names Times, Helvetica, Courier

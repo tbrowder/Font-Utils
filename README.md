@@ -5,6 +5,8 @@ NAME
 
 **Font::Utils** - Provides routines and programs to interrogate TTF and OTF font files
 
+**NOTE**: The intent is for this module to work on Linux, MacOS, and Windows. Please file an issue if you need it on your OS. The package requires use of the 'PDF::Font::Loader:ver<0.8.8>' which has recently been ported to those two systems.
+
 SYNOPSIS
 ========
 

@@ -1,0 +1,6 @@
+Add info for MacOS and Windows
+  see unpublished FontFactory for OS installation code
+Add more font collections
+Add scripts to install fonts by root user
+  use Auth::Utils linter or do by hand for downloadable script
+

@@ -6,6 +6,10 @@
   "build-depends": [
   ],
   "depends": [
+    "YAMLish",
+    "PDF::Lite",
+    "PDF::Content",
+    "PDF::API6",
     "QueryOS",
     "Font::FreeType",
     "Font::FreeType::Glyph",
