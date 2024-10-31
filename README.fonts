@@ -32,3 +32,17 @@ That file should be keyed by a unique number.
 
 The MyFonts should be the only one to be modified by the
 user, but its format should be basically the same.
+
+= rethink
+collect the font info and put in a hash
+to use it, pull the JSON data into class FontFamily objects
+the FontFamily oject has Font object children
+
+class Font {
+    has $.basename is rw;
+    has $.family-name;
+}
+
+class FontFamily {
+}
+

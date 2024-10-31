@@ -9,6 +9,58 @@ use Bin::Utils;
 use YAMLish;
 use PDF::Lite;
 
+# Some hard-wired data for the current font collection by sets
+#   (file directories):
+my $Ekey = "E";
+my $Ukey = "U";
+my $Fkey = "F";
+my $Lkey = "L";
+my $Ckey = "C";
+
+class FontData {
+    use Font::FreeType;
+
+    has $.filename is required;
+
+    has $.adobe-equiv = "";
+    has $.colkey      = "";
+    has $.famkey      = ""; # digit for alpha order of family in the collection
+    has $.style       = ""; # add one or two letters for bold, italic (or oblique)
+    has $.code2       = ""; # for the base Adobe names Times, Helvetica, Courier
+
+    my $p;
+    my $face;
+
+    submethod TWEAK {
+        $p    = $!filename;
+        $face = Font::FreeType.new.face: $!filename.Str;
+
+        # need a unique key for each font. based on
+        #   collection (directory) 
+        #   a number for the alpha order of the family name 
+        #   if bold or italic (oblique) add 'b' and 'i' (also recognize 'o'
+        #     for italic)
+        with $p {
+            when / urw '-' base35 / { $!colkey = $Ukey }
+            when / ebgaramond     / { $!colkey = $Ekey }
+            when / freefont       / { $!colkey = $Fkey }
+        }
+
+        # URW fonts and FreeFonts have an Adobe match, so we need to
+        # encode that as 'adobe-equiv' and 'code2' for a shorthand
+        # version
+    }
+
+    method basename        { $p.IO.basename                   }
+    method family-name     { $face.family-name                }
+    method style-name      { $face.style-name                 }
+    method postscript-name { $face.postscript-name            }
+    method is-bold         { $face.is-bold   ?? True !! False }
+    method is-italic       { $face.is-italic ?? True !! False }
+    method font-format     { $face.font-format                }
+
+}
+
 my $o = OS.new;
 my $onam = $o.name;
 
@@ -18,13 +70,18 @@ our @fdirs is export;
 with $onam {
     when /:i deb|ubu / {
         @fdirs = <
-            /usr/share/fonts/opentype/freefont
             /usr/share/fonts/opentype/urw-base35
             /usr/share/fonts/opentype/ebgaramond
-        >
+            /usr/share/fonts/opentype/freefont
+        >;
+        =begin comment
+        =end comment
+
+        #   /usr/share/fonts/opentype/linux-libertine
+        #   /usr/share/fonts/opentype/cantarell
     }
     default {
-        die "FATAL: Unknown OS name: '$_'. Please file an issue."
+        die "FATAL: Unhandled OS name: '$_'. Please file an issue."
     }
 }
 
@@ -95,13 +152,25 @@ sub use-args(@*ARGS) is export {
 
         for @dirs -> $dir {
             # need a name for the collection
-            my $prefix = "Other";
+            my $prefix;
             with $dir {
                 when /:i freefont / {
                     $prefix = "FreeFonts";
                 }
                 when /:i urw / {
                     $prefix = "URW-Fonts";
+                }
+                when /:i ebg / {
+                    $prefix = "EBGaramond-Fonts";
+                }
+                when /:i linux\-liber / {
+                    $prefix = "Linux-libertine-Fonts";
+                }
+                when /:i cantar / {
+                    $prefix = "Cantarell-Fonts";
+                }
+                default {
+                    die "FATAL: Unknown font collection '$_'";
                 }
             }
             my $jnam = "$prefix.json";
@@ -115,7 +184,6 @@ sub use-args(@*ARGS) is export {
                     say "DEBUG: \%h.gist:";
                     say %h.gist;
                     say "debug early exit"; exit;
-
                 }
             }
         }
@@ -131,29 +199,82 @@ sub use-args(@*ARGS) is export {
             @dirs = @fdirs;
         }
 
+        my %fam; # keyed by family name
+        my %nam; # keyed by postscript name
+
         for @dirs -> $dir {
             my @fils = find :$dir, :type<file>, :name(/:i '.' [o|t] tf $/);
             for @fils {
-                show-font-info $_, :$debug;
+                my $o = FontData.new: :filename($_);
+                my $nam = $o.postscript-name;
+                my $fam = $o.family-name;
+                %fam{$fam} = 1;
+                %nam{$nam} = $_;
+
+         #      say "name: {$o.postscript-name}";
+         #      say "  family: {$o.family-name}";
+
+                #show-font-info $_, :$debug;
             }
         }
+
+        my @fams = %fam.keys.sort;
+        my @nams = %nam.keys.sort;
+        my $idx;
+
+        say "Font family names:";
+        $idx = 0;
+        for @fams {
+            ++$idx;
+            say "$idx   $_";
+        }
+
+        say "Font PostScript  names:";
+        $idx = 0;
+        for @nams {
+            ++$idx;
+            say "$idx   $_";
+        }
+
         exit;
     }
 }
 
-sub get-font-info($path, :%h!, :$debug) is export {
-    my $filename = $path.Str; # David's sub REQUIRES a Str for the $filename
-    my $face = Font::FreeType.new.face($filename);
+sub get-font-info($path, :$debug --> FontData) is export {
 
+    my $filename = $path.Str; # David's sub REQUIRES a Str for the $filename
+    my $o = FontData.new: :$filename;
+
+    =begin comment
+    # methods in FontData class:
+    my $face     = Font::FreeType.new.face($filename);
     %h<basename>        = $path.IO.basename;
     %h<family-name>     = $face.family-name;
     %h<style-name>      = $face.style-name;
     %h<postscript-name> = $face.postscript-name;
     %h<is-bold>         = 1 if $face.is-bold;
     %h<is-italic>       = 1 if $face.is-italic;
-    %h<font-format> = $face.font-format;
+    %h<font-format>     = $face.font-format;
+    =end comment
 
-    if 1 or $debug {
+    # URW fonts and FreeFonts have an Adobe match, so we need to
+    # encode that as 'adobe-equiv' and 'code2' for a shorthand
+    # version
+    my ($adobe-equiv, $code2);
+    =begin comment
+    with $face.postscript-name {
+        }
+        # FreeFonts
+        when /:i freeserif $/ {
+        when /:i freeserif bold $/ {
+        when /:i freeserif italic $/ {
+        when /:i freeserif bold italic $/ {
+
+        # URW Fonts
+        when // {
+        }
+    }
+    if $debug {
         my $bi = 0;
         my $b  = 0;
         my $i  = 0;
@@ -170,9 +291,8 @@ sub get-font-info($path, :%h!, :$debug) is export {
             say "  is-bold"   if $b;
             say "  is-italic" if $i;
         }
-
     }
-
+    =end comment
 }
 
 sub show-font-info($path, :$debug) is export {
