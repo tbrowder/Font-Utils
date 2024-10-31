@@ -1,5 +1,13 @@
 unit module Font::Utils;
 
+=begin comment
+# freefont locations by OS
+my $Ld = "/usr/share/fonts/opentype/freefont";
+
+my $Md = "/opt/homebrew/Caskroom/font-freefont/20120503/freefont-20120503";
+my $Wd = "/usr/share/fonts/opentype/freefont";
+=end comment
+
 use QueryOS;
 use Font::FreeType;
 use Font::FreeType::Glyph;
@@ -72,15 +80,25 @@ our @fdirs is export;
 with $onam {
     when /:i deb|ubu / {
         @fdirs = <
+            /usr/share/fonts/opentype/freefont
             /usr/share/fonts/opentype/urw-base35
             /usr/share/fonts/opentype/ebgaramond
-            /usr/share/fonts/opentype/freefont
         >;
         =begin comment
         =end comment
 
         #   /usr/share/fonts/opentype/linux-libertine
         #   /usr/share/fonts/opentype/cantarell
+    }
+    when /:i macos / {
+        @fdirs = <
+            /opt/homebrew/Caskroom/font-freefont/20120503/freefont-20120503
+        >;
+    }
+    when /:i windows / {
+        @fdirs = <
+            /usr/share/fonts/opentype/freefont
+        >;
     }
     default {
         die "FATAL: Unhandled OS name: '$_'. Please file an issue."
