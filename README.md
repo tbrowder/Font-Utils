@@ -15,12 +15,13 @@ use Font::Utils;
 my $dir = "/usr/share/fonts/opentype/cantarell
 font-utils list $dir;
 font-utils show $font-file;
+font-utils sample $font-file;
 ```
 
 DESCRIPTION
 ===========
 
-**Font::Utils** contains the following installed program;
+**Font::Utils** contains the following installed program:
 
 font-utils
 ----------

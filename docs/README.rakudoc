@@ -17,11 +17,12 @@ use Font::Utils;
 my $dir = "/usr/share/fonts/opentype/cantarell
 font-utils list $dir;
 font-utils show $font-file;
+font-utils sample $font-file;
 =end code
 
 =head1 DESCRIPTION
 
-B<Font::Utils> contains the following installed program;
+B<Font::Utils> contains the following installed program:
 
 =head2 font-utils
 
