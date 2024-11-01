@@ -14,7 +14,7 @@
     "Font::FreeType",
     "Font::FreeType::Glyph",
     "Bin::Utils",
-    "File::Find",
+    "File::Find:ver<0.2.1>",
     "Text::Utils"
   ],
   "description": "Provides routines and programs to interrogate TTF and OTF font files",

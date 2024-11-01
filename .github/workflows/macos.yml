@@ -31,7 +31,7 @@ jobs:
           brew install --cask font-urw-base35
           brew install --cask font-eb-garamond
           brew install --cask font-linux-libertine
-          brew install --cask font-linux-cantarell
+          brew install --cask font-cantarell
           zef install --/test --deps-only .
       - name: Run Tests
         run: zef install .
