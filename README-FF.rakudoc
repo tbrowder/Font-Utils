@@ -1,0 +1,342 @@
+=begin pod
+
+=head1 NAME
+
+B<FontFactory> - Provides convenience classes to ease OpenType and TrueType
+font handling in different faces and sizes.
+
+B<NOTE>: The intent is for this module to work on Linux, MacOS, and
+Windows.  Please file an issue if you need it on your OS.  The package
+requires use of the 'V<PDF::Font::Loader:ver<0.8.8>>' which has recently
+been ported to those two systems.
+
+=head1 SYNOPSIS
+
+=begin code :lang<raku>
+use FontFactory;
+my $ff = FontFactory.new;
+# get a DocFont object for use with PDF documents
+my $f1 = $ff.get-font: "t12d5";
+say $f1.name:    # OUTPUT: «Free Serif␤»
+say $f1.size;    # OUTPUT: «12.5␤»
+say $f1.file;    # OUTPUT: «/usr/share/fonts/opentype/freefont/FreeSerif.otf␤»
+say $f1.alias;   # OUTPUT: «Times␤»
+say $f1.license; # OUTPUT: «GNU GPL V3␤»
+=end code
+
+=head1 Installation requirements
+
+The following system packages need to be installed to use all the
+features of this module.
+
+=begin item
+The FontConfig library
+
+On Debian:
+=begin code
+$ sudo aptitude install fontconfig
+=end code
+
+On MacOS:
+=begin code
+$ brew install fontconfig
+=end code
+
+On Windows:
+=begin code
+$ choco install fontconfig # if available
+=end code
+
+=end item
+
+=config :page-break
+
+=begin item
+The FontFactory font files
+
+On Debian:
+=begin code
+$ sudo aptitude install fonts-freefont-otf
+$ sudo aptitude install fonts-urw-base35-otf
+$ sudo aptitude install fonts-ebgaramond
+$ sudo aptitude install fonts-ebgaramond-extra
+$ sudo aptitude install fonts-linuxlibertine
+$ sudo aptitude install fonts-linux-cantarell
+=end code
+
+On MacOS:
+=begin code
+$ brew install --cask font-freefont
+$ brew install --cask font-urw-base35
+$ brew install --cask font-ebgaramond
+$ brew install --cask font-linux-libertine
+$ brew install --cask font-linux-cantarell
+=end code
+
+On Windows:
+=begin code
+$ choco install font-freefont
+=end code
+
+=end item
+
+On other systems the files may be downloaded from
+L<https://ftp.gnu.org/gnu/freefont> and installed in any desired
+place. The paths to the installed files should then be entered
+manually in the C<$HOME/.FontFactory/Config> file which is created
+upon installation.  That file should look like the following. Note the
+only critical parts are the first and last entries on a line. The
+first is a number that must be unique in the list, and any entry you
+make must be greater than 15. The last item on a line is the path to
+the font file on your system.
+
+The I<Code> and I<Code2> entries are optional but can be convenient
+for you. If used, the entry B<must> be unique in that column. If you
+use only one code, it is used as a 'Code' entry. Note the file is
+checked each time you use this module, and any invalid entry will
+cause an error.  In addition, you may use commas instead of spaces to
+separate entries on a line.
+
+The file will alse be checked upon any module update, and existng
+valid entries will not be modified.
+
+=begin code
+# No. Code Code2 Path
+1     ?    ?     <dir>/FreeSerif.otf
+2                <dir>/FreeSerifBold.otf
+3                <dir>/FreeSerifItalic.otf
+4                <dir>/FreeSerifBoldItalic.otf
+5                <dir>/FreeSans.otf
+6                <dir>/FreeSansBold.otf
+7                <dir>/FreeSansOblique.otf
+8                <dir>/FreeSansBoldOblique.otf
+9                <dir>/FreeMono.otf
+10               <dir>/FreeMonoBold.otf
+11               <dir>/FreeMonoOblique.otf
+12               <dir>/FreeMonoBoldOblique.otf
+13               $HOME/.FontFactory/fonts/micrenc.ttf
+14               $HOME/.FontFactory/fonts/GnuMICR.otf
+15               $HOME/.FontFactory/fonts/CMC7.ttf
+=end code
+
+=head1 DESCRIPTION
+
+B<FontFactory> is a package that provides easy handling of the set of
+GNU FreeFont OpenType fonts which descended from the classic Adobe
+Type 1 free fonts shown in Table 2 below. Unlike the original Adobe
+fonts, these fonts also include thousands of Unicode characters. The
+fonts are also among the few, freely-available fonts that have Type 1
+kerning.
+
+See L<https://www.gnu.org/software/freefont/sources/> for much more
+information on the sources and Unicode coverage of the FontFactory GNU
+FreeFonts collection.
+
+Note the I<Code> and I<Code2> columns. Each row contains equivalent
+code you may use to select the FreeFont face. You can also use the
+reference number.
+
+=head2 Table 1
+
+=begin table :caption<The GNU FontFactory Collection>
+FontFactory Name          | Code | Code2 | Reference No.
+-----------------------+------+--------------------------
+Free Serif             | se   | t     | 1
+Free Serif Bold        | seb  | tb    | 2
+Free Serif Italic      | sei  | ti    | 3
+Free Serif Bold Italic | sebi | tbi   | 4
+Free Sans              | sa   | h     | 5
+Free Sans Bold         | sab  | hb    | 6
+Free Sans Oblique      | sao  | ho    | 7
+Free Sans Bold Oblique | sabo | hbo   | 8
+Free Mono              | m    | c     | 9
+Free Mono Bold         | mb   | cb    | 10
+Free Mono Oblique      | mo   | co    | 11
+Free Mono Bold Oblique | mbo  | cbo   | 12
+MICRE                  | mi   | mi    | 13 (not a FontFactory)
+GnuMICR                | mi2  | mi2   | 14 (not a FontFactory)
+CMC7                   | c7   | c7    | 15 (not a FontFactory)
+=end table
+
+=head2 Table 2
+
+=begin table :caption<The Equivalent Adobe Type 1 Fonts>
+Adobe Type 1 Name      | Code | Code2 | Reference No.
+-----------------------+------+--------------------------
+Times                  | se   | t     | 1
+Times Bold             | seb  | tb    | 2
+Times Italic           | sei  | ti    | 3
+Times Bold Italic      | sebi | tbi   | 4
+Helvetica              | sa   | h     | 5
+Helvetica Bold         | sab  | hb    | 6
+Helvetica Oblique      | sao  | ho    | 7
+Helvetica Bold Oblique | sabo | hbo   | 8
+Courier                | m    | c     | 9
+Courier Bold           | mb   | cb    | 10
+Courier Oblique        | mo   | co    | 11
+Courier Bold Oblique   | mbo  | cbo   | 12
+MICRE                  | mi   | mi    | 13 (not a FontFactory)
+GnuMICR                | mi2  | mi2   | 14 (not a FontFactory)
+CMC7                   | c7   | c7    | 15 (not a FontFactory)
+=end table
+
+=head2 Notes on the three additional fonts
+
+Each table above shows three more fonts that are included in the
+'/resources' directory, along with several other files, that will be
+installed into your '$*HOME/.FontFactory/fonts' or
+'$*HOME/.FontFactory/docs' directories, as appropriate.
+
+The MICR fonts (more formally known as E13B) are designed to produce
+the machine-readable numbers found on bank checks in the US and Canada
+and other countries around the world, promarily in Asia.
+
+An equivalent font, CMC7, is used in other countries, primarily South
+America and Europe.
+
+=head3 MICRE
+
+That is a MICRE font in TrueType format ('.ttf').  The
+MICR Encoding font, used for bank checks, was obtained from
+L<1001fonts.com|https://www.1001fonts.com/micr-encoding-font.html>.
+
+The downloaded file was named C<micr-encoding.zip> (which was deleted
+after unzipping it).  When file C<micr-encoding.zip> was unzipped into
+an C<unzipped> directory, the following files were found:
+
+=begin code
+  '!DigitalGraphicLabs.html'
+  '!license.txt'
+  micrenc.ttf
+=end code
+
+The two files in single quotes were renamed to:
+
+=begin code
+DigitalGraphicLabs.html
+micrenc-license.txt
+=end code
+
+and all three files will be installed in your 
+'$*HOME/.FontFactory/docs' directory.
+
+The license basically says the font is free to use for non-commercial
+purposes. Consult the license carefully if you do intend to use it
+commercially.
+
+=head3 GnuMICR
+
+This is a GNU version of the MICRE font face, in OpenType format
+('.otf'), which I<can> be used commercially. See the GNU license in
+the I<COPYING.txt> file in the '/resources/docs' directory.
+
+See many more details and supporting files at the author's site at
+L<|https://sandeen.net/GnuMICR>.
+
+=head3 CMC7
+
+This is a free font designed by Harold Lohner, in 1998, and placed
+into the public domain by him. It was downloaded from
+L<https://www.fonts4free.net/cmc-7-font.html>. See more details and
+the license in the I<CMC7.txt> file in the '/resources/docs' directory.
+
+=head1 The DocFont class
+
+The C<$t12d5> object shown above in the I<SYNOPSIS> section is
+actually a C<DocFont> object that essentially pairs a
+C<PDF::Font::Loader::FontObj> with a C<size> attribute. That pairing,
+along with suitable naming of the object, can make it easier to manage
+font faces for complex documents as shown in a program constructing a
+simple PDF page (a copy is in this repository's 'examples' directory):
+
+=begin code
+#!/usr/bin/env raku
+use PDF::Lite;
+use PDF::Font::Loader :load-font;
+use FontFactory;
+use FontFactory::Classes;
+my $ff = FontFactory.new;
+my $t12d5 = $ff.get-font: "t12d5"; # FreeSerif (Times), 12.5 points
+my PDF::Lite $pdf .= new;
+$pdf.add-page.text: {
+   .font = $t12d.font, $t12d.size; # <== .font, .size (the two required values)
+   .text-position = [10, 600];
+   .say: "Hello, World!";
+}
+$pdf.save-as: "ff-example.pdf";
+=end code
+
+=head1 Binary executable file B<ff-helper>
+
+The program is installed along with the module and can be used to get
+access to the module's '/resources/bin' directory.  Executing the file
+without arguments shows its options:
+
+=begin code
+Usage: ff-helper <mode>
+
+Modes:
+  s - show /resources contents
+  f - download font files
+  p - print PDF of font samples
+  d - download example programs
+  L - download licenses
+  a - do all the above
+=end code
+
+=head1 The B<DocFont> class
+
+The class' attributes are scaled to the chosen size and the class
+provides several methods to enable the user to place text precisely on
+a PDF page:
+
+Listing a font's general attributes:
+
+=item CapHeight
+=item Descender
+=item number of glyphs (characters)
+
+Listing a string's attributes:
+
+=item stringwidth (with or without :kern, :ligatures)
+
+=head1 AUTHOR
+
+Tom Browder (mailto:tbrowder@acm.org)
+
+=head1 Summary of FONTS COPYRIGHT and LICENSE
+
+=begin item
+GNU FreeFonts - GNU GENERAL PUBLIC LICENSE Version 3
+
+See I</resources/docs/GPL-VERSION3.txt> and more information at
+L<https://www.gnu.org/software/freefont/>.
+
+=end item
+
+=begin item
+MICRE - DISTRIBUTED AS FREEWARE
+
+See I</resources/docs/micrenc-license.txt>
+=end item
+
+=begin item
+GnuMICRE - GNU GENERAL PUBLIC LICENSE Version 2, June 1991
+
+See I</resources/docs/COPYING.txt>
+=end item
+
+=begin item
+CMC7 - Public Domain
+
+See I</resources/docs/CMC7.txt>
+=end item
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright © 2024 Tom Browder
+
+This library is free software; you may redistribute it or modify it under the Artistic License 2.0.
+
+
+=end pod

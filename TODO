@@ -3,4 +3,5 @@ Add info for MacOS and Windows
 Add more font collections
 Add scripts to install fonts by root user
   use Auth::Utils linter or do by hand for downloadable script
-
+Ensure *.yml files load required font files
+  see FontFactory for some examples
