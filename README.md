@@ -36,7 +36,7 @@ Modes:
 
     Uses routine `show` to provide a list of each input font's attributes.
 
-  * sample @fonts | @dirs, :$text, :$media = 'Letter', :$orientation = 'Portrait', :$linespacing = 16, :$nglyphs, :$out = $*OUT
+  * sample @fonts | @dirs, :$text, :$media = 'Letter', :$orientation = 'Portrait', :$linespacing = 16, :$nglyphs, :$out = "sample.pdf"
 
     Uses routine `sample` to create a PDF document showing each input font at a default size of 12 points on Letter paper in Portrait orientation.
 

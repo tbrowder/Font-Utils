@@ -44,7 +44,7 @@ input font's attributes.
 
 =begin item 
 sample @fonts | @dirs, :$text, :$media = 'Letter', :$orientation = 'Portrait',
-                       :$linespacing = 16, :$nglyphs, :$out = $*OUT
+                       :$linespacing = 16, :$nglyphs, :$out = "sample.pdf"
 
 Uses routine C<sample> to create a PDF document showing each
 input font at a default size of 12 points on Letter paper
