@@ -57,7 +57,7 @@ The FontFactory font files
 On Debian:
 =begin code
 $ sudo aptitude install fonts-freefont-otf
-$ sudo aptitude install fonts-urw-base35-otf
+$ sudo aptitude install fonts-urw-base35
 $ sudo aptitude install fonts-ebgaramond
 $ sudo aptitude install fonts-ebgaramond-extra
 $ sudo aptitude install fonts-linuxlibertine
