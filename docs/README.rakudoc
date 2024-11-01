@@ -22,9 +22,13 @@ font-utils sample $font-file;
 
 =head1 DESCRIPTION
 
-B<Font::Utils> contains the following installed program:
+B<Font::Utils> contains the following installed program and classes and routines:
 
-=head2 font-utils
+=head2 Program: B<font-utils>
+
+=begin code
+font-utils <mode> [...options...]]
+=end code
 
 Modes:
 
@@ -54,6 +58,69 @@ If no text is supplied, and no specific number of glyphs is
 entered, the sample will show as many glyphs as can be shown
 on a single line of the alphanumeric
 glyphs in that font.
+=end item
+
+=head2 Classes
+
+=begin item
+C<class FreeFontFace> {...}>
+
+Contains all the attributes obtained in the C<$face> object created by module
+'Font::FreeFont' from a font file.
+=end item
+
+
+=head2 Routines
+
+=begin item
+=begin code
+sub to-string(
+    $cplist, 
+    --> Str) is export {...}
+=end code
+
+Given a list of hex codepoints, convert them to a string repr
+the first item in the list may be a string label
+=end item
+
+=begin item
+=begin code
+sub write-line(
+    $page,
+    :$font!,  # DocFont object
+    :$text!,
+    :$x!, :$y!,
+    :$align = "left", # left, right, center
+    :$valign = "baseline", # baseline, top, bottom
+    :$debug,
+) is export {
+=end code
+
+=end item
+
+=begin item
+=begin code
+sub rescale(
+    $font,
+    :$debug,
+    --> Numeric
+    ) is export {...}
+=end code
+
+Given a font object with its size setting (.size) and a string of text you
+want to be an actual height X, returns the calculated setting
+size to achieve that top bearing.
+=end item
+
+=begin item
+=begin code
+sub hex2dec(
+    Str $hex
+    --> Numeric
+    ) is export {...}
+=end code
+
+Converts an input hex string to a decimal number.
 =end item
 
 =head1 AUTHOR

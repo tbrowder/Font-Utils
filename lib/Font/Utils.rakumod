@@ -17,16 +17,10 @@ use Bin::Utils;
 use YAMLish;
 use PDF::Lite;
 
-class FontData {
+class FreeTypeFace {
     use Font::FreeType;
 
     has $.filename is required;
-
-    has $.adobe-equiv = "";
-    has $.colkey      = ""; # one or two letters for the collection key
-    has $.famkey      = ""; # digit for alpha order of family in the collection
-    has $.style       = ""; # add one or two letters for bold, italic (or oblique)
-    has $.code2       = ""; # for the base Adobe names Times, Helvetica, Courier
 
     my $p;
     my $face;
@@ -34,21 +28,6 @@ class FontData {
     submethod TWEAK {
         $p    = $!filename;
         $face = Font::FreeType.new.face: $!filename.Str;
-
-        # need a unique key for each font. based on
-        #   collection (directory) 
-        #   a number for the alpha order of the family name 
-        #   if bold or italic (oblique) add 'b' and 'i' (also recognize 'o'
-        #     for italic)
-        with $p {
-            when / urw '-' base35 / { $!colkey = $Ukey }
-            when / ebgaramond     / { $!colkey = $Ekey }
-            when / freefont       / { $!colkey = $Fkey }
-        }
-
-        # URW fonts and FreeFonts have an Adobe match, so we need to
-        # encode that as 'adobe-equiv' and 'code2' for a shorthand
-        # version
     }
 
     method basename        { $p.IO.basename                   }
@@ -64,15 +43,13 @@ class FontData {
 my $o = OS.new;
 my $onam = $o.name;
 
-# list of font file directories of primary
+# use list of font file directories of primary
 # interest on Debian (and Ubuntu)
 our @fdirs is export;
 with $onam {
     when /:i deb|ubu / {
         @fdirs = <
             /usr/share/fonts/opentype/freefont
-            /usr/share/fonts/opentype/urw-base35
-            /usr/share/fonts/opentype/ebgaramond
         >;
         =begin comment
         =end comment
@@ -104,9 +81,9 @@ sub help() is export {
     Windows.  This OS is '$onam'.
 
     Modes:
-      show   - Show details of font files on STDOUT
-      create - Create master lists for generating font data hashes and
-               classes for a set of font directories
+      show   - Show details of font files
+      list   -
+      sample - 
 
     Options:
       dir=X  - Where X is the desired font directory for investigation
@@ -116,17 +93,21 @@ sub help() is export {
 
 # options
 my $Rshow   = 0;
-my $Rcreate = 0;
+my $Rlist   = 0;
+my $Rsample = 0;
 my $debug   = 0;
 my $dir;
 
 sub use-args(@*ARGS) is export {
     for @*ARGS {
-        when /^ :i s / {
+        when /^ :i L / {
+            ++$Rlist;
+        }
+        when /^ :i sh / {
             ++$Rshow;
         }
-        when /^ :i c / {
-            ++$Rcreate;
+        when /^ :i sa / {
+            ++$Rsample;
         }
         when /^ :i 'dir=' (\S+) / {
             my $s = ~$0; # must be a directory
@@ -151,55 +132,6 @@ sub use-args(@*ARGS) is export {
         say "DEBUG is on";
     }
 
-    if $Rcreate {
-        my @dirs;
-        if $dir.defined {
-            @dirs.push: $dir;
-        }
-        else {
-            @dirs = @fdirs;
-        }
-
-        for @dirs -> $dir {
-            # need a name for the collection
-            my $prefix;
-            with $dir {
-                when /:i freefont / {
-                    $prefix = "FreeFonts";
-                }
-                when /:i urw / {
-                    $prefix = "URW-Fonts";
-                }
-                when /:i ebg / {
-                    $prefix = "EBGaramond-Fonts";
-                }
-                when /:i linux\-liber / {
-                    $prefix = "Linux-libertine-Fonts";
-                }
-                when /:i cantar / {
-                    $prefix = "Cantarell-Fonts";
-                }
-                default {
-                    die "FATAL: Unknown font collection '$_'";
-                }
-            }
-            my $jnam = "$prefix.json";
-
-            my @fils = find :$dir, :type<file>, :name(/:i '.' [o|t] tf $/);
-            for @fils {
-                my %h;
-                %h<font-dir> = $dir;
-                get-font-info $_, :%h, :$debug;
-                if $debug {
-                    say "DEBUG: \%h.gist:";
-                    say %h.gist;
-                    say "debug early exit"; exit;
-                }
-            }
-        }
-        exit;
-    }
-
     if $Rshow {
         my @dirs;
         if $dir.defined {
@@ -215,7 +147,7 @@ sub use-args(@*ARGS) is export {
         for @dirs -> $dir {
             my @fils = find :$dir, :type<file>, :name(/:i '.' [o|t] tf $/);
             for @fils {
-                my $o = FontData.new: :filename($_);
+                my $o = FreeTypeFace.new: :filename($_);
                 my $nam = $o.postscript-name;
                 my $fam = $o.family-name;
                 %fam{$fam} = 1;
@@ -250,13 +182,16 @@ sub use-args(@*ARGS) is export {
     }
 }
 
-sub get-font-info($path, :$debug --> FontData) is export {
+sub get-font-info(
+    $path, 
+    :$debug 
+    --> FreeTypeFace) is export {
 
     my $filename = $path.Str; # David's sub REQUIRES a Str for the $filename
-    my $o = FontData.new: :$filename;
+    my $o = FreeFontFace.new: :$filename;
 
     =begin comment
-    # methods in FontData class:
+    # methods in FreeTypeFace class:
     my $face     = Font::FreeType.new.face($filename);
     %h<basename>        = $path.IO.basename;
     %h<family-name>     = $face.family-name;

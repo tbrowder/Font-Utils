@@ -21,10 +21,12 @@ font-utils sample $font-file;
 DESCRIPTION
 ===========
 
-**Font::Utils** contains the following installed program:
+**Font::Utils** contains the following installed program and classes and routines:
 
-font-utils
-----------
+Program: **font-utils**
+-----------------------
+
+    font-utils <mode> [...options...]]
 
 Modes:
 
@@ -41,6 +43,47 @@ Modes:
     Uses routine `sample` to create a PDF document showing each input font at a default size of 12 points on Letter paper in Portrait orientation.
 
     If no text is supplied, and no specific number of glyphs is entered, the sample will show as many glyphs as can be shown on a single line of the alphanumeric glyphs in that font.
+
+Classes
+-------
+
+  * `class FontData` {...}>
+
+    Contains all the attributes obtained in the `$face` object created by module 'FreeFont' from a font file.
+
+Routines
+--------
+
+  *     sub to-string(
+          $cplist, 
+          --> Str) is export {...}
+
+    Given a list of hex codepoints, convert them to a string repr the first item in the list may be a string label
+
+  *     sub write-line(
+          $page,
+          :$font!,  # DocFont object
+          :$text!,
+          :$x!, :$y!,
+          :$align = "left", # left, right, center
+          :$valign = "baseline", # baseline, top, bottom
+          :$debug,
+      ) is export {
+
+  *     sub rescale(
+          $font,
+          :$debug,
+          --> Numeric
+          ) is export {...}
+
+    Given a font object with its size setting (.size) and a string of text you want to be an actual height X, returns the calculated setting size to achieve that top bearing.
+
+  *     sub hex2dec(
+          Str $hex
+          --> Numeric
+          ) is export {...}
+
+    Converts an input hex string to a decimal number.
 
 AUTHOR
 ======
