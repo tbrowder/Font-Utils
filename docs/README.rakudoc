@@ -2,7 +2,8 @@
 
 =head1 NAME
 
-B<Font::Utils> - Provides routines and programs to interrogate TTF and OTF font files
+B<Font::Utils> - Provides routines and programs to interrogate font directories
+and individual font files. 
 
 B<NOTE>: The intent is for this module to work on Linux, MacOS, and
 Windows.  Please file an issue if you need it on your OS.  The package
@@ -12,14 +13,47 @@ been ported to those two systems.
 =head1 SYNOPSIS
 
 =begin code :lang<raku>
-
 use Font::Utils;
-
+my $dir = "/usr/share/fonts/opentype/cantarell
+font-utils list $dir;
+font-utils show $font-file;
 =end code
 
 =head1 DESCRIPTION
 
-B<Font::Utils> is ...
+B<Font::Utils> contains the following installed program;
+
+=head2 font-utils
+
+Modes:
+
+=begin item 
+list $directory | @dirs, :$out = $*OUT
+
+Uses routine C<list> to provide a list
+of font families and their fonts in the input directories.
+=end item
+
+=begin item 
+show $file | @files | @dirs, :$out = $*OUT
+
+Uses routine C<show> to provide a list of each
+input font's attributes.
+=end item
+
+=begin item 
+sample @fonts | @dirs, :$text, :$media = 'Letter', :$orientation = 'Portrait',
+                       :$linespacing = 16, :$nglyphs, :$out = $*OUT
+
+Uses routine C<sample> to create a PDF document showing each
+input font at a default size of 12 points on Letter paper
+in Portrait orientation.
+
+If no text is supplied, and no specific number of glyphs is
+entered, the sample will show as many glyphs as can be shown
+on a single line of the alphanumeric
+glyphs in that font.
+=end item
 
 =head1 AUTHOR
 

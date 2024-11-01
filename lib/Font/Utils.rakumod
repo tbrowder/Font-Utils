@@ -17,16 +17,6 @@ use Bin::Utils;
 use YAMLish;
 use PDF::Lite;
 
-# Some hard-wired data for the current font collection by sets
-#   (file directories):
-my $Ekey = "E"; # E B Garamond
-my $Ukey = "U"; # URW Base 35
-my $Fkey = "F"; # FreeFonts
-my $Lkey = "L"; # Linux Libertine (may need subsets)
-my $Ckey = "C";
-
-# Additional sets may require two or more letters
-
 class FontData {
     use Font::FreeType;
 
