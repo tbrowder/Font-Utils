@@ -22,7 +22,7 @@ font-utils sample $font-file;
 
 =head1 DESCRIPTION
 
-B<Font::Utils> contains the following installed program and classes and routines:
+B<Font::Utils> contains the following installed program, classes, and routines:
 
 =head2 Program: B<font-utils>
 

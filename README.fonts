@@ -1,3 +1,11 @@
+Unicode notes:
+
+First printable character: 
+  0x0020 space
+Next printable character: 
+  0x0021 !     # <= use as first glyph in samples
+
+
 My font collections should have the same
 structure:
 

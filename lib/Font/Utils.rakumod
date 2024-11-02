@@ -17,17 +17,17 @@ use Bin::Utils;
 use YAMLish;
 use PDF::Lite;
 
-class FreeTypeFace {
+class FreeTypeFace is export {
     use Font::FreeType;
 
-    has $.filename is required;
+    has $.file is required;
 
     my $p;
     my $face;
 
     submethod TWEAK {
-        $p    = $!filename;
-        $face = Font::FreeType.new.face: $!filename.Str;
+        $p    = $!file;
+        $face = Font::FreeType.new.face: $!file.Str;
     }
 
     method basename        { $p.IO.basename                   }
@@ -37,6 +37,21 @@ class FreeTypeFace {
     method is-bold         { $face.is-bold   ?? True !! False }
     method is-italic       { $face.is-italic ?? True !! False }
     method font-format     { $face.font-format                }
+
+    method is-scalable     { $face.is-scalable    ?? True !! False }
+    method is-fixed-width  { $face.is-fixed-width ?? True !! False }
+    method has-kerning     { $face.has-kerning    ?? True !! False }
+
+    method has-reliable-glyph-name { $face.has-reliable-glyph-names ?? True 
+                                                                    !! False }
+    # properties
+
+    @properties.push: 'SFNT'        if $face.is-sfnt;
+    @properties.push: 'Horizontal'  if $face.has-horizontal-metrics;
+    @properties.push: 'Vertical'    if $face.has-vertical-metrics;
+    with $face.charmap {
+        @properties.push: 'enc:' ~ .key.subst(/^FT_ENCODING_/, '').lc
+            with .encoding;
 
 }
 
@@ -74,19 +89,27 @@ with $onam {
 
 sub help() is export {
     print qq:to/HERE/;
-    Usage: {$*PROGRAM.basename} <mode> [...options...]
+    Usage: {$*PROGRAM.basename} <mode> ...font files...
 
-    Creates various font-related files based on the user's OS
-    (recognized operating systems: Debian, Ubuntu, MacOS, and
-    Windows.  This OS is '$onam'.
+    Provides various programs and routines to aid working with
+    fonts. The first argument is the desired operation.
+    Remaining arguments are expected to be a set of font files
+    or files containing lists of files and directories to
+    investigate. 
+
+    Optional arguments for the 'sample' mode may be mixed in
+    with them. See the README for details.
+
+    The 'sample' mode can take one or more 'key=value' options 
+    as shown below.
 
     Modes:
+      list   - List family and font names in a font file
       show   - Show details of font files
-      list   -
-      sample - 
-
+      sample - Create a PDF document showing samples of
+                 selected fonts
     Options:
-      dir=X  - Where X is the desired font directory for investigation
+
     HERE
     exit;
 }
@@ -98,8 +121,10 @@ my $Rsample = 0;
 my $debug   = 0;
 my $dir;
 
-sub use-args(@*ARGS) is export {
-    for @*ARGS {
+sub use-args(@args is copy) is export {
+    my $mode = @args.shift;
+
+    with $mode {
         when /^ :i L / {
             ++$Rlist;
         }
@@ -109,24 +134,75 @@ sub use-args(@*ARGS) is export {
         when /^ :i sa / {
             ++$Rsample;
         }
-        when /^ :i 'dir=' (\S+) / {
-            my $s = ~$0; # must be a directory
-            if $s.IO.d {
-                $dir = $s;
-            }
-            else {
-                die qq:to/HERE/;
-                FATAL: Unknown directory '$s'
+        default {
+            die "FATAL: Uknown mode '$_'";
+        }
+    }
+
+    # remaining args are a mixed bag
+    my @dirs; 
+    my @fils; 
+    my %opts;
+
+    for @args {
+        when /^ :i (\w+) '=' (\w+) / {
+            my $key = ~$0;
+            my $val = ~$1;
+            # decode later
+            %opts{$key} = $val;
+        }
+        when $_.IO.d {
+            say "'$_' is a directory";
+            @dirs.push: $_;
+        }
+        when $_.IO.f {
+            say "'$_' is a file";
+            # handle it here
+            my @lines = $_.IO.lines;
+            if not @lines.elems {
+                note qq:to/HERE/;
+                WARNING: File '$_' is empty, skipping it.
                 HERE
+                next;
+            }
+            for @lines -> $line {
+                my @w = $line.words;
+                for @w -> $w {
+                    # should be a file name or a directory
+                    if $w.IO.d {
+                        @dirs.push: $w;
+                    }
+                    elsif $w.IO.f {
+                        @fils.push: $w;
+                    }
+                    else { 
+                        note qq:to/HERE/;
+                        WARNING: word '$w' in file '$_' is not a file or a directory
+                        HERE
+                    }
+                }
             }
         }
         when /^ :i d / {
             ++$debug;
         }
         default {
-            die "FATAL: Uknown arg '$_'";
+            die "FATAL: Uknown option '$_'";
         }
+    } # end of arg handling
+
+    # take care of @fils, @dirs, and %opts
+    my @DIRS;
+    my @FILS;
+    for @dirs {
+        say "DEBUG: trying a dummy file '$_'";
+        my $o = FreeTypeFace.new: :file($_);
     }
+    for @fils {
+        say "DEBUG: trying a dummy file '$_'";
+        my $o = FreeTypeFace.new: :file($_);
+    }
+
 
     if $debug {
         say "DEBUG is on";
@@ -147,7 +223,7 @@ sub use-args(@*ARGS) is export {
         for @dirs -> $dir {
             my @fils = find :$dir, :type<file>, :name(/:i '.' [o|t] tf $/);
             for @fils {
-                my $o = FreeTypeFace.new: :filename($_);
+                my $o = FreeTypeFace.new: :file($_);
                 my $nam = $o.postscript-name;
                 my $fam = $o.family-name;
                 %fam{$fam} = 1;
@@ -187,64 +263,15 @@ sub get-font-info(
     :$debug 
     --> FreeTypeFace) is export {
 
-    my $filename = $path.Str; # David's sub REQUIRES a Str for the $filename
-    my $o = FreeFontFace.new: :$filename;
-
-    =begin comment
-    # methods in FreeTypeFace class:
-    my $face     = Font::FreeType.new.face($filename);
-    %h<basename>        = $path.IO.basename;
-    %h<family-name>     = $face.family-name;
-    %h<style-name>      = $face.style-name;
-    %h<postscript-name> = $face.postscript-name;
-    %h<is-bold>         = 1 if $face.is-bold;
-    %h<is-italic>       = 1 if $face.is-italic;
-    %h<font-format>     = $face.font-format;
-    =end comment
-
-    # URW fonts and FreeFonts have an Adobe match, so we need to
-    # encode that as 'adobe-equiv' and 'code2' for a shorthand
-    # version
-    my ($adobe-equiv, $code2);
-    =begin comment
-    with $face.postscript-name {
-        }
-        # FreeFonts
-        when /:i freeserif $/ {
-        when /:i freeserif bold $/ {
-        when /:i freeserif italic $/ {
-        when /:i freeserif bold italic $/ {
-
-        # URW Fonts
-        when // {
-        }
-    }
-    if $debug {
-        my $bi = 0;
-        my $b  = 0;
-        my $i  = 0;
-        if %h<is-bold>:exists {
-            $bi = 1;
-            $b  = 1;
-        }
-        if %h<is-italic>:exists {
-            $bi = 1;
-            $i  = 1;
-        }
-        say "PS name: ", %h<postscript-name>;
-        if $bi {
-            say "  is-bold"   if $b;
-            say "  is-italic" if $i;
-        }
-    }
-    =end comment
+    my $file = $path.Str; # David's sub REQUIRES a Str for the $filename
+    my $o = FreeTypeFace.new: :$file;
 }
 
 sub show-font-info($path, :$debug) is export {
-    my $filename = $path.Str; # David's sub REQUIRES a Str for the $filename
-    my $face = Font::FreeType.new.face($filename);
+    my $file = $path.Str; # David's sub REQUIRES a Str for the $filename
+    my $face = Font::FreeType.new.face($file);
 
-    say "Path: $filename";
+    say "Path: $file";
     my $bname = $path.IO.basename;
 
     say "  Basename: ", $bname;
@@ -256,13 +283,12 @@ sub show-font-info($path, :$debug) is export {
     say "  Format: ", $_
         with $face.font-format;
 
+    # properties
     my @properties;
     @properties.push: '  Bold' if $face.is-bold;
     @properties.push: '  Italic' if $face.is-italic;
     say @properties.join: '  ' if @properties;
-
     @properties = ();
-
     @properties.push: 'Scalable'    if $face.is-scalable;
     @properties.push: 'Fixed width' if $face.is-fixed-width;
     @properties.push: 'Kerning'     if $face.has-kerning;
