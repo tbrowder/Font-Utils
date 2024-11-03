@@ -30,28 +30,42 @@ class FreeTypeFace is export {
         $face = Font::FreeType.new.face: $!file.Str;
     }
 
-    method basename        { $p.IO.basename                   }
-    method family-name     { $face.family-name                }
-    method style-name      { $face.style-name                 }
-    method postscript-name { $face.postscript-name            }
-    method is-bold         { $face.is-bold   ?? True !! False }
-    method is-italic       { $face.is-italic ?? True !! False }
-    method font-format     { $face.font-format                }
+    method basename             { $p.IO.basename        }
+    method family-name          { $face.family-name     }
+    method style-name           { $face.style-name      }
+    method postscript-name      { $face.postscript-name }
+    method font-format          { $face.font-format     }
+    method num-glyphs           { $face.num-glyphs      }
+    method bbox                 { $face.bbox            }
 
-    method is-scalable     { $face.is-scalable    ?? True !! False }
-    method is-fixed-width  { $face.is-fixed-width ?? True !! False }
-    method has-kerning     { $face.has-kerning    ?? True !! False }
+    method is-scalable          { $face.is-scalable          ?? True !! False }
+    method is-fixed-width       { $face.is-fixed-width       ?? True !! False }
+    method has-kerning          { $face.has-kerning          ?? True !! False }
+    method is-bold              { $face.is-bold              ?? True !! False }
+    method is-italic            { $face.is-italic            ?? True !! False }
+    method is-sfnt              { $face.is-sfnt              ?? True !! False }
+    method fixed-sizes          { $face.fixed-sizes          ?? True !! False }
+    method scaled-metrics       { $face.scaled-metrics       ?? True !! False }
+    method has-vertical-metrics { $face.has-vertical-metrics ?? True !! False }
+    method has-glyph-names      { $face.has-glyph-names      ?? True !! False }
 
-    method has-reliable-glyph-name { $face.has-reliable-glyph-names ?? True 
-                                                                    !! False }
+    method has-horizontal-metrics   { 
+        $face.has-horizontal-metrics   ?? True !! False
+    }
+    method has-reliable-glyph-names { 
+        $face.has-reliable-glyph-names ?? True !! False 
+    }
+
+=begin comment
+    # TODO make methods
     # properties
-
     @properties.push: 'SFNT'        if $face.is-sfnt;
     @properties.push: 'Horizontal'  if $face.has-horizontal-metrics;
     @properties.push: 'Vertical'    if $face.has-vertical-metrics;
     with $face.charmap {
         @properties.push: 'enc:' ~ .key.subst(/^FT_ENCODING_/, '').lc
             with .encoding;
+=end comment
 
 }
 

@@ -21,7 +21,7 @@ font-utils sample $font-file;
 DESCRIPTION
 ===========
 
-**Font::Utils** contains the following installed program and classes and routines:
+**Font::Utils** contains the following installed program, classes, and routines:
 
 Program: **font-utils**
 -----------------------
@@ -47,9 +47,9 @@ Modes:
 Classes
 -------
 
-  * `class FontData` {...}>
+  * `class FreeFontFace` {...}>
 
-    Contains all the attributes obtained in the `$face` object created by module 'FreeFont' from a font file.
+    Contains all the attributes obtained in the `$face` object created by module 'Font::FreeFont' from a font file.
 
 Routines
 --------

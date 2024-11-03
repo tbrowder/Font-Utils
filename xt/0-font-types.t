@@ -3,7 +3,6 @@ use Test;
 use Font::Utils;
 
 my $f1 = "xt/data/fontforge.fonts";
-my $f2 = "xt/data/myfonts.list";
 
 for $f1.IO.lines -> $basename {
     # incomplete paths
@@ -11,11 +10,6 @@ for $f1.IO.lines -> $basename {
     my $file = "$dir/$basename";
 
     my $o = Font::Utils::FreeTypeFace.new: :$file;
-}
-
-for $f2.IO.lines {
-    # complete paths
-    my $o = Font::Utils::FreeTypeFace.new: :file($_);
 }
 
 done-testing;
