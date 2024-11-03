@@ -3,11 +3,11 @@ unit module Font::Utils;
 =begin comment
 # freefont locations by OS
 my $Ld = "/usr/share/fonts/opentype/freefont";
-
 my $Md = "/opt/homebrew/Caskroom/font-freefont/20120503/freefont-20120503";
 my $Wd = "/usr/share/fonts/opentype/freefont";
 =end comment
 
+use MacOS::NativeLib "*";
 use QueryOS;
 use Font::FreeType;
 use Font::FreeType::Glyph;
@@ -16,6 +16,7 @@ use Text::Utils :strip-comment;
 use Bin::Utils;
 use YAMLish;
 use PDF::Lite;
+use PDF::API6;
 
 class FreeTypeFace is export {
     use Font::FreeType;
@@ -122,7 +123,13 @@ sub help() is export {
       show   - Show details of font files
       sample - Create a PDF document showing samples of
                  selected fonts
+
     Options:
+      ng=X   - Where X is the maximum number of glyphs to show
+      m=A4   - A4 media
+      o=L    - Landscape orientation
+      s=X    - Where X is the font size
+      of=X   - Where X is the name of the output file
 
     HERE
     exit;
@@ -356,26 +363,55 @@ sub pdf-font-samples(
     # given a list of font files and a text string
     # prints PDF pages in the given font sizes
     @fonts,
-    :$text!,
+    :$text,                   #= if not defined, use glyphs in sequence from 100
+    :$ngyphs = 0,             #= use a number > 0 to limit num of glyphs shown
     :$size  = 12,
     :$media = 'Letter',
     :$orientation = 'portrait',
     :$margins = 72,
+    :$ofil = "font-samples.pdf",
     :$debug,
     ) is export {
+
+    # start the document
+    my $pdf  = PDF::Lite.new;
+    if $media.contains( 'let', :i) {
+        $pdf.media-box = (0, 0, 8.5*72, 11.0*72);
+    }
+    else {
+        # TODO set A4 values
+        $pdf.media-box = (0, 0, 8.5*72, 11.0*72);
+    }
+
+    my $page;
+    my $next-font-index = 0;
+
+    # print the pages(s)
+    while $next-font-index < @fonts.elems {
+        $page = $pdf.add-page;
+        $page.media-box = $pdf.media-box;
+        $next-font-index = make-page $next-font-index, @fonts,
+           :$page, :$size, :$orientation, :$margins, :$debug;
+    }
+
+
 } # sub pdf-font-samples
 
 sub make-page(
-              PDF::Lite :$pdf!,
+              $next-font-index is copy,
+              @fonts,
               PDF::Lite::Page :$page!,
-              :$font!,
-              :$font-size = 10,
-              :$title-font!,
-              :$landscape = False,
-              :$font-name!,
-              :%h!, # data
+              :$size,
+              :$orientation,
+              :$margins,
+              :$debug,
+              --> UInt
 ) is export {
-    my ($cx, $cy);
+    # we must keep track of how many fonts were shown
+    # on the page and return a suitable reference
+
+    # some references 
+    my ($ulx, $uly, $pwidth, $pheight);
 
     =begin comment
     my $up = $font.underlne-position;
@@ -384,18 +420,21 @@ sub make-page(
     note "Underline thickness: $ut";
     =end comment
 
-    # portrait
+    # portrait is default
     # use the page media-box
-    $cx = 0.5 * ($page.media-box[2] - $page.media-box[0]);
-    $cy = 0.5 * ($page.media-box[3] - $page.media-box[1]);
-
-    if not $landscape {
+    $pwidth  = $page.media-box[2];
+    $pheight = $page.media-box[3];
+    if $orientation.contains('land', :i) {
+        # need a transformation
         die "FATAL: Tom, fix this";
         return
+        $pwidth  = $page.media-box[3];
+        $pheight = $page.media-box[2];
     }
+    $ulx = 0;
+    $uly = $pheight;
 
     my (@bbox, @position);
-
 
     =begin comment
     $page.graphics: {
@@ -522,6 +561,8 @@ my $pn = "Page $curr-page of $npages"; # upper-right, right-justified
         .Restore; # end of all data to be printed on this page
     }
     =end comment
+    $next-font-index;
+
 } # sub make-page
 
 

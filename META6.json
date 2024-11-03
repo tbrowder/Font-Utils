@@ -6,13 +6,15 @@
   "build-depends": [
   ],
   "depends": [
+    "MacOS::LibNative",
     "YAMLish",
     "PDF::Lite",
     "PDF::Content",
     "PDF::API6",
     "QueryOS",
     "Font::FreeType",
-    "Font::FreeType::Glyph",
+    "Font::FreeType",
+    "PDF::Font::Loader:ver<0.8.9>",
     "Bin::Utils",
     "File::Find:ver<0.2.1>",
     "Text::Utils"
@@ -22,7 +24,8 @@
   "name": "Font::Utils",
   "perl": "6.d",
   "provides": {
-    "Font::Utils": "lib/Font/Utils.rakumod"
+    "Font::Utils": "lib/Font/Utils.rakumod",
+    "Font::Utils::NameTags": "lib/Font/Utils/NameTags.rakumod"
   },
   "resources": [
   ],

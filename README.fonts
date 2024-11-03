@@ -1,3 +1,6 @@
+See code in NameTags for latest page-making code
+including text boxes and such.
+
 Unicode notes:
 
 First printable character: 
@@ -11,7 +14,7 @@ structure:
 
   PDF::FreeFonts
   PDF::URW-Fonts
-  PDF::MyFonts   # user selected, plus EBGaramond?
+  ...
 
 # generate files from a hash-like input list
 # create the list automatically from a file list
