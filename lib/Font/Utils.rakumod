@@ -311,13 +311,18 @@ sub use-args(@args is copy) is export {
 sub get-font-info(
     $path, 
     :$debug 
-    --> FreeTypeFace) is export {
+    --> FreeTypeFace
+    ) is export {
 
     my $file = $path.Str; # David's sub REQUIRES a Str for the $filename
     my $o = FreeTypeFace.new: :$file;
 }
 
-sub show-font-info($path, :$debug) is export {
+sub show-font-info(
+    $path, 
+    :$debug
+    ) is export {
+
     my $file = $path.Str; # David's sub REQUIRES a Str for the $filename
     my $face = Font::FreeType.new.face($file);
 
@@ -382,17 +387,31 @@ sub show-font-info($path, :$debug) is export {
     }
 }
 
-sub hex2dec($hex, :$debug) is export {
+sub hex2dec(
+    $hex, 
+    :$debug
+    ) is export {
     # converts an input hex sring to a decimal number
     my $dec = parse-base $hex, 16;
     $dec;
+}
+
+sub X(
+    $font-file,
+    :$text is copy,
+    :$size,
+    :$nglyphs = 0,
+    :$width!,      #= max length of a line of text of font F and size S
+    :$debug,
+    --> Str        #= with line breaks per input params
+    ) is export {
 }
 
 sub pdf-font-samples(
     # given a list of font files and a text string
     # prints PDF pages in the given font sizes
     @fonts,
-    :$text,                   #= if not defined, use glyphs in sequence from 100
+    :$text is copy,           #= if not defined, use glyphs in sequence from 100
     :$ngyphs = 0,             #= use a number > 0 to limit num of glyphs shown
     :$size  = 12,
     :$media = 'Letter',
@@ -402,14 +421,18 @@ sub pdf-font-samples(
     :$debug,
     ) is export {
 
+    if not $text.defined {
+    }
+
     # start the document
     my $pdf  = PDF::Lite.new;
     if $media.contains( 'let', :i) {
         $pdf.media-box = (0, 0, 8.5*72, 11.0*72);
     }
     else {
-        # TODO set A4 values
-        $pdf.media-box = (0, 0, 8.5*72, 11.0*72);
+        # A4 w x h = 210 mm x 297 mm
+        # 25.4 mm per inch
+        $pdf.media-box = (0, 0, 210 / 25.4 * 72, 297 / 25.4 * 72);
     }
 
     my $page;

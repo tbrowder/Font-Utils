@@ -1,3 +1,6 @@
+unit module PDF::Utils::NameTags;
+
+=begin comment
 unit module PDF::NameTags;
 
 use MacOS::NativeLib "*";
@@ -1979,3 +1982,5 @@ sub list-block-width(
     --> List
     ) is export {
 } # list-block-width
+=end comment
+
