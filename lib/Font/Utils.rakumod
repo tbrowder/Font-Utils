@@ -38,6 +38,12 @@ class FreeTypeFace is export {
     method font-format          { $face.font-format     }
     method num-glyphs           { $face.num-glyphs      }
     method bbox                 { $face.bbox            }
+    method height               { $face.height          }
+    method leading              { $face.height          } # alias
+
+    # size and glyph info
+    #method set-font-size($size) { $face.
+
 
     method is-scalable          { $face.is-scalable          ?? True !! False }
     method is-fixed-width       { $face.is-fixed-width       ?? True !! False }
@@ -60,9 +66,6 @@ class FreeTypeFace is export {
 =begin comment
     # TODO make methods
     # properties
-    @properties.push: 'SFNT'        if $face.is-sfnt;
-    @properties.push: 'Horizontal'  if $face.has-horizontal-metrics;
-    @properties.push: 'Vertical'    if $face.has-vertical-metrics;
     with $face.charmap {
         @properties.push: 'enc:' ~ .key.subst(/^FT_ENCODING_/, '').lc
             with .encoding;
