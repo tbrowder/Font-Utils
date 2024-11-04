@@ -14,7 +14,6 @@
     "PDF::API6",
     "QueryOS",
     "Font::FreeType",
-    "Font::FreeType",
     "PDF::Font::Loader:ver<0.8.9>",
     "Bin::Utils",
     "File::Find:ver<0.2.1>",
