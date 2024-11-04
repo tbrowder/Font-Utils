@@ -165,7 +165,14 @@ sub use-args(@args is copy) is export {
             ++$Rsample;
         }
         default {
-            die "FATAL: Uknown mode '$_'";
+            if $mode ~~ /^ :i s/ {
+                say "FATAL: Uknown mode '$_'";
+                say "  (did you mean 'show' or 'sample'?)";
+            }
+            else {
+                say "FATAL: Uknown mode '$_'";
+            }
+            exit;
         }
     }
 
@@ -689,65 +696,150 @@ sub find-local-font {
     # my $f = 
 }
 
+sub deg2rad($degrees) {
+    $degrees * pi / 180
+}
+
+sub rad2deg($radians) {
+
+our &draw-box-clip = &draw-rectangle-clip;
+sub draw-rectangle-clip(
+    :$llx!,
+    :$lly!,
+    :$width!,
+    :$height!,
+    :$page!,
+    :$stroke-color = (color Black),
+    :$fill-color   = (color White),
+    :$linewidth = 0,
+    :$fill is copy,
+    :$stroke is copy,
+    :$clip is copy,
+    :$debug,
+    ) is export {
+
+    $fill   = 0 if not $fill.defined;
+    $stroke = 0 if not $stroke.defined;
+    $clip   = 0 if not $clip.defined;
+    # what if none are defined?
+    if $clip {
+        # MUST NOT TRANSFORM OR TRANSLATE
+        ($fill, $stroke) = 0, 0;
+    }
+    else {
+        # make stroke the default
+        $stroke = 1 if not ($fill or $stroke);
+    }
+    if $debug {
+        say "   Drawing a circle...";
+        if $fill {
+            say "     Filling with color $fill-color...";
+        }
+        if $stroke {
+            say "     Stroking with color $stroke-color...";
+        }
+        if $clip {
+            say "     Clipping the circle";
+        }
+        else {
+            say "     NOT clipping the circle";
+        }
+    }
+    my $g = $page.gfx;
+    $g.Save if not $clip; # CRITICAL
+    # NO translation
+    if not $clip {
+        $g.SetLineWidth: $linewidth;
+        $g.StrokeColor = $stroke-color;
+        $g.FillColor   = $fill-color;
+    }
+    # draw the path
+    $g.MoveTo: $llx, $lly;
+    $g.LineTo: $llx+$width, $lly;
+    $g.LineTo: $llx+$width, $lly+$height;
+    $g.LineTo: $llx       , $lly+$height;
+    $g.ClosePath;
+    if not $clip {
+        if $fill and $stroke {
+            $g.FillStroke;
+        }
+        elsif $fill {
+            $g.Fill;
+        }
+        elsif $stroke {
+            $g.Stroke;
+        }
+        else {
+            die "FATAL: Unknown drawing status";
+        }
+        $g.Restore;
+    }
+    else {
+        $g.Clip;
+        $g.EndPath;
+    }
+
+} # sub draw-rectangle-clip
+
 =finish
 
 # to be exported when the new repo is created
 sub help is export {
-    print qq:to/HERE/;
-    Usage: {$*PROGRAM.basename} <mode>
+	print qq:to/HERE/;
+Usage: {$*PROGRAM.basename} <mode>
 
-    Modes:
-      a - all
-      p - print PDF of font samples
-      d - download example programs
-      L - download licenses
-      s - show /resources contents
-    HERE
-    exit
+	       Modes:
+	       a - all
+	       p - print PDF of font samples
+	       d - download example programs
+	       L - download licenses
+	       s - show /resources contents
+	       HERE
+	       exit
 }
 
 sub with-args(@args) is export {
-    for @args {
-        when /:i a / {
-            exec-d;
-            exec-p;
-            exec-L;
-            exec-s;
-        }
-        when /:i d / {
-            exec-d
-        }
-        when /:i p / {
-            exec-p
-        }
-        when /:i L / {
-            exec-L
-        }
-        when /:i s / {
-            exec-s
-        }
-        default {
-            say "ERROR: Unknown arg '$_'";
-        }
-    }
+	for @args {
+when /:i a / {
+	       exec-d;
+	       exec-p;
+	       exec-L;
+	       exec-s;
+       }
+when /:i d / {
+	       exec-d
+       }
+when /:i p / {
+	       exec-p
+       }
+when /:i L / {
+	       exec-L
+       }
+when /:i s / {
+	       exec-s
+       }
+       default {
+	       say "ERROR: Unknown arg '$_'";
+       }
+	}
 }
 
 # local subs, non-exported
 sub exec-d() {
-    say "Downloading example programs...";
+	say "Downloading example programs...";
 }
 sub exec-p() {
-    say "Downloading a PDF with font samples...";
+	say "Downloading a PDF with font samples...";
 }
 sub exec-L() {
-    say "Downloading font licenses...";
+	say "Downloading font licenses...";
 }
 sub exec-s() {
-    say "List of /resources:";
-    my %h = get-resources-hash;
-    my %m = get-meta-hash;
-    my @arr = @(%m<resources>);
-    for @arr.sort -> $k {
-        say "  $k";
-    }
+	say "List of /resources:";
+	my %h = get-resources-hash;
+	my %m = get-meta-hash;
+	my @arr = @(%m<resources>);
+	for @arr.sort -> $k {
+		say "  $k";
+	}
 }

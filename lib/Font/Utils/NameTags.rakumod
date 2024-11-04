@@ -844,7 +844,6 @@ sub draw-rectangle-clip(
     :$clip is copy,
     :$debug,
     ) is export {
-
     $fill   = 0 if not $fill.defined;
     $stroke = 0 if not $stroke.defined;
     $clip   = 0 if not $clip.defined;
@@ -857,7 +856,6 @@ sub draw-rectangle-clip(
         # make stroke the default
         $stroke = 1 if not ($fill or $stroke);
     }
-
     if $debug {
         say "   Drawing a circle...";
         if $fill {
@@ -873,25 +871,20 @@ sub draw-rectangle-clip(
             say "     NOT clipping the circle";
         }
     }
-
-
     my $g = $page.gfx;
     $g.Save if not $clip; # CRITICAL
     # NO translation
-
     if not $clip {
         $g.SetLineWidth: $linewidth;
         $g.StrokeColor = $stroke-color;
         $g.FillColor   = $fill-color;
     }
-
     # draw the path
     $g.MoveTo: $llx, $lly;
     $g.LineTo: $llx+$width, $lly;
     $g.LineTo: $llx+$width, $lly+$height;
     $g.LineTo: $llx       , $lly+$height;
     $g.ClosePath;
-
     if not $clip {
         if $fill and $stroke {
             $g.FillStroke;
@@ -905,15 +898,13 @@ sub draw-rectangle-clip(
         else {
             die "FATAL: Unknown drawing status";
         }
-
         $g.Restore;
     }
     else {
         $g.Clip;
         $g.EndPath;
     }
-
-} # sub draw-rectangle(
+} # sub draw-rectangle-clip
 
 sub make-graph-paper(
     $ofil,
@@ -996,7 +987,6 @@ sub make-graph-paper(
 sub deg2rad($degrees) {
     $degrees * pi / 180
 }
-
 sub rad2deg($radians) {
     $radians * 180 / pi
 }
@@ -1506,7 +1496,6 @@ sub write-page-data(
     }
 } #  sub write-page-data(
 
-
 sub make-printer-test-doc(
     $ofil,
     :$name!,            # printer name data
@@ -1530,7 +1519,6 @@ sub make-printer-test-doc(
 
     my $pdf  = PDF::Lite.new;
     $pdf.media-box = 0, 0, $gp.page-width, $gp.page-height;
-
 
     # front page
     $page = $pdf.add-page;
