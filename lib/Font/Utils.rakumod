@@ -118,6 +118,11 @@ sub help() is export {
     The 'sample' mode can take one or more 'key=value' options 
     as shown below.
 
+    All of the modes can take an 'eg' option to use a font
+    file on the user's system to demonstrate its use with a random
+    font (in order, the font type searched for is: .otf, .ttf,
+    .pfb, .woff).
+
     Modes:
       list   - List family and font names in a font file
       show   - Show details of font files
@@ -125,6 +130,7 @@ sub help() is export {
                  selected fonts
 
     Options:
+      eg     - For all modes, use a single random local font
       ng=X   - Where X is the maximum number of glyphs to show
       m=A4   - A4 media
       o=L    - Landscape orientation
@@ -135,7 +141,7 @@ sub help() is export {
     exit;
 }
 
-# options
+# modes and options
 my $Rshow   = 0;
 my $Rlist   = 0;
 my $Rsample = 0;
@@ -166,6 +172,11 @@ sub use-args(@args is copy) is export {
     my %opts;
 
     for @args {
+        when /^ :i eg $/ {
+            # use App::Rak to find a local font file
+            my $f = find-local-font;
+            @fils.push: $f;
+        }
         when /^ :i (\w+) '=' (\w+) / {
             my $key = ~$0;
             my $val = ~$1;
@@ -275,8 +286,23 @@ sub use-args(@args is copy) is export {
             say "$idx   $_";
         }
 
+        say "End of mode 'show'" if 1;
         exit;
-    }
+    } # end of $Rshow
+
+    if $Rlist {
+        say "End of mode 'list'" if 1;
+        exit;
+    } # end of $Rlist
+
+    if $Rsample {
+        say "End of mode 'sample'" if 1;
+        exit;
+    } # end of $Rlist
+
+
+
+
 }
 
 sub get-font-info(
@@ -436,7 +462,7 @@ sub make-page(
 
     my (@bbox, @position);
 
-    =begin comment
+=begin comment
     $page.graphics: {
         .Save;
         .transform: :translate($page.media-box[2], $page.media-box[1]);
@@ -560,11 +586,11 @@ my $pn = "Page $curr-page of $npages"; # upper-right, right-justified
         #=== end of all data to be printed on this page
         .Restore; # end of all data to be printed on this page
     }
-    =end comment
+=end comment
+
     $next-font-index;
 
 } # sub make-page
-
 
 sub rescale(
     $font,
@@ -632,6 +658,10 @@ sub to-string($cplist, :$debug --> Str) is export {
     $s
 } # sub to-string($cplist, :$debug --> Str) is export {
 
+sub find-local-font {
+    # TODO awaiting working 'rak'
+    # my $f = 
+}
 
 =finish
 

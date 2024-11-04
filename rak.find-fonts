@@ -1,2 +1,0 @@
-rak --absolute --find --is-readable --paths=/usr/share/fonts,/Users,~/Library/Fonts \
-    --extensions=pbf,otf,ttf,woff,t1

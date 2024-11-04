@@ -6,7 +6,8 @@
   "build-depends": [
   ],
   "depends": [
-    "MacOS::LibNative",
+    "App::Rak",
+    "MacOS::NativeLib",
     "YAMLish",
     "PDF::Lite",
     "PDF::Content",
