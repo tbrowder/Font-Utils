@@ -10,6 +10,7 @@
     "MacOS::NativeLib",
     "YAMLish",
     "PDF::Lite",
+    "PDF::Tags",
     "PDF::Content",
     "PDF::API6",
     "QueryOS",
