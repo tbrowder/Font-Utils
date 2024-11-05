@@ -781,6 +781,29 @@ sub draw-rectangle-clip(
 
 } # sub draw-rectangle-clip
 
+sub find-local-font-file(:$debug) {
+    # Find the first installed font file in the
+    # local file system for and example use.
+    use paths;
+    my $font-file = 0;
+    my @dirs  = </usr/share/fonts /Users ~/Library/Fonts>;
+    for @dirs -> $dir {
+        for paths($dir) -> $path {
+            # take the first of the set of known types handled by PDF 
+            # libraries (in order of preference)
+            if $path ~~ /:i otf|ttf|woff|pfb $/ {
+                $font-file = $path;
+                say "Font file: $path" if $debug;
+                last;
+            }
+        }
+    }
+    if not $font-file {
+        note "WARNING: No suitable font file was found."
+    }
+    $font-file
+}
+
 =finish
 
 # to be exported when the new repo is created

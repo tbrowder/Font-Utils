@@ -6,7 +6,7 @@
   "build-depends": [
   ],
   "depends": [
-    "App::Rak",
+    "paths",
     "Compress::PDF",
     "MacOS::NativeLib",
     "YAMLish",
