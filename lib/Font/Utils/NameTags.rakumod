@@ -1,6 +1,7 @@
 unit module PDF::Utils::NameTags;
 
 =begin comment
+
 unit module PDF::NameTags;
 
 use MacOS::NativeLib "*";
@@ -10,7 +11,6 @@ use PDF::Content::Color :ColorName, :color;
 use PDF::Content::XObject;
 use PDF::Tags;
 use PDF::Content::Text::Box;
-
 use Compress::PDF;
 
 use PDF::GraphPaper;
@@ -1335,6 +1335,7 @@ sub get-base-name(UInt $N --> Str) is export {
 
 subset Loc of UInt where 0 <= $_ < 12;
 sub put-text(
+    # text-box
     # based on my PostScript function /puttext
     $x is copy, $y is copy,
     :$text!,
@@ -1404,7 +1405,8 @@ Loc :$position = 0, #  where {0 <= $_ < 12},
     }
 =end comment
 
-} # sub label(
+} # sub put-text(
+# subset Loc of UInt where 0 <= $_ < 12;
 
 sub draw-cross-parts(
     :$x,

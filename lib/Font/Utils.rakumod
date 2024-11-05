@@ -17,6 +17,11 @@ use Bin::Utils;
 use YAMLish;
 use PDF::Lite;
 use PDF::API6;
+use PDF::Content::Color :ColorName, :color;
+use PDF::Content::XObject;
+use PDF::Tags;
+use PDF::Content::Text::Box;
+use Compress::PDF;
 
 class FreeTypeFace is export {
     use Font::FreeType;
@@ -699,8 +704,9 @@ sub find-local-font {
 sub deg2rad($degrees) {
     $degrees * pi / 180
 }
-
 sub rad2deg($radians) {
+    $radians * 180 / pi
+}
 
 our &draw-box-clip = &draw-rectangle-clip;
 sub draw-rectangle-clip(
@@ -781,7 +787,10 @@ sub draw-rectangle-clip(
 
 } # sub draw-rectangle-clip
 
-sub find-local-font-file(:$debug) {
+sub find-local-font-file(
+    :$debug,
+    ) is export {
+
     # Find the first installed font file in the
     # local file system for and example use.
     use paths;
@@ -803,6 +812,39 @@ sub find-local-font-file(:$debug) {
     }
     $font-file
 }
+
+sub print-text-box(
+    # text-box
+    $x is copy, $y is copy,
+    :$text!,
+    :$page!,
+    # defaults
+    :$font-size = 12,
+    :$fnt = "t", # key to %fonts, value is the loaded font
+    # optional constraints
+    :$width,
+    :$height,
+    ) is export {
+
+} # sub print-text-box
+
+sub print-text-line(
+    ) is export {
+
+    =begin comment
+    $page.graphics: {
+        my $gb = "GBUMC";
+        my $tx = $cx;
+        my $ty = $cy + ($height * 0.5) - $line1Y;
+        .transform: :translate($tx, $ty); # where $x/$y is the desired reference point
+        .FillColor = color White; #rgb(0, 0, 0); # color Black
+        .font = %fonts<hb>, #.core-font('HelveticaBold'),
+                 $line1size; # the size
+        .print: $gb, :align<center>, :valign<center>;
+    }
+    =end comment
+
+} # print-text-line
 
 =finish
 
