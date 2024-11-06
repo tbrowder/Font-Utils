@@ -1,3 +1,12 @@
+Define (and maybe decompose) the TextBox for reuse. Be sure and
+describe the use of:
+  + determing the actual bbox
+  + applying a constraint after determining the "natural"
+      bbox dimension (squeeze, constrain width or height
+      or both)
+
+Do as above for printing a line.
+
 Get a list of different font file types for testing in xt
 
 Add info for MacOS and Windows

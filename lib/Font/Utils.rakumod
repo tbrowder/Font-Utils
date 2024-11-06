@@ -826,6 +826,9 @@ sub print-text-box(
     :$height,
     ) is export {
 
+    # A text-box is resusable with new text only. All other
+    # attributes are rw but font and font-size are fixed.
+
 } # sub print-text-box
 
 sub print-text-line(
