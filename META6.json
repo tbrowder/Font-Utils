@@ -13,6 +13,7 @@
     "PDF::Lite",
     "PDF::Tags",
     "PDF::Content",
+    "PDF::Content::Text::Box",
     "PDF::API6",
     "QueryOS",
     "Font::FreeType",
