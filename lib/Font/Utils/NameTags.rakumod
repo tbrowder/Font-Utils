@@ -1,4 +1,5 @@
 unit module PDF::Utils::NameTags;
+=finish
 
 =begin comment
 
@@ -1937,7 +1938,7 @@ sub run(@args) is export {
 
 } # sub run(@args) is export
 
-=finish
+#=finish
 # there may be no need for this, see :verbatim and :squish
 sub print-lines(
     @text,
