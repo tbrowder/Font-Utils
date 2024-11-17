@@ -683,9 +683,9 @@ sub dec2string($declist, :$debug --> Str) is export {
         say "DEBUG: dec '$dec'" if $debug;
         if $dec.contains('-') {
             # it's a range
-            my @c = $dec.split('-');
-            my $a = @c.head;
-            my $b = @c.tail;
+            my @ends = $dec.split('-');
+            my $a = @ends.head;
+            my $b = @ends.tail;
             say "DEBUG: range: $a .. $b" if $debug;
             for $a..$b {
                 say "char decimal value '$_'" if 0 or $debug;
@@ -722,25 +722,28 @@ sub hex2string($hexlist, :$debug --> Str) is export {
         say "DEBUG: hex '$hex'" if $debug;
         if $hex.contains('-') {
             # it's a range
-            my @c = $hex.split('-');
-            my $a = @c.head;
-            my $b = @c.tail;
-            say "DEBUG: range: $a .. $b" if $debug;
-            for $a..$b {
-                # convert from hex to decimal
-                my $x = parse-base $_, 16;
-                say "char decimal value '$x'" if 0 or $debug;
+            # careful, have to convert the range to decimal
+            my @ends = $hex.split('-');
+            my $a = @ends.head;
+            my $b = @ends.tail;
+            # convert from hex to decimal
+            my $aa = parse-base "$a", 16;
+            my $bb = parse-base "$b", 16;
+            note "DEBUG: range hex: '$a' .. '$b'" if $debug;
+            note "DEBUG: range dec: '$aa' .. '$bb'" if $debug;
+            for $aa..$bb {
+                say "char decimal value '$_'" if 0 or $debug;
                 # get its char
-                my $d = $x.chr;
-                say "   its character: '$d'" if 0 or $debug;
-                $s ~= $d;
+                my $c = $_.chr;
+                say "   its character: '$c'" if 0 or $debug;
+                $s ~= $c;
             }
             next NUM;
         }
 
         say "char hex value '$hex'" if $debug;
         # convert from hex to decimal
-        my $x = parse-base $hex, 16;
+        my $x = parse-base "$hex", 16;
         # get its char
         my $c = $x.chr;
         say "   its character: '$c'" if $debug;
