@@ -27,7 +27,7 @@ B<Font::Utils> contains the following installed program, classes, and routines:
 =head2 Program: B<font-utils>
 
 =begin code
-font-utils <mode> [...options...]]
+font-utils <mode> [...options...]
 =end code
 
 Modes:
@@ -63,7 +63,7 @@ glyphs in that font.
 =head2 Classes
 
 =begin item
-C<class FreeFontFace> {...}>
+C<class FreeFontFace> {...}
 
 Contains all the attributes obtained in the C<$face> object created by module
 'Font::FreeFont' from a font file.
@@ -74,13 +74,22 @@ Contains all the attributes obtained in the C<$face> object created by module
 
 =begin item
 =begin code
-sub to-string(
-    $cplist, 
+sub hex2string(
+    $code-point-list, 
     --> Str) is export {...}
 =end code
 
-Given a list of hex codepoints, convert them to a string repr
-the first item in the list may be a string label
+Given a list of hexadecimal codepoints, convert them to a string.
+=end item
+
+=begin item
+=begin code
+sub dec2string(
+    $code-point-list, 
+    --> Str) is export {...}
+=end code
+
+Given a list of decimal codepoints, convert them to a string.
 =end item
 
 =begin item

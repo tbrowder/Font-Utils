@@ -49,7 +49,6 @@ class FreeTypeFace is export {
     # size and glyph info
     #method set-font-size($size) { $face.
 
-
     method is-scalable          { $face.is-scalable          ?? True !! False }
     method is-fixed-width       { $face.is-fixed-width       ?? True !! False }
     method has-kerning          { $face.has-kerning          ?? True !! False }
@@ -250,7 +249,6 @@ sub use-args(@args is copy) is export {
         my $o = FreeTypeFace.new: :file($_);
     }
 
-
     if $debug {
         say "DEBUG is on";
     }
@@ -372,7 +370,6 @@ sub show-font-info(
     #say @properties.join: '  ' if @properties;
     my $prop = @properties.join(' ');
     say "  $prop";
-
 
     say "  Units per em: ", $face.units-per-EM if $face.units-per-EM;
     if $face.is-scalable {
@@ -671,30 +668,87 @@ sub write-line(
     }
 } # sub write-line
 
-
-sub to-string($cplist, :$debug --> Str) is export {
-    # Given a list of hex codepoints, convert them to a string repr
-    # the first item in the list may be a string label
+sub dec2string($declist, :$debug --> Str) is export {
+    # Given a list of space-separated decimal codepoints, convert 
+    # them to a string representation.
     my @list;
-    if $cplist ~~ Str {
-        @list = $cplist.words;
+    if $declist ~~ Str {
+        @list = $declist.words;
     }
     else {
-        @list = @($cplist);
+        @list = @($declist);
     }
-    if @list.head ~~ Str { @list.shift };
     my $s = "";
-    for @list -> $cpair {
-        say "char pair '$cpair'" if $debug;
+    NUM: for @list -> $dec {
+        say "DEBUG: dec '$dec'" if $debug;
+        if $dec.contains('-') {
+            # it's a range
+            my @c = $dec.split('-');
+            my $a = @c.head;
+            my $b = @c.tail;
+            say "DEBUG: range: $a .. $b" if $debug;
+            for $a..$b {
+                say "char decimal value '$_'" if 0 or $debug;
+                # get its char
+                my $c = $_.chr;
+                say "   its character: '$c'" if 0 or $debug;
+                $s ~= $c
+            }
+            next NUM;
+        }
+ 
+        say "char decimal value '$dec'" if $debug;
+        # get its char
+        my $c = $dec.chr;
+        say "   its character: '$c'" if $debug;
+        $s ~= $c
+    }
+    $s
+
+} # sub dec2string
+
+sub hex2string($hexlist, :$debug --> Str) is export {
+    # Given a list of space-separated hexadecimal codepoints, convert 
+    # them to a string representation.
+    my @list;
+    if $hexlist ~~ Str {
+        @list = $hexlist.words;
+    }
+    else {
+        @list = @($hexlist);
+    }
+    my $s = "";
+    NUM: for @list -> $hex {
+        say "DEBUG: hex '$hex'" if $debug;
+        if $hex.contains('-') {
+            # it's a range
+            my @c = $hex.split('-');
+            my $a = @c.head;
+            my $b = @c.tail;
+            say "DEBUG: range: $a .. $b" if $debug;
+            for $a..$b {
+                # convert from hex to decimal
+                my $x = parse-base $_, 16;
+                say "char decimal value '$x'" if 0 or $debug;
+                # get its char
+                my $d = $x.chr;
+                say "   its character: '$d'" if 0 or $debug;
+                $s ~= $d;
+            }
+            next NUM;
+        }
+
+        say "char hex value '$hex'" if $debug;
         # convert from hex to decimal
-        my $x = parse-base $cpair, 16;
+        my $x = parse-base $hex, 16;
         # get its char
         my $c = $x.chr;
         say "   its character: '$c'" if $debug;
         $s ~= $c
     }
     $s
-} # sub to-string($cplist, :$debug --> Str) is export {
+} # sub hex2string
+
 
 sub find-local-font {
     # TODO awaiting working 'rak'
