@@ -71,7 +71,12 @@ Routines
         $code-point-list, 
         --> Str) is export {...}
 
-Given a list of hexadecimal codepoints, convert them to a string.
+Given a list of hexadecimal code points, convert them to a string. You may indicate a range of code points by separating the end points with a hyphen. For example:
+
+    my @symbols = <21-2f 3a-40 5b-60 7b-7e>;
+    my $s = hex2string @symbols;
+    say $s;
+    !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
 
 ### dec2string
 
@@ -79,7 +84,12 @@ Given a list of hexadecimal codepoints, convert them to a string.
         $code-point-list, 
         --> Str) is export {...}
 
-Given a list of decimal codepoints, convert them to a string.
+Given a list of decimal code points, convert them to a string. You may indicate a range of code points by separating the end points with a hyphen. For example:
+
+    my @symbols = <33-47 58-64 91-96 123-126>;
+    my $s = dec2string @symbols;
+    say $s;
+    !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
 
 ### write-line
 

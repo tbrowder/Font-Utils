@@ -669,7 +669,7 @@ sub write-line(
 } # sub write-line
 
 sub dec2string($declist, :$debug --> Str) is export {
-    # Given a list of space-separated decimal codepoints, convert 
+    # Given a list of space-separated decimal code points, convert 
     # them to a string representation.
     my @list;
     if $declist ~~ Str {
@@ -710,7 +710,7 @@ sub dec2string($declist, :$debug --> Str) is export {
 } # sub dec2string
 
 sub hex2string($hexlist, :$debug --> Str) is export {
-    # Given a list of space-separated hexadecimal codepoints, convert 
+    # Given a list of space-separated hexadecimal code points, convert 
     # them to a string representation.
     my @list;
     if $hexlist ~~ Str {
@@ -870,6 +870,32 @@ sub find-local-font-file(
         note "WARNING: No suitable font file was found."
     }
     $font-file
+}
+
+sub text-box(
+    $text = "",
+    :$font!, # fontobj from PDF::Font::Loader
+    :$font-size = 12,
+    # optional args with defaults
+    :$verbatim = False,
+    :$squish = False,
+    :$kern = True,
+    :$align = <left>, # center, right, justify
+    :$valign = <baseline>, # top, center, bottom
+    # optional args that depend on definedness
+    :$width,  # default is media-width
+    :$height, # default is none
+) is export {
+    my PDF::Content::Text::Box $tb .= new:
+        :$text,
+        :$font, :$font-size, :$kern, # <== note font information is rw
+        :$verbatim, :$squish, :$valign,
+        :$align, :$width, :$height;
+    # the text box object has these rw attributes:
+    #   constrain-height
+    #   constrain-width
+    #   
+    $tb
 }
 
 sub print-text-box(

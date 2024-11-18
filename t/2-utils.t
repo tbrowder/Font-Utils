@@ -40,6 +40,7 @@ say "sym ranges in decimal: $sr";
 =end comment
 
 $s2 = hex2string @symbols;
+say $s2;
 @chars = <30-39 41-5a 61-7a>;
 
 =begin comment
