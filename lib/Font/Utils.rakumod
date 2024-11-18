@@ -877,20 +877,26 @@ sub text-box(
     :$font!, # fontobj from PDF::Font::Loader
     :$font-size = 12,
     # optional args with defaults
-    :$verbatim = False,
     :$squish = False,
     :$kern = True,
-    :$align = <left>, # center, right, justify
-    :$valign = <baseline>, # top, center, bottom
-    # optional args that depend on definedness
+    :$align = <left>, # center, right, justify, start, end
+    :$valign = <bottom>, # top, center, bottom
     :$width = 8.5*72,  # default is Letter width in portrait orientation
     :$height = 11*72,  # default is Letter height in portrait orientation
+    :$indent = 0;
+    :$verbatim = False,
+    # optional args that depend on definedness
+    :$bidi,
+    
 ) is export {
     my PDF::Content::Text::Box $tb .= new:
         :$text,
         :$font, :$font-size, :$kern, # <== note font information is rw
-        :$verbatim, :$squish, :$valign,
-        :$align, :$width, :$height;
+        :$squish, :$valign,
+        :$align, :$width, :$height,
+        :$indent,
+        :$verbatim, 
+    ;
     # the text box object has these rw attributes:
     #   constrain-height
     #   constrain-width
