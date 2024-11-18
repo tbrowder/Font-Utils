@@ -28,28 +28,31 @@ Program: **font-utils**
 
     font-utils <mode> [...options...]
 
-Modes:
+### Modes
 
-  * list $directory | @dirs, :$out = $*OUT
+#### list `list $directory | @dirs, :$out = $*OUT`
 
-    Uses routine `list` to provide a list of font families and their fonts in the input directories.
+Uses routine `list` to provide a list of font families and their fonts in the input directories.
 
-  * show $file | @files | @dirs, :$out = $*OUT
+#### show `show $file | @files | @dirs, :$out = $*OUT`
 
-    Uses routine `show` to provide a list of each input font's attributes.
+Uses routine `show` to provide a list of each input font's attributes.
 
-  * sample @fonts | @dirs, :$text, :$media = 'Letter', :$orientation = 'Portrait', :$linespacing = 16, :$nglyphs, :$out = "sample.pdf"
+#### sample
 
-    Uses routine `sample` to create a PDF document showing each input font at a default size of 12 points on Letter paper in Portrait orientation.
+    sample @fonts | @dirs, :$text, :$media = 'Letter', :$orientation = 'Portrait',
+                           :$linespacing = 16, :$nglyphs, :$out = "sample.pdf"
 
-    If no text is supplied, and no specific number of glyphs is entered, the sample will show as many glyphs as can be shown on a single line of the alphanumeric glyphs in that font.
+Uses routine `sample` to create a PDF document showing each input font at a default size of 12 points on Letter paper in Portrait orientation.
+
+If no text is supplied, and no specific number of glyphs is entered, the sample will show as many glyphs as can be shown on a single line of the alphanumeric glyphs in that font.
 
 Classes
 -------
 
-  * `class FreeFontFace` {...}
+### FreeFontFace `class FreeFontFace {...}`
 
-    Contains all the attributes obtained in the `$face` object created by module 'Font::FreeFont' from a font file.
+Contains all the attributes obtained in the `$face` object created by module 'Font::FreeFont' from a font file.
 
 Routines
 --------
@@ -90,6 +93,24 @@ Routines
           ) is export {...}
 
     Converts an input hex string to a decimal number.
+
+  *     sub text-box(
+          Str $text,
+          :$font!,      #= fixed at creation
+          :$font-size!, #= fixed at creation
+          # variable args
+          :$ulx, :$ull, #= upper-left corner coordinates
+          :$width, :$height,
+
+
+          --> PDF::Contents::Text::Box
+          ) is export {...}
+
+    Given a chunk of text, a font object and font size, returns a text-box object that can be interrogated and manipulated and reused to print text boxes on a PDF page. Some parameters are fixed as marked in the signature above, but the rest can be changed upon reuse.
+
+    Fixed parameters: - 
+
+    Variable parameters: - $text
 
 AUTHOR
 ======
