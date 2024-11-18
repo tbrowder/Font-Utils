@@ -883,8 +883,8 @@ sub text-box(
     :$align = <left>, # center, right, justify
     :$valign = <baseline>, # top, center, bottom
     # optional args that depend on definedness
-    :$width,  # default is media-width
-    :$height, # default is none
+    :$width = 8.5*72,  # default is Letter width in portrait orientation
+    :$height = 11*72,  # default is Letter height in portrait orientation
 ) is export {
     my PDF::Content::Text::Box $tb .= new:
         :$text,
