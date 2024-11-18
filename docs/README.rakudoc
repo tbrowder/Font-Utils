@@ -24,7 +24,9 @@ font-utils sample $font-file;
 
 B<Font::Utils> contains the following installed program, classes, and routines:
 
-=head2 Program: B<font-utils>
+=head2 Program
+
+=head3 font-utils
 
 =begin code
 font-utils <mode> [...options...]
@@ -33,12 +35,14 @@ font-utils <mode> [...options...]
 =head3 Modes
 
 =head4 list
+
 C<list $directory | @dirs, :$out = $*OUT>
 
 Uses routine C<list> to provide a list
 of font families and their fonts in the input directories.
 
 =head4 show 
+
 C<show $file | @files | @dirs, :$out = $*OUT>
 
 Uses routine C<show> to provide a list of each
@@ -62,6 +66,7 @@ glyphs in that font.
 =head2 Classes
 
 =head3 FreeFontFace
+
 C<class FreeFontFace {...}>
 
 Contains all the attributes obtained in the C<$face> object created by module
@@ -69,7 +74,8 @@ Contains all the attributes obtained in the C<$face> object created by module
 
 =head2 Routines
 
-=begin item
+=head3 hex2string
+
 =begin code
 sub hex2string(
     $code-point-list, 
@@ -77,9 +83,8 @@ sub hex2string(
 =end code
 
 Given a list of hexadecimal codepoints, convert them to a string.
-=end item
 
-=begin item
+=head3 dec2string
 =begin code
 sub dec2string(
     $code-point-list, 
@@ -87,9 +92,8 @@ sub dec2string(
 =end code
 
 Given a list of decimal codepoints, convert them to a string.
-=end item
 
-=begin item
+=head3 write-line
 =begin code
 sub write-line(
     $page,
@@ -102,9 +106,7 @@ sub write-line(
 ) is export {
 =end code
 
-=end item
-
-=begin item
+=head3 rescale
 =begin code
 sub rescale(
     $font,
@@ -116,9 +118,8 @@ sub rescale(
 Given a font object with its size setting (.size) and a string of text you
 want to be an actual height X, returns the calculated setting
 size to achieve that top bearing.
-=end item
 
-=begin item
+=head3 hex2dec
 =begin code
 sub hex2dec(
     Str $hex
@@ -127,9 +128,9 @@ sub hex2dec(
 =end code
 
 Converts an input hex string to a decimal number.
-=end item
 
-=begin item
+=head3 text-box
+
 =begin code
 sub text-box(
     Str $text,
@@ -152,12 +153,8 @@ the signature above, but the rest can be changed
 upon reuse.
 
 Fixed parameters:
-  - 
 
 Variable parameters:
-  - $text
-
-=end item
 
 =head1 AUTHOR
 

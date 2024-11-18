@@ -23,18 +23,24 @@ DESCRIPTION
 
 **Font::Utils** contains the following installed program, classes, and routines:
 
-Program: **font-utils**
------------------------
+Program
+-------
+
+### font-utils
 
     font-utils <mode> [...options...]
 
 ### Modes
 
-#### list `list $directory | @dirs, :$out = $*OUT`
+#### list
+
+`list $directory | @dirs, :$out = $*OUT`
 
 Uses routine `list` to provide a list of font families and their fonts in the input directories.
 
-#### show `show $file | @files | @dirs, :$out = $*OUT`
+#### show 
+
+`show $file | @files | @dirs, :$out = $*OUT`
 
 Uses routine `show` to provide a list of each input font's attributes.
 
@@ -50,67 +56,81 @@ If no text is supplied, and no specific number of glyphs is entered, the sample 
 Classes
 -------
 
-### FreeFontFace `class FreeFontFace {...}`
+### FreeFontFace
+
+`class FreeFontFace {...}`
 
 Contains all the attributes obtained in the `$face` object created by module 'Font::FreeFont' from a font file.
 
 Routines
 --------
 
-  *     sub hex2string(
-          $code-point-list, 
-          --> Str) is export {...}
+### hex2string
 
-    Given a list of hexadecimal codepoints, convert them to a string.
+    sub hex2string(
+        $code-point-list, 
+        --> Str) is export {...}
 
-  *     sub dec2string(
-          $code-point-list, 
-          --> Str) is export {...}
+Given a list of hexadecimal codepoints, convert them to a string.
 
-    Given a list of decimal codepoints, convert them to a string.
+### dec2string
 
-  *     sub write-line(
-          $page,
-          :$font!,  # DocFont object
-          :$text!,
-          :$x!, :$y!,
-          :$align = "left", # left, right, center
-          :$valign = "baseline", # baseline, top, bottom
-          :$debug,
-      ) is export {
+    sub dec2string(
+        $code-point-list, 
+        --> Str) is export {...}
 
-  *     sub rescale(
-          $font,
-          :$debug,
-          --> Numeric
-          ) is export {...}
+Given a list of decimal codepoints, convert them to a string.
 
-    Given a font object with its size setting (.size) and a string of text you want to be an actual height X, returns the calculated setting size to achieve that top bearing.
+### write-line
 
-  *     sub hex2dec(
-          Str $hex
-          --> Numeric
-          ) is export {...}
+    sub write-line(
+        $page,
+        :$font!,  # DocFont object
+        :$text!,
+        :$x!, :$y!,
+        :$align = "left", # left, right, center
+        :$valign = "baseline", # baseline, top, bottom
+        :$debug,
+    ) is export {
 
-    Converts an input hex string to a decimal number.
+### rescale
 
-  *     sub text-box(
-          Str $text,
-          :$font!,      #= fixed at creation
-          :$font-size!, #= fixed at creation
-          # variable args
-          :$ulx, :$ull, #= upper-left corner coordinates
-          :$width, :$height,
+    sub rescale(
+        $font,
+        :$debug,
+        --> Numeric
+        ) is export {...}
+
+Given a font object with its size setting (.size) and a string of text you want to be an actual height X, returns the calculated setting size to achieve that top bearing.
+
+### hex2dec
+
+    sub hex2dec(
+        Str $hex
+        --> Numeric
+        ) is export {...}
+
+Converts an input hex string to a decimal number.
+
+### text-box
+
+    sub text-box(
+        Str $text,
+        :$font!,      #= fixed at creation
+        :$font-size!, #= fixed at creation
+        # variable args
+        :$ulx, :$ull, #= upper-left corner coordinates
+        :$width, :$height,
 
 
-          --> PDF::Contents::Text::Box
-          ) is export {...}
+        --> PDF::Contents::Text::Box
+        ) is export {...}
 
-    Given a chunk of text, a font object and font size, returns a text-box object that can be interrogated and manipulated and reused to print text boxes on a PDF page. Some parameters are fixed as marked in the signature above, but the rest can be changed upon reuse.
+Given a chunk of text, a font object and font size, returns a text-box object that can be interrogated and manipulated and reused to print text boxes on a PDF page. Some parameters are fixed as marked in the signature above, but the rest can be changed upon reuse.
 
-    Fixed parameters: - 
+Fixed parameters:
 
-    Variable parameters: - $text
+Variable parameters:
 
 AUTHOR
 ======
