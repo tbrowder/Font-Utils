@@ -684,11 +684,13 @@ sub dec2string($declist, :$debug --> Str) is export {
         if $dec.contains('-') {
             # it's a range
             my @ends = $dec.split('-');
-            my $a = @ends.head;
-            my $b = @ends.tail;
+            my $a = @ends.head.Int;
+            my $b = @ends.tail.Int;
             say "DEBUG: range: $a .. $b" if $debug;
             for $a..$b {
                 say "char decimal value '$_'" if 0 or $debug;
+                # get its hex value
+                #my $hex = $_.base(16);
                 # get its char
                 my $c = $_.chr;
                 say "   its character: '$c'" if 0 or $debug;

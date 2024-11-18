@@ -2,17 +2,29 @@ use Test;
 
 use Font::Utils;
 
-my ($s, $c, @symbols, @chars);
+my $debug = 0;
+my ($s1, $s2, $c1, $c2, @symbols, @chars);
+
+=begin comment
+for 1..2000 {
+    my $c = $_.chr;
+    next if $c.uniprop("M");
+    next if $c.uniprop("Z");
+    next if $c.uniprop("C");
+    say $c;
+}
+exit;
+=end comment
 
 # use decimals first
 #sym ranges in decimal: 33 47 58 64 91 96 123 126 
 @symbols = <33-47 58-64 91-96 123-126>;
-$s = dec2string @symbols;
+$s1 = dec2string @symbols;
 # char ranges in decimal: 48 57 65 90 97 122 
 @chars = <48-57 65-90 97-122>;
-$c = dec2string @chars;
-say "symbols: '$s'";
-say "chars:   '$c'";
+$c1 = dec2string @chars;
+say "symbols: '$s1'" if $debug;
+say "chars:   '$c1'" if $debug;
 
 # then use hex
 @symbols = <21-2f 3a-40 5b-60 7b-7e>;
@@ -27,7 +39,7 @@ for @s.kv -> $i, $v {
 say "sym ranges in decimal: $sr";
 =end comment
 
-$s = hex2string @symbols;
+$s2 = hex2string @symbols;
 @chars = <30-39 41-5a 61-7a>;
 
 =begin comment
@@ -40,8 +52,11 @@ for @c.kv -> $i, $v {
 say "char ranges in decimal: $cr";
 =end comment
 
-$c = hex2string @chars;
-say "symbols: '$s'";
-say "chars:   '$c'";
+$c2 = hex2string @chars;
+say "symbols: '$s2'" if $debug;
+say "chars:   '$c2'" if $debug;
+
+is $s1, $s2, "symbols are the same";
+is $c1, $c2, "chars are the same";
 
 done-testing;

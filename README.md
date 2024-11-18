@@ -26,7 +26,7 @@ DESCRIPTION
 Program: **font-utils**
 -----------------------
 
-    font-utils <mode> [...options...]]
+    font-utils <mode> [...options...]
 
 Modes:
 
@@ -47,18 +47,24 @@ Modes:
 Classes
 -------
 
-  * `class FreeFontFace` {...}>
+  * `class FreeFontFace` {...}
 
     Contains all the attributes obtained in the `$face` object created by module 'Font::FreeFont' from a font file.
 
 Routines
 --------
 
-  *     sub to-string(
-          $cplist, 
+  *     sub hex2string(
+          $code-point-list, 
           --> Str) is export {...}
 
-    Given a list of hex codepoints, convert them to a string repr the first item in the list may be a string label
+    Given a list of hexadecimal codepoints, convert them to a string.
+
+  *     sub dec2string(
+          $code-point-list, 
+          --> Str) is export {...}
+
+    Given a list of decimal codepoints, convert them to a string.
 
   *     sub write-line(
           $page,
