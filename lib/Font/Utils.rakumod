@@ -880,22 +880,22 @@ sub text-box(
     :$squish = False,
     :$kern = True,
     :$align = <left>, # center, right, justify, start, end
-    :$valign = <bottom>, # top, center, bottom
     :$width = 8.5*72,  # default is Letter width in portrait orientation
-    :$height = 11*72,  # default is Letter height in portrait orientation
     :$indent = 0;
-    :$verbatim = False,
     # optional args that depend on definedness
+    :$verbatim, #  = False,
+    :$height, # = 11*72,  # default is Letter height in portrait orientation
+    :$valign, #  = <bottom>, # top, center, bottom
     :$bidi,
     
 ) is export {
     my PDF::Content::Text::Box $tb .= new:
         :$text,
         :$font, :$font-size, :$kern, # <== note font information is rw
-        :$squish, :$valign,
-        :$align, :$width, :$height,
+        #:$squish, # valign shouldn't be used with a text-box
+        :$align, :$width, # :$height, # not directly constraining it
         :$indent,
-        :$verbatim, 
+        #:$verbatim, 
     ;
     # the text box object has these rw attributes:
     #   constrain-height
