@@ -6,6 +6,7 @@ use PDF::Lite;
 use Font::Utils;
 
 my $debug = 0;
+
 my $ffile = "/usr/share/fonts/opentype/freefont/FreeSerif.otf";
 my $pdf = PDF::Lite.new;
 my $page = $pdf.add-page;
@@ -22,8 +23,10 @@ isa-ok $o, PDF::Content::Text::Box;
 is $o.verbatim, False, "good False .verbatim";
 is $o.width, 8.5*72;
 is $o.height, 11*72;
+is $o.leading, 1.1, "leading: {$o.leading}";
+is $o.font-height, 17.844, "font-height: {$o.font-height}";
 
-$o = text-box $text, :$font, :width(6.5*72), :height(0);
+$o = text-box $text, :$font, :width(6.5*72), :height(12);
 
 my $gfx = $page.gfx;
 $gfx.BeginText;

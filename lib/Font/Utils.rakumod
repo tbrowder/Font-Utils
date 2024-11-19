@@ -459,14 +459,14 @@ sub pdf-font-samples(
 } # sub pdf-font-samples
 
 sub make-page(
-              $next-font-index is copy,
-              @fonts,
-              PDF::Lite::Page :$page!,
-              :$size,
-              :$orientation,
-              :$margins,
-              :$debug,
-              --> UInt
+    $next-font-index is copy,
+    @fonts,
+    PDF::Lite::Page :$page!,
+    :$size,
+    :$orientation,
+    :$margins,
+    :$debug,
+    --> UInt
 ) is export {
     # we must keep track of how many fonts were shown
     # on the page and return a suitable reference
