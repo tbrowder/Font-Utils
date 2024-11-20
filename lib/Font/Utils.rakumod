@@ -1,5 +1,23 @@
 unit module Font::Utils;
 
+our $HOME is export = 0;
+our $font-list is export;
+BEGIN {
+    if %*ENV<HOME>:exists {
+        $HOME = %*ENV<HOME>;
+    }
+    else {
+        die "FATAL: The environment variable HOME is not defined";
+    }
+    if not $HOME.IO.d {
+        die qq:to/HERE/;
+        FATAL: \$HOME directory '$HOME' is not usable.";
+        HERE
+    }
+    # the font list may not exist yet, but the name is reserved and exported
+    $font-list = "$HOME/.Font-Utils/font-files.list";
+}
+
 =begin comment
 # freefont locations by OS
 my $Ld = "/usr/share/fonts/opentype/freefont";
@@ -60,11 +78,15 @@ class FreeTypeFace is export {
     method has-vertical-metrics { $face.has-vertical-metrics ?? True !! False }
     method has-glyph-names      { $face.has-glyph-names      ?? True !! False }
 
-    method has-horizontal-metrics   { 
+    method has-horizontal-metrics   {
         $face.has-horizontal-metrics   ?? True !! False
     }
-    method has-reliable-glyph-names { 
-        $face.has-reliable-glyph-names ?? True !! False 
+    method has-reliable-glyph-names {
+        $face.has-reliable-glyph-names ?? True !! False
+    }
+
+    method stringwidth($s, :$font-size, :$kern) {
+        $face.stringwidth($s, $font-size, :$kern);
     }
 
 =begin comment
@@ -117,12 +139,12 @@ sub help() is export {
     fonts. The first argument is the desired operation.
     Remaining arguments are expected to be a set of font files
     or files containing lists of files and directories to
-    investigate. 
+    investigate.
 
     Optional arguments for the 'sample' mode may be mixed in
     with them. See the README for details.
 
-    The 'sample' mode can take one or more 'key=value' options 
+    The 'sample' mode can take one or more 'key=value' options
     as shown below.
 
     All of the modes can take an 'eg' option to use a font
@@ -131,28 +153,28 @@ sub help() is export {
     .pfb, .woff).
 
     Modes:
-      list   - List family and font names in a font file
-      show   - Show details of font files
-      sample - Create a PDF document showing samples of
-                 selected fonts
+      list    - List family and font names in a font file
+      show    - Show details of font files
+      sample  - Create a PDF document showing samples of
+                  selected fonts
 
     Options:
-      eg     - For all modes, use a single random local font
-      ng=X   - Where X is the maximum number of glyphs to show
-      m=A4   - A4 media
-      o=L    - Landscape orientation
-      s=X    - Where X is the font size
-      of=X   - Where X is the name of the output file
+      eg      - For all modes, use a single random local font
+      ng=X    - Where X is the maximum number of glyphs to show
+      m=A4    - A4 media
+      o=L     - Landscape orientation
+      s=X     - Where X is the font size
+      of=X    - Where X is the name of the output file
 
     HERE
     exit;
 }
 
 # modes and options
-my $Rshow   = 0;
-my $Rlist   = 0;
-my $Rsample = 0;
-my $debug   = 0;
+my $Rshow    = 0;
+my $Rlist    = 0;
+my $Rsample  = 0;
+my $debug    = 0;
 my $dir;
 
 sub use-args(@args is copy) is export {
@@ -181,8 +203,8 @@ sub use-args(@args is copy) is export {
     }
 
     # remaining args are a mixed bag
-    my @dirs; 
-    my @fils; 
+    my @dirs;
+    my @fils;
     my %opts;
 
     for @args {
@@ -221,7 +243,7 @@ sub use-args(@args is copy) is export {
                     elsif $w.IO.f {
                         @fils.push: $w;
                     }
-                    else { 
+                    else {
                         note qq:to/HERE/;
                         WARNING: word '$w' in file '$_' is not a file or a directory
                         HERE
@@ -253,7 +275,34 @@ sub use-args(@args is copy) is export {
         say "DEBUG is on";
     }
 
-    if $Rshow {
+    =begin comment
+    # made obsolete by Build.rakumod
+    #=====================================================
+    if $Rcollect {
+        # collect - Collect a list of font files in your file system
+        # list    - List family and font names in a font directory
+        # show    - Show details of a font file
+        # sample  - Create a PDF document showing samples of
+        #             selected fonts in a list of font files
+
+        # use 'paths' to get font file names, put in hash by basename => path
+        # put sorted path list in file "font-files.list"
+        # user can select a font fike by numerical list index
+
+        say "See list of font files in 'font-files.list'.";
+        say "End of mode 'Rcollect'" if 1;
+        exit;
+    } # end of $Rcollect
+    =end comment
+
+
+    #=====================================================
+    if $Rlist {
+        # list   - List family and font names in a font directory
+        # show   - Show details of a font file
+        # sample - Create a PDF document showing samples of
+        #            selected fonts in a list of font files
+
         my @dirs;
         if $dir.defined {
             @dirs.push: $dir;
@@ -299,28 +348,37 @@ sub use-args(@args is copy) is export {
             say "$idx   $_";
         }
 
-        say "End of mode 'show'" if 1;
-        exit;
-    } # end of $Rshow
-
-    if $Rlist {
         say "End of mode 'list'" if 1;
         exit;
     } # end of $Rlist
 
+    #=====================================================
+    if $Rshow {
+        # list    - List family and font names in a font directory
+        # show    - Show details of a font file
+        # sample  - Create a PDF document showing samples of
+        #             selected fonts in a list of font files
+
+
+        say "End of mode 'show'" if 1;
+        exit;
+    } # end of $Rshow
+
     if $Rsample {
+        # list   - List family and font names in a font directory
+        # show   - Show details of a font file
+        # sample - Create a PDF document showing samples of
+        #            selected fonts in a list of font files
+
         say "End of mode 'sample'" if 1;
         exit;
     } # end of $Rlist
 
-
-
-
 }
 
 sub get-font-info(
-    $path, 
-    :$debug 
+    $path,
+    :$debug
     --> FreeTypeFace
     ) is export {
 
@@ -329,7 +387,7 @@ sub get-font-info(
 }
 
 sub show-font-info(
-    $path, 
+    $path,
     :$debug
     ) is export {
 
@@ -394,10 +452,13 @@ sub show-font-info(
                 .join: ", ";
         }
     }
+    my $tstr = "Some text";
+    my $sw = $face.stringwidth($tstr, 12);
+    say "  Stringwidth of '$tstr':", $sw;
 }
 
 sub hex2dec(
-    $hex, 
+    $hex,
     :$debug
     ) is export {
     # converts an input hex sring to a decimal number
@@ -471,7 +532,7 @@ sub make-page(
     # we must keep track of how many fonts were shown
     # on the page and return a suitable reference
 
-    # some references 
+    # some references
     my ($ulx, $uly, $pwidth, $pheight);
 
     =begin comment
@@ -669,7 +730,7 @@ sub write-line(
 } # sub write-line
 
 sub dec2string($declist, :$debug --> Str) is export {
-    # Given a list of space-separated decimal code points, convert 
+    # Given a list of space-separated decimal code points, convert
     # them to a string representation.
     my @list;
     if $declist ~~ Str {
@@ -698,7 +759,7 @@ sub dec2string($declist, :$debug --> Str) is export {
             }
             next NUM;
         }
- 
+
         say "char decimal value '$dec'" if $debug;
         # get its char
         my $c = $dec.chr;
@@ -710,7 +771,7 @@ sub dec2string($declist, :$debug --> Str) is export {
 } # sub dec2string
 
 sub hex2string($hexlist, :$debug --> Str) is export {
-    # Given a list of space-separated hexadecimal code points, convert 
+    # Given a list of space-separated hexadecimal code points, convert
     # them to a string representation.
     my @list;
     if $hexlist ~~ Str {
@@ -757,7 +818,7 @@ sub hex2string($hexlist, :$debug --> Str) is export {
 
 sub find-local-font {
     # TODO awaiting working 'rak'
-    # my $f = 
+    # my $f =
 }
 
 sub deg2rad($degrees) {
@@ -846,6 +907,66 @@ sub draw-rectangle-clip(
 
 } # sub draw-rectangle-clip
 
+sub collect-user-fonts(
+    :$debug,
+    ) is export {
+    use paths;
+    my @dirs  = </usr/share/fonts /Users ~/Library/Fonts>;
+    my ($basename, $dirname, $typ); 
+    # font hashes: type => <basename> = $path:
+    my (%otf, %ttf, %pfb);
+    for @dirs -> $dir {
+        for paths($dir) -> $path {
+            if $path ~~ /:i (otf|ttf|pfb) $/ {
+                $typ = ~$0;
+                $basename = $path.IO.basename;
+                if $typ eq 'otf' {
+                    %otf{$basename} = $path;
+                }
+                elsif $typ eq 'ttf' {
+                    %ttf{$basename} = $path;
+                }
+                elsif $typ eq 'pfb' {
+                    %pfb{$basename} = $path;
+                }
+                say "Font file $typ: $path" if $debug;
+            }
+        }
+    }
+    # now put them in directory $HOME/.Font-Utils
+    my $HOME = %*ENV<HOME>:exists ?? %*ENV<HOME> !! 0;
+    if not $HOME {
+        die "FATAL: Environment varaiable \$HOME is not defined.";
+    }
+
+    my $fdir  = "$HOME/.Font-Utils";
+    my $flist = "font-files.list";
+    if $fdir.IO.d {
+        # warn and check it
+        my $f = "$fdir/$flist";
+        my (%k, $k, $b, $p);
+        my $errs = 0;
+        my $einfo = "";
+        for $f.IO.lines -> $line is copy {
+            # skip blank lines and comments
+            $line = strip-comment $line;
+            next unless $f ~~ /\S/;
+            my @w = $line.words;
+            if not @w.elems == 3 {
+            }
+            $k = @w.shift;
+            $b = @w.shift;
+            $p = @w.shift;
+        }
+    }
+    else {
+        # set it up:
+        # key basename path
+        mkdir $fdir;
+    }
+
+}
+
 sub find-local-font-file(
     :$debug,
     ) is export {
@@ -857,9 +978,10 @@ sub find-local-font-file(
     my @dirs  = </usr/share/fonts /Users ~/Library/Fonts>;
     for @dirs -> $dir {
         for paths($dir) -> $path {
-            # take the first of the set of known types handled by PDF 
+            # take the first of the set of known types handled by PDF
             # libraries (in order of preference)
-            if $path ~~ /:i otf|ttf|woff|pfb $/ {
+            #if $path ~~ /:i otf|ttf|woff|pfb $/ {
+            if $path ~~ /:i otf|ttf|pfb $/ {
                 $font-file = $path;
                 say "Font file: $path" if $debug;
                 last;
@@ -887,7 +1009,7 @@ sub text-box(
     :$height, # = 11*72,  # default is Letter height in portrait orientation
     :$valign, #  = <bottom>, # top, center, bottom
     :$bidi,
-    
+
 ) is export {
     my PDF::Content::Text::Box $tb .= new:
         :$text,
@@ -895,12 +1017,12 @@ sub text-box(
         #:$squish, # valign shouldn't be used with a text-box
         :$align, :$width, # :$height, # not directly constraining it
         :$indent,
-        #:$verbatim, 
+        #:$verbatim,
     ;
     # the text box object has these rw attributes:
     #   constrain-height
     #   constrain-width
-    #   
+    #
     $tb
 }
 
@@ -939,6 +1061,50 @@ sub print-text-line(
     =end comment
 
 } # print-text-line
+
+sub wrap-string(
+    Str $s,
+    :$font!,
+    :$font-size!,
+    :$width!,
+    :$debug,
+    --> List
+    ) is export {
+    my $done = False;
+    my @g = $s.comb;
+    my $tstr;
+    while not $done {
+        $tstr ~= @g.shift;
+        my $w = $
+
+    }
+}
+
+sub do-build(
+    :$debug,
+    ) is export {
+    my $f = $font-list;
+    if $f.IO.r {
+        # check it
+        check-font-list :$debug;
+    }
+    else {
+        # create it
+        create-font-list :$debug;
+    }
+}
+
+sub create-font-list(
+    :$debug,
+    ) is export {
+    my $f = $font-list;
+}
+
+sub check-font-list(
+    :$debug,
+    ) is export {
+    my $f = $font-list;
+}
 
 =finish
 

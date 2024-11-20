@@ -58,7 +58,7 @@ my @lines = @($o.lines);
 #my @lines = @($o.lines.Str); #.text;
 say "text-box lines:";
 say " {$_.text}" for @lines;
-
+#say "text box:", $o;
 
 $pdf.save-as: "xt-test1.pdf";
 

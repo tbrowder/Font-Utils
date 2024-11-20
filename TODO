@@ -1,3 +1,6 @@
+Work on tracking vertical position of text boxes
+  + need a string breaking routine for font samples
+
 Define (and maybe decompose) the TextBox for reuse. Be sure and
 describe the use of:
   + determing the actual bbox
