@@ -907,7 +907,7 @@ sub draw-rectangle-clip(
 
 } # sub draw-rectangle-clip
 
-sub collect-user-fonts(
+sub collect-font-list(
     :$debug,
     ) is export {
     use paths;
@@ -1083,6 +1083,7 @@ sub wrap-string(
 sub do-build(
     :$debug,
     ) is export {
+    say "DEBUG: in sub do-build" if $debug;
     my $f = $font-list;
     if $f.IO.r {
         # check it
@@ -1104,6 +1105,10 @@ sub check-font-list(
     :$debug,
     ) is export {
     my $f = $font-list;
+    for $f.IO.lines -> $line is copy {
+        $line = strip-comment $line;
+        
+    }
 }
 
 =finish
