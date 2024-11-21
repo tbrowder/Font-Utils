@@ -185,11 +185,11 @@ for the following named sets of Unicode glyphs:
 Set name | Hash key
 ---------+---------
 Basic Latin (ASCII) | (two sets)
-Symbols | L-symbols
-Characters | L-chars
++ Symbols | L-symbols
++ Characters | L-chars
 Latin-1 Supplement | (two sets)
-Symbols | L1-Sup-symbols
-Characters | L1-Sup-chars
++ Symbols | L1-Sup-symbols
++ Characters | L1-Sup-chars
 Latin Extended A | L-Ext-A-chars 
 Latin Extended B | L-Ext-B-chars
 Latin Extended C | L-Ext-B-chars

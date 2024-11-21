@@ -152,7 +152,7 @@ Included with the module is a hash with the hexadecimal code points for the foll
 <th>Set name</th> <th>Hash key</th>
 </tr></thead>
 <tbody>
-<tr> <td>Basic Latin (ASCII)</td> <td>(two sets)</td> </tr> <tr> <td>Symbols</td> <td>L-symbols</td> </tr> <tr> <td>Characters</td> <td>L-chars</td> </tr> <tr> <td>Latin-1 Supplement</td> <td>(two sets)</td> </tr> <tr> <td>Symbols</td> <td>L1-Sup-symbols</td> </tr> <tr> <td>Characters</td> <td>L1-Sup-chars</td> </tr> <tr> <td>Latin Extended A</td> <td>L-Ext-A-chars</td> </tr> <tr> <td>Latin Extended B</td> <td>L-Ext-B-chars</td> </tr> <tr> <td>Latin Extended C</td> <td>L-Ext-B-chars</td> </tr> <tr> <td>Latin Extended D</td> <td>L-Ext-B-chars</td> </tr> <tr> <td>Latin Extended E</td> <td>L-Ext-B-chars</td> </tr> <tr> <td>Latin Additional</td> <td>L-Add-chars</td> </tr> <tr> <td>Latin Ligatures (non-latin glyphs excluded)</td> <td>L-Lig-chars</td> </tr>
+<tr> <td>Basic Latin (ASCII)</td> <td>(two sets)</td> </tr> <tr> <td>+ Symbols</td> <td>L-symbols</td> </tr> <tr> <td>+ Characters</td> <td>L-chars</td> </tr> <tr> <td>Latin-1 Supplement</td> <td>(two sets)</td> </tr> <tr> <td>+ Symbols</td> <td>L1-Sup-symbols</td> </tr> <tr> <td>+ Characters</td> <td>L1-Sup-chars</td> </tr> <tr> <td>Latin Extended A</td> <td>L-Ext-A-chars</td> </tr> <tr> <td>Latin Extended B</td> <td>L-Ext-B-chars</td> </tr> <tr> <td>Latin Extended C</td> <td>L-Ext-B-chars</td> </tr> <tr> <td>Latin Extended D</td> <td>L-Ext-B-chars</td> </tr> <tr> <td>Latin Extended E</td> <td>L-Ext-B-chars</td> </tr> <tr> <td>Latin Additional</td> <td>L-Add-chars</td> </tr> <tr> <td>Latin Ligatures (non-latin glyphs excluded)</td> <td>L-Lig-chars</td> </tr>
 </tbody>
 </table>
 
