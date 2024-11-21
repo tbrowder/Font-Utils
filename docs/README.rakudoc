@@ -178,7 +178,7 @@ Variable parameters:
 
 =head2 Data
 
-Included with the module is a hash with the hexadecimal code points
+Included with the module is a hash (C<%uni>) with the hexadecimal code points
 for the following named sets of Unicode glyphs:
 
 =begin table
