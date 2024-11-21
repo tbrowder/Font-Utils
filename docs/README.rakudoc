@@ -184,24 +184,17 @@ for the following named sets of Unicode glyphs:
 =begin table
 Set name | Hash key
 ---------+---------
-Basic Latin (ASCII)
+Basic Latin (ASCII) | (two sets)
 Symbols | L-symbols
 Characters | L-chars
-
-Latin-1 Supplement
+Latin-1 Supplement | (two sets)
 Symbols | L1-Sup-symbols
 Characters | L1-Sup-chars
-
 Latin Extended A | L-Ext-A-chars 
-
 Latin Extended B | L-Ext-B-chars
-
 Latin Extended C | L-Ext-B-chars
-
 Latin Extended D | L-Ext-B-chars
-
 Latin Extended E |  L-Ext-B-chars
-
 Latin Additional | L-Add-chars
 Latin Ligatures (non-latin glyphs excluded) | L-Lig-chars
 =end table
