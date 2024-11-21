@@ -142,6 +142,37 @@ Fixed parameters:
 
 Variable parameters:
 
+Data
+----
+
+Included with the module is a hash with the hexadecimal code points for the following named glyph sets:
+
+  * Basic Latin (ASCII)
+
+    * Symbols
+
+    * Characters
+
+  * Latin-1 Supplement
+
+    * Symbols
+
+    * Characters
+
+  * Latin Extended A
+
+  * Latin Extended B
+
+  * Latin Extended C
+
+  * Latin Extended D
+
+  * Latin Extended E
+
+  * Latin Additional
+
+  * Latin Ligatures (others in this group excluded)
+
 AUTHOR
 ======
 

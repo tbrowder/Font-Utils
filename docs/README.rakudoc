@@ -176,6 +176,25 @@ Fixed parameters:
 
 Variable parameters:
 
+=head2 Data
+
+Included with the module is a hash with the hexadecimal code points
+for the following named glyph sets:
+
+=item Basic Latin (ASCII)
+=item2 Symbols
+=item2 Characters
+=item Latin-1 Supplement
+=item2 Symbols
+=item2 Characters
+=item Latin Extended A
+=item Latin Extended B
+=item Latin Extended C
+=item Latin Extended D
+=item Latin Extended E
+=item Latin Additional
+=item Latin Ligatures (others in this group excluded)
+
 =head1 AUTHOR
 
 Tom Browder <tbrowder@acm.org>

@@ -1,7 +1,14 @@
 unit module Font::Utils;
 
+use PDF::Font::Loader :load-font;
+
+our %loaded-fonts is export;
+
+
 our $HOME is export = 0;
-our $font-list is export;
+
+our $user-font-list is export; # <== create-user-font-list-file :$nfonts
+our %user-fonts     is export; # <== create-user-fonts-hash $user-font-list
 BEGIN {
     if %*ENV<HOME>:exists {
         $HOME = %*ENV<HOME>;
@@ -16,8 +23,7 @@ BEGIN {
     }
     my $fdir = "$HOME/.Font-Utils";
     mkdir $fdir;
-    # the font list may not exist yet, but the name is reserved and exported
-    $font-list = "$HOME/.Font-Utils/font-files.list";
+    $user-font-list = "$HOME/.Font-Utils/font-files.list";
 }
 
 =begin comment
@@ -386,6 +392,7 @@ sub get-font-info(
 
     my $file = $path.Str; # David's sub REQUIRES a Str for the $filename
     my $o = FreeTypeFace.new: :$file;
+    $o;
 }
 
 sub show-font-info(
@@ -910,8 +917,10 @@ sub draw-rectangle-clip(
 
 } # sub draw-rectangle-clip
 
-sub create-font-list(
-    $nfonts, # max fonts to collect
+# our $user-font-list is export; # <== create-user-font-list-file :$nfonts
+# our %user-fonts     is export; # <== create-user-fonts-hash $user-font-list
+sub create-user-font-list-file(
+    :$nfonts, # max fonts to collect
     :$debug,
     ) is export {
 
@@ -923,6 +932,7 @@ sub create-font-list(
     my (%otf, %ttf, %pfb);
     # get the max length of the basenames as we go
     my $nbc = 0;
+    
     for @dirs -> $dir {
         for paths($dir) -> $path {
             if $path ~~ /:i (otf|ttf|pfb) $/ {
@@ -946,7 +956,7 @@ sub create-font-list(
     }
 
     # now put them in directory $HOME/.Font-Utils
-    my $f = $font-list;
+    my $f = $user-font-list;
 
     =begin comment
     my $flist = "font-files.list";
@@ -970,9 +980,16 @@ sub create-font-list(
     }
     =end comment
 
+    # TODO
+    # prioritize freefonts, garamond, and urw-base35
+    # and the others in my FF list
+    # also put list from ff docs into docs here
+    my @order = <
+    >;
+
     # set it up:
     # key basename path
-    my $fh = open $font-list, :w;
+    my $fh = open $user-font-list, :w;
     my $key = 0;
     my $nff = 0; # number of fonts found
     $fh.say: "# key  basename  path";
@@ -988,9 +1005,9 @@ sub create-font-list(
     }
     
     if $key < $nfonts {
-    for %ttf.keys.sort {
-        ++$key;
-        last if $key > $nfonts;
+        for %ttf.keys.sort {
+            ++$key;
+            last if $key > $nfonts;
         my $b = $_;
         my $p = %ttf{$b};
         my $knam = sprintf '%3d', $key;
@@ -1009,6 +1026,7 @@ sub create-font-list(
         $fh.say: "$knam $bnam $p";
     }
     }
+    $fh.close;
 
 
 }
@@ -1127,11 +1145,11 @@ sub wrap-string(
 }
 
 sub do-build(
-    $nfonts = 50, #= max fonts listed
+    :$nfonts = 50, #= max fonts listed
     :$debug,
     ) is export {
     say "DEBUG: in sub do-build" if $debug;
-    my $f = $font-list;
+    my $f = $user-font-list;
     if $f.IO.r {
         # check it
         say "DEBUG: calling check-font-list" if $debug;
@@ -1140,8 +1158,8 @@ sub do-build(
     else {
         # create it
 
-        say "DEBUG: calling create-font-list" if $debug;
-        create-font-list $nfonts, :$debug;
+        say "DEBUG: calling create-user-font-list-file" if $debug;
+        create-user-font-list-file :$nfonts, :$debug;
     }
 }
 
@@ -1158,10 +1176,54 @@ sub check-font-list(
     :$debug,
     ) is export {
     say "DEBUG: entering check-font-list" if $debug;
-    my $f = $font-list;
+    my $f = $user-font-list;
     for $f.IO.lines -> $line is copy {
         $line = strip-comment $line;
     }
+}
+
+#sub get-user-fonts(
+# our $user-font-list is export; # <== create-user-font-list-file :$nfonts
+# our %user-fonts     is export; # <== create-user-fonts-hash $user-font-list
+sub create-user-fonts-hash(
+    $font-file,
+    :$debug,
+    ) is export {
+    # reads user's font list and fills %user-fonts
+    for $font-file.IO.lines -> $line is copy {
+        $line = strip-comment $line;
+        next unless $line ~~ /\S/;
+        my @w    = $line.words;
+        my $key  = @w.shift;
+        my $bnam = @w.shift;
+        my $path = @w.shift;
+        %user-fonts{$key}<basename> = $bnam;
+        %user-fonts{$key}<path>     = $path;
+    }
+}
+
+sub load-font-at-key(
+    $key,
+    :$debug,
+    --> PDF::Content::FontObj
+    ) is export {
+    # Given a key, first see if it has been loaded, if so, return a
+    # reference to that object.
+    if %loaded-fonts{$key}:exists {
+        return %loaded-fonts{$key};
+    }
+    # not loaded, get the file path from the user's font list
+    # the hash may not be populated yet
+    if not %user-fonts.elems {
+        #die "Tom, fix this";
+        # read the user's font list
+        create-user-fonts-hash $user-font-list, :$debug;
+    }
+    
+    my $file = %user-fonts{$key}<path>;
+    my $font = load-font :$file;
+    %loaded-fonts{$key} = $font;
+    $font;
 }
 
 =finish

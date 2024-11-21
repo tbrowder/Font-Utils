@@ -4,7 +4,7 @@ my $debug = 0;
 
 use Font::Utils;
 
-my $f = $font-list; # '$HOME/.Font-Utils/font-files.list';
+my $f = $user-font-list; # '$HOME/.Font-Utils/font-files.list';
 
 if not @*ARGS {
     print qq:to/HERE/;
