@@ -145,33 +145,16 @@ Variable parameters:
 Data
 ----
 
-Included with the module is a hash with the hexadecimal code points for the following named glyph sets:
+Included with the module is a hash with the hexadecimal code points for the following named sets of Unicode glyphs:
 
-  * Basic Latin (ASCII)
-
-    * Symbols
-
-    * Characters
-
-  * Latin-1 Supplement
-
-    * Symbols
-
-    * Characters
-
-  * Latin Extended A
-
-  * Latin Extended B
-
-  * Latin Extended C
-
-  * Latin Extended D
-
-  * Latin Extended E
-
-  * Latin Additional
-
-  * Latin Ligatures (others in this group excluded)
+<table class="pod-table">
+<thead><tr>
+<th>Set name</th> <th>Hash key</th>
+</tr></thead>
+<tbody>
+<tr> <td>Basic Latin (ASCII) Symbols Characters</td> <td></td> </tr> <tr> <td>Latin-1 Supplement Symbols Characters</td> <td></td> </tr> <tr> <td>Latin Extended A Latin Extended B Latin Extended C Latin Extended D Latin Extended E Latin Additional Latin Ligatures (non-latin glyphs excluded)</td> <td>? ? ? ? ? ? ?</td> </tr>
+</tbody>
+</table>
 
 AUTHOR
 ======
