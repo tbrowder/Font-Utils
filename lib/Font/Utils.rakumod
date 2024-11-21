@@ -11,9 +11,11 @@ BEGIN {
     }
     if not $HOME.IO.d {
         die qq:to/HERE/;
-        FATAL: \$HOME directory '$HOME' is not usable.";
+        FATAL: \$HOME directory '$HOME' is not usable.
         HERE
     }
+    my $fdir = "$HOME/.Font-Utils";
+    mkdir $fdir;
     # the font list may not exist yet, but the name is reserved and exported
     $font-list = "$HOME/.Font-Utils/font-files.list";
 }
@@ -824,6 +826,7 @@ sub find-local-font {
 sub deg2rad($degrees) {
     $degrees * pi / 180
 }
+
 sub rad2deg($radians) {
     $radians * 180 / pi
 }
@@ -907,39 +910,45 @@ sub draw-rectangle-clip(
 
 } # sub draw-rectangle-clip
 
-sub collect-font-list(
+sub create-font-list(
+    $nfonts, # max fonts to collect
     :$debug,
     ) is export {
+
     use paths;
+
     my @dirs  = </usr/share/fonts /Users ~/Library/Fonts>;
-    my ($basename, $dirname, $typ); 
+    my ($bname, $dname, $typ);
     # font hashes: type => <basename> = $path:
     my (%otf, %ttf, %pfb);
+    # get the max length of the basenames as we go
+    my $nbc = 0;
     for @dirs -> $dir {
         for paths($dir) -> $path {
             if $path ~~ /:i (otf|ttf|pfb) $/ {
                 $typ = ~$0;
-                $basename = $path.IO.basename;
+                $bname = $path.IO.basename;
+                my $nc = $bname.chars;
+                $nbc = $nc if $nc > $nbc;
+
                 if $typ eq 'otf' {
-                    %otf{$basename} = $path;
+                    %otf{$bname} = $path;
                 }
                 elsif $typ eq 'ttf' {
-                    %ttf{$basename} = $path;
+                    %ttf{$bname} = $path;
                 }
                 elsif $typ eq 'pfb' {
-                    %pfb{$basename} = $path;
+                    %pfb{$bname} = $path;
                 }
                 say "Font file $typ: $path" if $debug;
             }
         }
     }
-    # now put them in directory $HOME/.Font-Utils
-    my $HOME = %*ENV<HOME>:exists ?? %*ENV<HOME> !! 0;
-    if not $HOME {
-        die "FATAL: Environment varaiable \$HOME is not defined.";
-    }
 
-    my $fdir  = "$HOME/.Font-Utils";
+    # now put them in directory $HOME/.Font-Utils
+    my $f = $font-list;
+
+    =begin comment
     my $flist = "font-files.list";
     if $fdir.IO.d {
         # warn and check it
@@ -959,11 +968,48 @@ sub collect-font-list(
             $p = @w.shift;
         }
     }
-    else {
-        # set it up:
-        # key basename path
-        mkdir $fdir;
+    =end comment
+
+    # set it up:
+    # key basename path
+    my $fh = open $font-list, :w;
+    my $key = 0;
+    my $nff = 0; # number of fonts found
+    $fh.say: "# key  basename  path";
+    for %otf.keys.sort {
+        ++$key;
+        last if $key > $nfonts;
+
+        my $b = $_;
+        my $p = %otf{$b};
+        my $knam = sprintf '%3d', $key;
+        my $bnam = sprintf '%-*s', $nbc, $b;
+        $fh.say: "$knam $bnam $p";
     }
+    
+    if $key < $nfonts {
+    for %ttf.keys.sort {
+        ++$key;
+        last if $key > $nfonts;
+        my $b = $_;
+        my $p = %ttf{$b};
+        my $knam = sprintf '%3d', $key;
+        my $bnam = sprintf '%-*s', $nbc, $b;
+        $fh.say: "$knam $bnam $p";
+    }
+    }
+    for %pfb.keys.sort {
+    if $key < $nfonts {
+        ++$key;
+        last if $key > $nfonts;
+        my $b = $_;
+        my $p = %pfb{$b};
+        my $knam = sprintf '%3d', $key;
+        my $bnam = sprintf '%-*s', $nbc, $b;
+        $fh.say: "$knam $bnam $p";
+    }
+    }
+
 
 }
 
@@ -1081,33 +1127,40 @@ sub wrap-string(
 }
 
 sub do-build(
+    $nfonts = 50, #= max fonts listed
     :$debug,
     ) is export {
     say "DEBUG: in sub do-build" if $debug;
     my $f = $font-list;
     if $f.IO.r {
         # check it
+        say "DEBUG: calling check-font-list" if $debug;
         check-font-list :$debug;
     }
     else {
         # create it
-        create-font-list :$debug;
+
+        say "DEBUG: calling create-font-list" if $debug;
+        create-font-list $nfonts, :$debug;
     }
 }
 
+=begin comment
 sub create-font-list(
     :$debug,
     ) is export {
     my $f = $font-list;
+    say "DEBUG: entering create-font-list" if $debug;
 }
+=end comment
 
 sub check-font-list(
     :$debug,
     ) is export {
+    say "DEBUG: entering check-font-list" if $debug;
     my $f = $font-list;
     for $f.IO.lines -> $line is copy {
         $line = strip-comment $line;
-        
     }
 }
 
