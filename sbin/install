@@ -1,6 +1,7 @@
 #!/usr/bin/env raku
 
-my $debug = 0;
+my $debug  = 0;
+my $delete = 0;
 
 use Font::Utils;
 
@@ -14,7 +15,7 @@ if not @*ARGS {
     and populates it with the OpenType, TrueType, and PFB font files
     found on the user's file system.
 
-    For an existing installation, checks the file for errors and 
+    For an existing installation, checks the file for errors and
     aborts if any error is found.
 
     The font list consists of one entry per line. Comments and blank
@@ -26,16 +27,16 @@ if not @*ARGS {
         3. Path of that font file
 
     For an original installation, the files are listed in type order.
-    Within a set of the same file types, the order is alphanumeric by 
-    basename. Users may edit the file for their own needs as long as 
+    Within a set of the same file types, the order is alphanumeric by
+    basename. Users may edit the file for their own needs as long as
     each field is valid.
     HERE
     exit;
 }
 
 for @*ARGS {
+    ++$delete if $_ ~~ /^ :i de /;
     ++$debug if $_ ~~ /^ :i d /;
 }
 
-do-build :$debug;
-
+do-build :$debug, :$delete;

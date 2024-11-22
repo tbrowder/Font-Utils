@@ -930,16 +930,20 @@ sub create-user-font-list-file(
     my ($bname, $dname, $typ);
     # font hashes: type => <basename> = $path:
     my (%otf, %ttf, %pfb);
-    # get the max length of the basenames as we go
-    my $nbc = 0;
-    
+
+#    my $nbc = 0;
     for @dirs -> $dir {
         for paths($dir) -> $path {
+
+            # ignore some
+            next if $path ~~ /\h/; # no path with spaces
+            next if $path ~~ /Fust/; # way too long a name
+
             if $path ~~ /:i (otf|ttf|pfb) $/ {
                 $typ = ~$0;
                 $bname = $path.IO.basename;
-                my $nc = $bname.chars;
-                $nbc = $nc if $nc > $nbc;
+                #my $nc = $bname.chars;
+                #$nbc = $nc if $nc > $nbc;
 
                 if $typ eq 'otf' {
                     %otf{$bname} = $path;
@@ -958,76 +962,147 @@ sub create-user-font-list-file(
     # now put them in directory $HOME/.Font-Utils
     my $f = $user-font-list;
 
-    =begin comment
-    my $flist = "font-files.list";
-    if $fdir.IO.d {
-        # warn and check it
-        my $f = "$fdir/$flist";
-        my (%k, $k, $b, $p);
-        my $errs = 0;
-        my $einfo = "";
-        for $f.IO.lines -> $line is copy {
-            # skip blank lines and comments
-            $line = strip-comment $line;
-            next unless $f ~~ /\S/;
-            my @w = $line.words;
-            if not @w.elems == 3 {
-            }
-            $k = @w.shift;
-            $b = @w.shift;
-            $p = @w.shift;
-        }
-    }
-    =end comment
+    # first put them in a list before getting sizes
 
-    # TODO
     # prioritize freefonts, garamond, and urw-base35
     # and the others in my FF list
     # also put list from ff docs into docs here
     my @order = <
+        FreeSerif.otf
+        FreeSerifBold.otf
+        FreeSerifItalic.otf
+        FreeSerifBoldItalic.otf
+
+        FreeSans.otf
+        FreeSansBold.otf
+        FreeSansOblique.otf
+        FreeSansBoldOblique.otf
+
+        FreeMono.otf
+        FreeMonoBold.otf
+        FreeMonoOblique.otf
+        FreeMonoBoldOblique.otf
+
+        EBGaramond-Initials.otf
+        EBGaramond-InitialsF1.otf
+        EBGaramond-InitialsF2.otf
+        EBGaramond08-Italic.otf
+        EBGaramond08-Regular.otf
+        EBGaramond12-AllSC.otf
+        EBGaramond12-Bold.otf
+        EBGaramond12-Italic.otf
+        EBGaramond12-Regular.otf
+        EBGaramondSC08-Regular.otf
+        EBGaramondSC12-Regular.otf
+
+        Cantarell-Bold.otf
+        Cantarell-ExtraBold.otf
+        Cantarell-Light.otf
+        Cantarell-Regular.otf
+        Cantarell-Thin.otf
+
+        C059-BdIta.otf
+        C059-Bold.otf
+        C059-Italic.otf
+        C059-Roman.otf
+        D050000L.otf
+        NimbusMonoPS-Bold.otf
+        NimbusMonoPS-BoldItalic.otf
+        NimbusMonoPS-Italic.otf
+        NimbusMonoPS-Regular.otf
+        NimbusRoman-Bold.otf
+        NimbusRoman-BoldItalic.otf
+        NimbusRoman-Italic.otf
+        NimbusRoman-Regular.otf
+        NimbusSans-Bold.otf
+        NimbusSans-BoldItalic.otf
+        NimbusSans-Italic.otf
+        NimbusSans-Regular.otf
+        NimbusSansNarrow-Bold.otf
+        NimbusSansNarrow-BoldOblique.otf
+        NimbusSansNarrow-Oblique.otf
+        NimbusSansNarrow-Regular.otf
+        P052-Bold.otf
+        P052-BoldItalic.otf
+        P052-Italic.otf
+        P052-Roman.otf
+        StandardSymbolsPS.otf
+        URWBookman-Demi.otf
+        URWBookman-DemiItalic.otf
+        URWBookman-Light.otf
+        URWBookman-LightItalic.otf
+        URWGothic-Book.otf
+        URWGothic-BookOblique.otf
+        URWGothic-Demi.otf
+        URWGothic-DemiOblique.otf
+        Z003-MediumItalic.otf
+
     >;
 
-    # set it up:
-    # key basename path
-    my $fh = open $user-font-list, :w;
-    my $key = 0;
-    my $nff = 0; # number of fonts found
-    $fh.say: "# key  basename  path";
-    for %otf.keys.sort {
-        ++$key;
-        last if $key > $nfonts;
 
+
+    my @full-font-list;
+
+    for @order {
+        if %otf{$_}:exists {
+
+            my $b = $_;
+            my $p = %otf{$b};
+            @full-font-list.push: "$b $p";
+
+            # then delete from the otf collection
+            %otf{$_}:delete;
+        }
+    }
+
+    for %otf.keys.sort {
         my $b = $_;
         my $p = %otf{$b};
-        my $knam = sprintf '%3d', $key;
-        my $bnam = sprintf '%-*s', $nbc, $b;
-        $fh.say: "$knam $bnam $p";
+        @full-font-list.push: "$b $p";
     }
-    
-    if $key < $nfonts {
-        for %ttf.keys.sort {
-            ++$key;
-            last if $key > $nfonts;
+
+    for %ttf.keys.sort {
         my $b = $_;
         my $p = %ttf{$b};
-        my $knam = sprintf '%3d', $key;
-        my $bnam = sprintf '%-*s', $nbc, $b;
-        $fh.say: "$knam $bnam $p";
+        @full-font-list.push: "$b $p";
     }
-    }
+
     for %pfb.keys.sort {
-    if $key < $nfonts {
-        ++$key;
-        last if $key > $nfonts;
         my $b = $_;
         my $p = %pfb{$b};
-        my $knam = sprintf '%3d', $key;
+        @full-font-list.push: "$b $p";
+    }
+
+    # NOW collect basename lengths
+    my $nff = 0; # number of fonts found
+    my @fonts;
+    my $nbc = 0;
+    my $nkc = $nfonts.Str.chars;
+    for @full-font-list {
+        ++$nff;
+        last if $nff > $nfonts;
+
+        my $b = $_.words.head;
+        my $nc = $b.chars;
+        $nbc = $nc if $nc > $nbc;
+        @fonts.push: $_;
+    }
+
+    # Finally, create the pretty file
+    # key basename path
+    my $fh = open $user-font-list, :w;
+    $fh.say: "# key  basename  path";
+
+    my $nkey = 0;
+    for @fonts {
+        ++$nkey;
+        my $b = $_.words.head;
+        my $p = $_.words.tail;
+        my $knam = sprintf '%*d', $nkc, $nkey;
         my $bnam = sprintf '%-*s', $nbc, $b;
         $fh.say: "$knam $bnam $p";
     }
-    }
     $fh.close;
-
 
 }
 
@@ -1145,11 +1220,18 @@ sub wrap-string(
 }
 
 sub do-build(
-    :$nfonts = 50, #= max fonts listed
+    :$nfonts = 100, #= max fonts listed
     :$debug,
+    :$delete,
     ) is export {
     say "DEBUG: in sub do-build" if $debug;
     my $f = $user-font-list;
+
+    if $delete and $f.IO.r {
+        say "DEBUG: unlinking existing font-list" if $debug;
+        unlink $f;
+    }
+
     if $f.IO.r {
         # check it
         say "DEBUG: calling check-font-list" if $debug;
@@ -1180,6 +1262,30 @@ sub check-font-list(
     for $f.IO.lines -> $line is copy {
         $line = strip-comment $line;
     }
+
+
+    =begin comment
+    my $flist = "font-files.list";
+    if $fdir.IO.d {
+        # warn and check it
+        my $f = "$fdir/$flist";
+        my (%k, $k, $b, $p);
+        my $errs = 0;
+        my $einfo = "";
+        for $f.IO.lines -> $line is copy {
+            # skip blank lines and comments
+            $line = strip-comment $line;
+            next unless $f ~~ /\S/;
+            my @w = $line.words;
+            if not @w.elems == 3 {
+            }
+            $k = @w.shift;
+            $b = @w.shift;
+            $p = @w.shift;
+        }
+    }
+    =end comment
+
 }
 
 #sub get-user-fonts(
@@ -1219,7 +1325,7 @@ sub load-font-at-key(
         # read the user's font list
         create-user-fonts-hash $user-font-list, :$debug;
     }
-    
+
     my $file = %user-fonts{$key}<path>;
     my $font = load-font :$file;
     %loaded-fonts{$key} = $font;

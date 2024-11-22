@@ -145,7 +145,7 @@ Variable parameters:
 Data
 ----
 
-Included with the module is a hash with the hexadecimal code points for the following named sets of Unicode glyphs:
+Included with the module is a hash (`%uni`) with the hexadecimal code points for the following named sets of Unicode glyphs:
 
 <table class="pod-table">
 <thead><tr>
