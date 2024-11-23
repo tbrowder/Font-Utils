@@ -48,7 +48,11 @@ use Compress::PDF;
 class FreeTypeFace is export {
     use Font::FreeType;
 
-    has IO::Path $.file is required;
+    has $.file is required;
+
+    # special use for URW fonts with wierd PostScript nakes
+    # default is the PostScript name
+    has $.adobe-name is rw = "";
 
     my $p;
     my $face;
@@ -59,6 +63,23 @@ class FreeTypeFace is export {
             die "FATAL: '$p' is not a file path";
         }
         $face = Font::FreeType.new.face: $!file.Str;
+    }
+
+    method adobe-name {
+        $!adobe-name ?? $!adobe-name !! $face.postscript-name
+    }
+    method rawname {
+        # basename without a suffix
+        my $rname = self.basename;
+        $rname ~~ s:i/'.' [otf|ttf|pfb] $//;
+        # sanity check
+        if $rname.contains('.') {
+            die qq:to/HERE/;
+            FATAL: Unexpected font file with multiple periods
+                    in its basename. Please file an issue.
+            HERE
+        }
+        $rname;
     }
 
     method basename             { $p.IO.basename        }
@@ -155,16 +176,18 @@ sub help() is export {
     as shown below.
 
     All of the modes can take an 'eg' option which uses one or
-    more fonts listed in file '\$HOME/.Font-Utils/font-files.list'.
+    more fonts or directories listed in the file
+    '\$HOME/.Font-Utils/font-files.list'.
 
     Modes:
       list    - List family and font names in a set of font files
-      show    - Show details of font files
+      show    - Show details of a font file
       sample  - Create a PDF document showing samples of
                   selected fonts
 
     Options:
-      eg      - For all modes, use the first font in the user's list
+      eg      - For all modes, use the first font or directory in in
+                the user's font list
       ng=X    - Where X is the maximum number of glyphs to show
       m=A4    - A4 media
       o=L     - Landscape orientation
@@ -176,8 +199,8 @@ sub help() is export {
 }
 
 # modes and options
-my $Rshow    = 0;
 my $Rlist    = 0;
+my $Rshow    = 0;
 my $Rsample  = 0;
 my $debug    = 0;
 my $dir;
@@ -208,14 +231,16 @@ sub use-args(@args is copy) is export {
     }
 
     # remaining args are a mixed bag
-    my @dirs;
-    my @fils;
-    my %opts;
+    # we must have an arg (file, or dir, or 'eg')
+    my ($dir, $file);   # file or dir
+    my $is-eg = False;
 
+    my %opts;
     for @args {
         when /^ :i eg $/ {
-            my $f = find-local-font;
-            @fils.push: $f;
+            $is-eg = True;
+            #my $f = find-local-font;
+            #@fils.push: $f;
         }
         when /^ :i (\w+) '=' (\w+) / {
             my $key = ~$0;
@@ -225,10 +250,13 @@ sub use-args(@args is copy) is export {
         }
         when $_.IO.d {
             say "'$_' is a directory";
-            @dirs.push: $_;
+            #@dirs.push: $_;
+            $dir = $_; #@dirs.push: $_;
         }
         when $_.IO.f {
             say "'$_' is a file";
+            $file = $_; #@dirs.push: $_;
+            =begin comment
             # handle it here
             my @lines = $_.IO.lines;
             if not @lines.elems {
@@ -255,6 +283,7 @@ sub use-args(@args is copy) is export {
                     }
                 }
             }
+            =end comment
         }
         when /^ :i d / {
             ++$debug;
@@ -264,46 +293,35 @@ sub use-args(@args is copy) is export {
         }
     } # end of arg handling
 
-    # take care of @fils, @dirs, and %opts
+    unless $dir or $file or $is-eg {
+        say "No file, dir, or eg was entered.";
+    }
+
+    =begin comment
+    # take care of $file or $dir, and %opts
+    # if we have a file, it may be a font file or a list of files
+    my @dirs;
+    my @fils;
+
     my @DIRS;
     my @FILS;
     for @dirs {
         next if not $_;
         next if not $_.IO.d;
-        say "DEBUG: need to investigate directory '$_'";
+        say "DEBUG: need to investigate directory '$_'" if 1 or $debug;
         #my $o = FreeTypeFace.new: :file($_);
     }
     for @fils {
         next if not $_;
         next if not $_.e;
-        say "DEBUG: trying a file '$_'";
+        say "DEBUG: trying a file '$_'" if 1 or $debug;
         my $o = FreeTypeFace.new: :file($_);
     }
+    =end comment
 
     if $debug {
         say "DEBUG is on";
     }
-
-    =begin comment
-    # made obsolete by Build.rakumod
-    #=====================================================
-    if $Rcollect {
-        # collect - Collect a list of font files in your file system
-        # list    - List family and font names in a font directory
-        # show    - Show details of a font file
-        # sample  - Create a PDF document showing samples of
-        #             selected fonts in a list of font files
-
-        # use 'paths' to get font file names, put in hash by basename => path
-        # put sorted path list in file "font-files.list"
-        # user can select a font fike by numerical list index
-
-        say "See list of font files in 'font-files.list'.";
-        say "End of mode 'Rcollect'" if 1;
-        exit;
-    } # end of $Rcollect
-    =end comment
-
 
     #=====================================================
     if $Rlist {
@@ -313,32 +331,81 @@ sub use-args(@args is copy) is export {
         #            selected fonts in a list of font files
 
         my @dirs;
-        if $dir.defined {
-            @dirs.push: $dir;
-        }
-        else {
+        my @fils;
+        if $is-eg {
             # use the fonts in the first directory in $user-fonts-list
+            my $d;
             for $user-font-list.IO.lines -> $line is copy {
                 $line = strip-comment $line;
                 next unless $line ~~ /\S/;
                 my @w = $line.words;
-                $dir = @w.tail.IO.dirname;
-                @dirs.push: $dir;
+                $d = @w.tail.IO.dirname;
                 last;
+            }
+            say "DEBUG: using dir '$d' for listing dir";
+            for $user-font-list.IO.lines -> $line is copy {
+                $line = strip-comment $line;
+                next unless $line ~~ /\S/;
+                my @w = $line.words;
+                my $tdir = @w.tail.IO.dirname;
+                last if $tdir ne $d;
+                my $p = @w.tail.IO.path;
+                @fils.push: $p;
+                say "DEBUG: using font file '$p'";
             }
         }
 
+        if $dir.defined {
+            @dirs.push: $dir;
+        }
+        elsif $file.defined {
+            # it may be a file list OR a font file
+            say "DEBUG: a file is defined, is it a font file?";
+        }
+        #else {
+        #    unless @dirs.elems {
+        #        die "FATAL: Unknown option for mode 'list'";
+        #    }
+        #}
+
+        if @dirs {
+            say "DEBUG: using dir '{@dirs.head}' for 'list'";
+        }
+
+        =begin comment
         my %fam; # keyed by family name
         my %nam; # keyed by postscript name
 
+        my $nfont = 0;
+        if $is-eg {
+            # use the dir of the first font file
+            ; # ok
+        }
+
+        my @fams;
         for @dirs -> $dir {
-            my @fils = find :$dir, :type<file>, :name(/:i '.' [o|t] tf $/);
+            my @fils;
+            if $is-eg {
+                @fils = get-user-font-list :path-only;
+            }
+            else {
+                @fils = find :$dir, :type<file>, :name(/:i '.' [o|t] tf $/);
+            }
             for @fils {
-                my $o = FreeTypeFace.new: :file($_);
-                my $nam = $o.postscript-name;
-                my $fam = $o.family-name;
-                %fam{$fam} = 1;
-                %nam{$nam} = $_;
+                note "DEBUG: path = '$_'" if 1 or $debug;
+                my $file = $_.IO.absolute;
+                my $o      = FreeTypeFace.new: :$file;
+                my $pnam   = $o.postscript-name;
+                my $anam   = $o.adobe-name;
+                my $fam    = $o.family-name;
+                if %fam{$fam}:exists {
+                    ; # ok
+                }
+                else {
+                    %fam{$fam} = 1;
+                    @fams.push: $fam;
+                }
+                %nam{$pnam} = $_;
 
          #      say "name: {$o.postscript-name}";
          #      say "  family: {$o.family-name}";
@@ -347,7 +414,6 @@ sub use-args(@args is copy) is export {
             }
         }
 
-        my @fams = %fam.keys.sort;
         my @nams = %nam.keys.sort;
         my $idx;
 
@@ -364,6 +430,7 @@ sub use-args(@args is copy) is export {
             ++$idx;
             say "$idx   $_";
         }
+        =end comment
 
         say "End of mode 'list'" if 1;
         exit;
@@ -395,6 +462,26 @@ sub use-args(@args is copy) is export {
 
 }
 
+sub get-user-font-list(
+    :$path-only,
+    :$debug,
+    --> List
+    ) is export {
+    # return list cleaned of comments
+    my @lines;
+    for $user-font-list.IO.lines -> $line is copy {
+        $line = strip-comment $line;
+        next unless $line ~~ /\S/;
+        if $path-only {
+            $line = $line.words.tail;
+            $line = $line.IO.absolute;
+            say "DEBUG: line path = '$line'" if 1 or $debug;
+        }
+        @lines.push: $line;
+    }
+    @lines
+}
+
 sub get-font-info(
     $path,
     :$debug
@@ -402,7 +489,7 @@ sub get-font-info(
     ) is export {
 
     my $file;
-    if $path.IO.d {
+    if $path and $path.IO.e {
         $file = $path; #.Str; # David's sub REQUIRES a Str for the $filename
     }
     else {
@@ -1058,7 +1145,7 @@ sub create-user-font-list-file(
 
     >;
 
-
+#note "DEBUG: my font list has {@order.elems} files (early exit)"; exit;
 
     my @full-font-list;
 
@@ -1239,7 +1326,7 @@ sub wrap-string(
 }
 
 sub do-build(
-    :$nfonts = 100, #= max fonts listed
+    :$nfonts = 63, #= max fonts listed
     :$debug,
     :$delete,
     ) is export {

@@ -34,19 +34,19 @@ Program
 
 #### list
 
-`list $directory | @dirs, :$out = $*OUT`
+`list $directory, :$out = $*OUT`
 
-Uses routine `list` to provide a list of font families and their fonts in the input directories.
+Uses routine `list` to provide a list of font families and their fonts in the input directory.
 
 #### show 
 
-`show $file | @files | @dirs, :$out = $*OUT`
+`show $font-file, :$out = $*OUT`
 
-Uses routine `show` to provide a list of each input font's attributes.
+Uses routine `show` to provide a list of the input font's attributes.
 
 #### sample
 
-    sample @fonts | @dirs, :$text, :$media = 'Letter', :$orientation = 'Portrait',
+    sample @fonts, :$text, :$media = 'Letter', :$orientation = 'Portrait',
                            :$linespacing = 16, :$nglyphs, :$out = "sample.pdf"
 
 Uses routine `sample` to create a PDF document showing each input font at a default size of 12 points on Letter paper in Portrait orientation.
