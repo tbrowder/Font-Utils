@@ -36,21 +36,21 @@ font-utils <mode> [...options...]
 
 =head4 list
 
-C<list $directory | @dirs, :$out = $*OUT>
+C<list $directory, :$out = $*OUT>
 
 Uses routine C<list> to provide a list
-of font families and their fonts in the input directories.
+of font families and their fonts in the input directory.
 
 =head4 show 
 
-C<show $file | @files | @dirs, :$out = $*OUT>
+C<show $font-file, :$out = $*OUT>
 
-Uses routine C<show> to provide a list of each
+Uses routine C<show> to provide a list of the 
 input font's attributes.
 
 =head4 sample
 =begin code
-sample @fonts | @dirs, :$text, :$media = 'Letter', :$orientation = 'Portrait',
+sample @fonts, :$text, :$media = 'Letter', :$orientation = 'Portrait',
                        :$linespacing = 16, :$nglyphs, :$out = "sample.pdf"
 =end code
 
