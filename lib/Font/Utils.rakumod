@@ -1,12 +1,8 @@
 unit module Font::Utils;
 
 use PDF::Font::Loader :load-font;
-
 our %loaded-fonts is export;
-
-
 our $HOME is export = 0;
-
 our $user-font-list is export; # <== create-user-font-list-file :$nfonts
 our %user-fonts     is export; # <== create-user-fonts-hash $user-font-list
 BEGIN {
@@ -52,13 +48,16 @@ use Compress::PDF;
 class FreeTypeFace is export {
     use Font::FreeType;
 
-    has $.file is required;
+    has IO::Path $.file is required;
 
     my $p;
     my $face;
 
     submethod TWEAK {
         $p    = $!file;
+        if not $p.IO.e {
+            die "FATAL: '$p' is not a file path";
+        }
         $face = Font::FreeType.new.face: $!file.Str;
     }
 
@@ -155,19 +154,17 @@ sub help() is export {
     The 'sample' mode can take one or more 'key=value' options
     as shown below.
 
-    All of the modes can take an 'eg' option to use a font
-    file on the user's system to demonstrate its use with a random
-    font (in order, the font type searched for is: .otf, .ttf,
-    .pfb, .woff).
+    All of the modes can take an 'eg' option which uses one or
+    more fonts listed in file '\$HOME/.Font-Utils/font-files.list'.
 
     Modes:
-      list    - List family and font names in a font file
+      list    - List family and font names in a set of font files
       show    - Show details of font files
       sample  - Create a PDF document showing samples of
                   selected fonts
 
     Options:
-      eg      - For all modes, use a single random local font
+      eg      - For all modes, use the first font in the user's list
       ng=X    - Where X is the maximum number of glyphs to show
       m=A4    - A4 media
       o=L     - Landscape orientation
@@ -217,7 +214,6 @@ sub use-args(@args is copy) is export {
 
     for @args {
         when /^ :i eg $/ {
-            # use App::Rak to find a local font file
             my $f = find-local-font;
             @fils.push: $f;
         }
@@ -239,22 +235,23 @@ sub use-args(@args is copy) is export {
                 note qq:to/HERE/;
                 WARNING: File '$_' is empty, skipping it.
                 HERE
-                next;
             }
-            for @lines -> $line {
-                my @w = $line.words;
-                for @w -> $w {
-                    # should be a file name or a directory
-                    if $w.IO.d {
-                        @dirs.push: $w;
-                    }
-                    elsif $w.IO.f {
-                        @fils.push: $w;
-                    }
-                    else {
-                        note qq:to/HERE/;
-                        WARNING: word '$w' in file '$_' is not a file or a directory
-                        HERE
+            else {
+                for @lines -> $line {
+                    my @w = $line.words;
+                    for @w -> $w {
+                        # should be a file name or a directory
+                        if $w.IO.d {
+                            @dirs.push: $w;
+                        }
+                        elsif $w.IO.f {
+                            @fils.push: $w;
+                        }
+                        else {
+                            note qq:to/HERE/;
+                            WARNING: word '$w' in file '$_' is not a file or a directory
+                            HERE
+                        }
                     }
                 }
             }
@@ -271,11 +268,15 @@ sub use-args(@args is copy) is export {
     my @DIRS;
     my @FILS;
     for @dirs {
-        say "DEBUG: trying a dummy file '$_'";
-        my $o = FreeTypeFace.new: :file($_);
+        next if not $_;
+        next if not $_.IO.d;
+        say "DEBUG: need to investigate directory '$_'";
+        #my $o = FreeTypeFace.new: :file($_);
     }
     for @fils {
-        say "DEBUG: trying a dummy file '$_'";
+        next if not $_;
+        next if not $_.e;
+        say "DEBUG: trying a file '$_'";
         my $o = FreeTypeFace.new: :file($_);
     }
 
@@ -316,7 +317,15 @@ sub use-args(@args is copy) is export {
             @dirs.push: $dir;
         }
         else {
-            @dirs = @fdirs;
+            # use the fonts in the first directory in $user-fonts-list
+            for $user-font-list.IO.lines -> $line is copy {
+                $line = strip-comment $line;
+                next unless $line ~~ /\S/;
+                my @w = $line.words;
+                $dir = @w.tail.IO.dirname;
+                @dirs.push: $dir;
+                last;
+            }
         }
 
         my %fam; # keyed by family name
@@ -367,6 +376,8 @@ sub use-args(@args is copy) is export {
         # sample  - Create a PDF document showing samples of
         #             selected fonts in a list of font files
 
+        # get a font key
+        # load the font file
 
         say "End of mode 'show'" if 1;
         exit;
@@ -390,7 +401,14 @@ sub get-font-info(
     --> FreeTypeFace
     ) is export {
 
-    my $file = $path.Str; # David's sub REQUIRES a Str for the $filename
+    my $file;
+    if $path.IO.d {
+        $file = $path; #.Str; # David's sub REQUIRES a Str for the $filename
+    }
+    else {
+        $file = %user-fonts{$path};
+    }
+
     my $o = FreeTypeFace.new: :$file;
     $o;
 }
@@ -825,9 +843,10 @@ sub hex2string($hexlist, :$debug --> Str) is export {
 } # sub hex2string
 
 
-sub find-local-font {
-    # TODO awaiting working 'rak'
-    # my $f =
+sub find-local-font is export {
+    # use the installed file set
+    my $f = %user-fonts<1>;
+    $f;
 }
 
 sub deg2rad($degrees) {
@@ -1288,7 +1307,6 @@ sub check-font-list(
 
 }
 
-#sub get-user-fonts(
 # our $user-font-list is export; # <== create-user-font-list-file :$nfonts
 # our %user-fonts     is export; # <== create-user-fonts-hash $user-font-list
 sub create-user-fonts-hash(
