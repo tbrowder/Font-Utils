@@ -123,10 +123,30 @@ class FreeTypeFace is export {
         $face.has-reliable-glyph-names ?? True !! False
     }
 
-    method stringwidth($s, :$font-size = 12, :$kern) {
+    method stringwidth(Str $s, :$font-size = 12) {
         my $units-per-EM = $face.units-per-EM;
         my $unscaled = sum $face.for-glyphs($s, {.metrics.hori-advance });
         return $unscaled * $font-size / $units-per-EM;
+    }
+
+    method wrap-string(Str $s, :$font-size!, :$width! --> List) {
+        my @lines; # to hold the $width size pieces
+        # all the glyphs
+        my @g = $s.comb;
+
+        my $tstr = "";  # temp string for building the shorter lines
+        while @g.elems {
+            my $c = @g.shift;
+            if self.stringwidth(($tstr ~ $c), :$font-size) <= $width {
+                $tstr ~= $c;
+            }
+            else {
+                @lines.push: $tstr;
+                @g.unshift: $c; # so it can be used again
+                $tstr = "";
+            }
+        }
+        @lines;
     }
 
 =begin comment
@@ -265,8 +285,10 @@ sub use-args(@args is copy) is export {
             if %user-fonts{$fkey}:exists {
                 say "DEBUG: selected font key '$fkey'" if $debug;
                 $file = %user-fonts{$fkey}<path>;
-                say "DEBUG: font file: $file" if $debug;
-                say "DEBUG exit"; exit if $debug;
+                if $debug {
+                    say "DEBUG: font file: $file";
+                    say "DEBUG exit"; exit;
+                }
             }
             else {
                 say qq:to/HERE/;
@@ -295,6 +317,7 @@ sub use-args(@args is copy) is export {
 
     unless $dir or $file or $is-eg {
         say "No file, dir, or eg was entered.";
+        exit;
     }
 
     #=begin comment
@@ -314,12 +337,12 @@ sub use-args(@args is copy) is export {
     for @fils {
         next if not $_;
         next if not $_.e;
-        say "DEBUG: trying a file '$_'" if 1 or $debug;
+        say "DEBUG: trying a file '$_'" if $debug;
         my $o = FreeTypeFace.new: :file($_);
     }
     #=end comment
     if $file {
-        say "DEBUG: trying a file '$file'" if 1 or $debug;
+        say "DEBUG: trying a file '$file'" if $debug;
         my $o = FreeTypeFace.new: :$file;
     }
 
@@ -535,6 +558,10 @@ sub show-font-info(
     :$debug
     ) is export {
 
+    if not $path.IO.r {
+        die "FATAL: \$path is not a valid font path";
+    }
+
     my $file = $path.Str; # David's sub REQUIRES a Str for the $filename
     my $face = Font::FreeType.new.face($file);
 
@@ -597,11 +624,16 @@ sub show-font-info(
         }
     }
     my $tstr = "Some text";
-    $face.set-char-size(12);
+    my $sz = 12;
+    $face.set-char-size($sz);
 
-    #my $sw = $face.stringwidth($tstr, 12);
     my $sw = stringwidth($tstr, :$face, :kern);
-    say "  Stringwidth of '$tstr': $sw points";
+    say "  Stringwidth of '$tstr' at font size $sz: $sw points";
+
+    $sz = 24;
+    $face.set-char-size($sz);
+    $sw = stringwidth($tstr, :$face, :kern);
+    say "  Stringwidth of '$tstr' at font size $sz: $sw points";
 }
 
 sub hex2dec(
@@ -1122,9 +1154,6 @@ sub create-user-font-list-file(
         FreeMonoOblique.otf
         FreeMonoBoldOblique.otf
 
-        EBGaramond-Initials.otf
-        EBGaramond-InitialsF1.otf
-        EBGaramond-InitialsF2.otf
         EBGaramond08-Italic.otf
         EBGaramond08-Regular.otf
         EBGaramond12-AllSC.otf
@@ -1134,10 +1163,14 @@ sub create-user-font-list-file(
         EBGaramondSC08-Regular.otf
         EBGaramondSC12-Regular.otf
 
+        EBGaramond-Initials.otf
+        EBGaramond-InitialsF1.otf
+        EBGaramond-InitialsF2.otf
+
+        Cantarell-Regular.otf
         Cantarell-Bold.otf
         Cantarell-ExtraBold.otf
         Cantarell-Light.otf
-        Cantarell-Regular.otf
         Cantarell-Thin.otf
 
         C059-BdIta.otf
@@ -1145,26 +1178,26 @@ sub create-user-font-list-file(
         C059-Italic.otf
         C059-Roman.otf
         D050000L.otf
-        NimbusMonoPS-Bold.otf
-        NimbusMonoPS-BoldItalic.otf
-        NimbusMonoPS-Italic.otf
         NimbusMonoPS-Regular.otf
-        NimbusRoman-Bold.otf
-        NimbusRoman-BoldItalic.otf
-        NimbusRoman-Italic.otf
+        NimbusMonoPS-Bold.otf
+        NimbusMonoPS-Italic.otf
+        NimbusMonoPS-BoldItalic.otf
         NimbusRoman-Regular.otf
-        NimbusSans-Bold.otf
-        NimbusSans-BoldItalic.otf
-        NimbusSans-Italic.otf
+        NimbusRoman-Bold.otf
+        NimbusRoman-Italic.otf
+        NimbusRoman-BoldItalic.otf
         NimbusSans-Regular.otf
-        NimbusSansNarrow-Bold.otf
-        NimbusSansNarrow-BoldOblique.otf
-        NimbusSansNarrow-Oblique.otf
+        NimbusSans-Bold.otf
+        NimbusSans-Italic.otf
+        NimbusSans-BoldItalic.otf
         NimbusSansNarrow-Regular.otf
-        P052-Bold.otf
-        P052-BoldItalic.otf
-        P052-Italic.otf
+        NimbusSansNarrow-Bold.otf
+        NimbusSansNarrow-Oblique.otf
+        NimbusSansNarrow-BoldOblique.otf
         P052-Roman.otf
+        P052-Bold.otf
+        P052-Italic.otf
+        P052-BoldItalic.otf
         StandardSymbolsPS.otf
         URWBookman-Demi.otf
         URWBookman-DemiItalic.otf
@@ -1340,24 +1373,6 @@ sub print-text-line(
 
 } # print-text-line
 
-sub wrap-string(
-    Str $s,
-    :$font!,
-    :$font-size!,
-    :$width!,
-    :$debug,
-    --> List
-    ) is export {
-    my $done = False;
-    my @g = $s.comb;
-    my $tstr;
-    while not $done {
-        $tstr ~= @g.shift;
-        my $w = $
-
-    }
-}
-
 sub do-build(
     :$nfonts = 63, #= max fonts listed
     :$debug,
@@ -1485,16 +1500,19 @@ sub is-font-file(
 
 sub stringwidth(
     Str $s,
-    :$face!,
     :$font-size = 12,
+    :$face!,
     :$kern,
     :$debug,
     ) is export {
 
+    # from sub stringwidth demoed in Font::FreeType (but without kern)
+    # note PDF::Font::Loader does have a :kern capability with 'text-box'
     #method stringwidth($s, :$font-size = 12, :$kern) {
-        my $units-per-EM = $face.units-per-EM;
-        my $unscaled = sum $face.for-glyphs($s, {.metrics.hori-advance });
-        return $unscaled * $font-size / $units-per-EM;
+
+    my $units-per-EM = $face.units-per-EM;
+    my $unscaled = sum $face.for-glyphs($s, {.metrics.hori-advance });
+    return $unscaled * $font-size / $units-per-EM;
 }
 
 =finish

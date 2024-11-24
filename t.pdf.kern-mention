@@ -1,0 +1,89 @@
+# FT_KERNING - An enumeration to specify the format of kerning values returned by FT_Get_Kerning.
+./Font-FreeType-raku/lib/Font/FreeType/Raw/Defs.rakumod
+
+    #| ‘Attach’ data to a face object. Normally, this is used to read additional information for the face object. For example, you can attach an AFM file that comes with a Type 1 font to get the kerning values and other metrics.
+    #| Return the kerning vector between two glyphs of the same face.
+        FT_UInt     $kern-mode,
+        FT_Vector   $kerning)
+./Font-FreeType-raku/lib/Font/FreeType/Raw.rakumod
+
+    method has-kerning { self!flag-set: FT_FACE_FLAG_KERNING }
+    method kerning(Str $left, Str $right, UInt :$mode = $!metrics-delegate === $!scaled-metrics ?? FT_KERNING_UNFITTED !! FT_KERNING_UNSCALED) {
+In particular an `*.afm` (font metrics) file needs to accompany a Type-1 `*.pfa` or `*.pfb` file to obtain kerning and other font metrics.
+=head3 has-kerning()
+True if the font provides kerning information.  See the `kerning()`
+=head3 kerning(_left-char_, _right-char_, :$mode)
+Returns a vector for the the suggested kerning adjustment between two glyphs.
+    my $kern = $face.kerning('A', 'V');
+    my $kern-distance = $kern.x;
+The `mode` option controls how the kerning is calculated, with
+when rendering glyphs to bitmaps to make the kerning take the resolution
+when creating the face then use this when calculating the kerning.
+say $vera.kerning('T', '.').x;  # -243 (scaled)
+say $vera.kerning('T', '.').x;  # -1.421875
+./Font-FreeType-raku/lib/Font/FreeType/Face.rakumod
+
+say $font.stringwidth("RVX", :kern); # 2111
+has Font::AFM $.metrics handles <kern>;
+method stringwidth(Str $str, $pointsize = 0, Bool :$kern=False --> Numeric) {
+    $!metrics.stringwidth( $str, $pointsize, :$kern);
+method shape(Str $text, Bool :$kern = True) {
+    my Hash $kern-data = $!metrics.KernData if $kern;
+            if $kern && $prev-glyph {
+                if (my $kp := $kern-data{$prev-glyph}) && (my $kx := $kp{$glyph-name}) {
+./PDF-Content-raku/lib/PDF/Content/Font/CoreFont.rakumod
+
+has Bool    $.kern;
+./PDF-Content-raku/lib/PDF/Content/Text/Style.rakumod
+
+has PDF::Content::Text::Style $.style is rw handles <font font-size leading kern WordSpacing CharSpacing HorizScaling TextRender TextRise baseline-shift space-width underline-position underline-thickness font-height shape direction>;
+=para This method also handles method C<font>, C<font-size>, C<leading>, C<kern>, C<WordSpacing>, C<CharSpacing>, C<HorizScaling>, C<TextRender>, C<TextRise>, C<baseline-shift>, C<space-width>, C<underline-position>, C<underline-thickness>, C<font-height>. For example C<$tb.font-height> is equivalent to C<$tb.style.font-height>.
+    my Bool $kern = $!style.kern;
+    $kern //= True if $shape;
+                    given $font.shape($atom, :$kern, :$script, :$lang) {
+                elsif $kern {
+                    given $!style.font.kern($atom) {
+./PDF-Content-raku/lib/PDF/Content/Text/Box.rakumod
+
+method kern {...}        # kern text
+./PDF-Content-raku/lib/PDF/Content/FontObj.rakumod
+
+has PDF::Content::FontObj $.font-obj is rw handles <encode decode encode-cids protect filter font-name height kern stringwidth underline-position underline-thickness units-per-EM shape>;
+./PDF-Content-raku/lib/PDF/Content/Font.rakumod
+
+        *%opt,  # :$align, :$valign, :$kern, :$leading, :$width, :$height, :$baseline-shift, :$font, :$font-size
+./PDF-Content-raku/lib/PDF/Content.rakumod
+
+#| Font tag (e.g. 'kern')
+=para E.g. `kern` (enabled), or `-kern` (disabled)
+./HarfBuzz-raku/lib/HarfBuzz/Feature.rakumod
+
+method make-harfbuzz-font(:$face!, :$font-buf!, Bool :$kern --> HarfBuzz::Font) {
+    my HarfBuzz::Feature() @features = $kern ?? <kern> !! <-kern>;
+./PDF-Font-Loader-HarfBuzz-raku/lib/PDF/Font/Loader/HarfBuzz.rakumod
+
+method !font-kerning(Str $text is copy) {
+    my FT_Vector $kerning .= new;
+                ft-try({ $struct.FT_Get_Kerning($prev-idx, $this-idx, FT_KERNING_UNSCALED, $kerning); });
+                $width  += $kerning.x;
+                $height += $kerning.y;
+multi method stringwidth(Str $text, :$kern) {
+    + ($kern ?? self!font-kerning($text)[Width] !! 0);
+multi method stringwidth(Str $text, $pointsize, :$kern) {
+    self.stringwidth($text, :$kern) * $pointsize / 1000;
+./PDF-Font-Loader-raku/lib/PDF/Font/Loader/Enc.rakumod
+
+method kern(Str $text) {
+    my Numeric      $kernwidth = 0.0;
+    if $!face.has-kerning {
+        my FT_Vector    $kerning .= new;
+                    ft-try({ $face-struct.FT_Get_Kerning($prev-idx, $this-idx, FT_KERNING_UNSCALED, $kerning); });
+                    my $dx := ($kerning.x * $scale).round;
+                        $kernwidth += $dx;
+    @chunks, self.stringwidth($text) + $kernwidth.round;
+### kern
+Kern text via the font's kerning tables. Returns chunks of text separated by numeric kern widths.
+say $font.kern("ABCD"); # ["AB", -18, "CD"]
+method stringwidth(Str $text, Numeric $point-size?, Bool :$kern) returns Numeric
+The `:kern` option can be used to adjust the stringwidth, using the font's horizontal kerning tables.
+./PDF-Font-Loader-raku/lib/PDF/Font/Loader/FontObj.rakumod
