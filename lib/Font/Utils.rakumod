@@ -1,5 +1,10 @@
 unit module Font::Utils;
 
+use Font::FreeType;
+use Font::FreeType::SizeMetrics;
+use Font::FreeType::Glyph;
+use Font::FreeType::Raw::Defs;
+
 use PDF::Font::Loader :load-font;
 our %loaded-fonts is export;
 our $HOME is export = 0;
@@ -118,8 +123,10 @@ class FreeTypeFace is export {
         $face.has-reliable-glyph-names ?? True !! False
     }
 
-    method stringwidth($s, :$font-size, :$kern) {
-        $face.stringwidth($s, $font-size, :$kern);
+    method stringwidth($s, :$font-size = 12, :$kern) {
+        my $units-per-EM = $face.units-per-EM;
+        my $unscaled = sum $face.for-glyphs($s, {.metrics.hori-advance });
+        return $unscaled * $font-size / $units-per-EM;
     }
 
 =begin comment
@@ -452,12 +459,22 @@ sub use-args(@args is copy) is export {
         # sample  - Create a PDF document showing samples of
         #             selected fonts in a list of font files
 
+        if $file {
+            my $o = FreeTypeFace.new: :$file;
+            #$o.show;
+        }
+
+        # use a kludge for now
+        show-font-info $file;
+
         # get a font key
         my $k1 = 1;
         my $k2 = 2;
 
         # load the font file
         my $f1 = load-font-at-key $k1;
+        my $f2 = load-font-at-key $k1;
+ 
 
         say "End of mode 'show'" if 1;
         exit;
@@ -580,8 +597,11 @@ sub show-font-info(
         }
     }
     my $tstr = "Some text";
-    my $sw = $face.stringwidth($tstr, 12);
-    say "  Stringwidth of '$tstr':", $sw;
+    $face.set-char-size(12);
+
+    #my $sw = $face.stringwidth($tstr, 12);
+    my $sw = stringwidth($tstr, :$face, :kern);
+    say "  Stringwidth of '$tstr': $sw points";
 }
 
 sub hex2dec(
@@ -1461,6 +1481,20 @@ sub is-font-file(
         $res = True;
     }
     $res
+}
+
+sub stringwidth(
+    Str $s,
+    :$face!,
+    :$font-size = 12,
+    :$kern,
+    :$debug,
+    ) is export {
+
+    #method stringwidth($s, :$font-size = 12, :$kern) {
+        my $units-per-EM = $face.units-per-EM;
+        my $unscaled = sum $face.for-glyphs($s, {.metrics.hori-advance });
+        return $unscaled * $font-size / $units-per-EM;
 }
 
 =finish
