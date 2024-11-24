@@ -5,6 +5,7 @@ our %loaded-fonts is export;
 our $HOME is export = 0;
 our $user-font-list is export; # <== create-user-font-list-file :$nfonts
 our %user-fonts     is export; # <== create-user-fonts-hash $user-font-list
+    # key => basename, path
 BEGIN {
     if %*ENV<HOME>:exists {
         $HOME = %*ENV<HOME>;
@@ -20,6 +21,10 @@ BEGIN {
     my $fdir = "$HOME/.Font-Utils";
     mkdir $fdir;
     $user-font-list = "$HOME/.Font-Utils/font-files.list";
+}
+
+INIT {
+    create-user-fonts-hash $user-font-list;
 }
 
 =begin comment
@@ -232,15 +237,13 @@ sub use-args(@args is copy) is export {
 
     # remaining args are a mixed bag
     # we must have an arg (file, or dir, or 'eg')
-    my ($dir, $file);   # file or dir
+    my ($dir, $file, $fkey);   # file or dir
     my $is-eg = False;
 
     my %opts;
     for @args {
         when /^ :i eg $/ {
             $is-eg = True;
-            #my $f = find-local-font;
-            #@fils.push: $f;
         }
         when /^ :i (\w+) '=' (\w+) / {
             my $key = ~$0;
@@ -248,42 +251,32 @@ sub use-args(@args is copy) is export {
             # decode later
             %opts{$key} = $val;
         }
-        when $_.IO.d {
-            say "'$_' is a directory";
-            #@dirs.push: $_;
-            $dir = $_; #@dirs.push: $_;
-        }
-        when $_.IO.f {
-            say "'$_' is a file";
-            $file = $_; #@dirs.push: $_;
-            =begin comment
-            # handle it here
-            my @lines = $_.IO.lines;
-            if not @lines.elems {
-                note qq:to/HERE/;
-                WARNING: File '$_' is empty, skipping it.
-                HERE
+        when /^ :i (\S+) / {
+            # a possible font key
+            # it cannot be zero
+            $fkey = ~$0;
+            if %user-fonts{$fkey}:exists {
+                say "DEBUG: selected font key '$fkey'" if $debug;
+                $file = %user-fonts{$fkey}<path>;
+                say "DEBUG: font file: $file" if $debug;
+                say "DEBUG exit"; exit if $debug;
             }
             else {
-                for @lines -> $line {
-                    my @w = $line.words;
-                    for @w -> $w {
-                        # should be a file name or a directory
-                        if $w.IO.d {
-                            @dirs.push: $w;
-                        }
-                        elsif $w.IO.f {
-                            @fils.push: $w;
-                        }
-                        else {
-                            note qq:to/HERE/;
-                            WARNING: word '$w' in file '$_' is not a file or a directory
-                            HERE
-                        }
-                    }
-                }
-            }
-            =end comment
+                say qq:to/HERE/;
+                FATAL: Unrecognized font key '$fkey'.
+                
+                Use mode 'list' to show your fonts.
+                HERE
+                exit;
+            }           
+        }
+        when $_.IO.d {
+            say "'$_' is a directory";
+            $dir = $_; 
+        }
+        when $_ ~~ /\w/ and $_.IO.r {
+            say "'$_' is a file";
+            $file = $_;
         }
         when /^ :i d / {
             ++$debug;
@@ -297,7 +290,7 @@ sub use-args(@args is copy) is export {
         say "No file, dir, or eg was entered.";
     }
 
-    =begin comment
+    #=begin comment
     # take care of $file or $dir, and %opts
     # if we have a file, it may be a font file or a list of files
     my @dirs;
@@ -317,7 +310,11 @@ sub use-args(@args is copy) is export {
         say "DEBUG: trying a file '$_'" if 1 or $debug;
         my $o = FreeTypeFace.new: :file($_);
     }
-    =end comment
+    #=end comment
+    if $file {
+        say "DEBUG: trying a file '$file'" if 1 or $debug;
+        my $o = FreeTypeFace.new: :$file;
+    }
 
     if $debug {
         say "DEBUG is on";
@@ -386,7 +383,6 @@ sub use-args(@args is copy) is export {
             say "DEBUG: using dir '{@dirs.head}' for 'list'";
         }
 
-        =begin comment
         my %fam; # keyed by family name
         my %nam; # keyed by postscript name
 
@@ -444,7 +440,6 @@ sub use-args(@args is copy) is export {
             ++$idx;
             say "$idx   $_";
         }
-        =end comment
 
         say "End of mode 'list'" if 1;
         exit;
@@ -458,7 +453,11 @@ sub use-args(@args is copy) is export {
         #             selected fonts in a list of font files
 
         # get a font key
+        my $k1 = 1;
+        my $k2 = 2;
+
         # load the font file
+        my $f1 = load-font-at-key $k1;
 
         say "End of mode 'show'" if 1;
         exit;
