@@ -335,6 +335,7 @@ sub use-args(@args is copy) is export {
         if $is-eg {
             # use the fonts in the first directory in $user-fonts-list
             my $d;
+            # get the first directory
             for $user-font-list.IO.lines -> $line is copy {
                 $line = strip-comment $line;
                 next unless $line ~~ /\S/;
@@ -342,7 +343,8 @@ sub use-args(@args is copy) is export {
                 $d = @w.tail.IO.dirname;
                 last;
             }
-            say "DEBUG: using dir '$d' for listing dir";
+            say "DEBUG: using dir '$d' for listing dir" if $debug;
+            # get the files in that directory
             for $user-font-list.IO.lines -> $line is copy {
                 $line = strip-comment $line;
                 next unless $line ~~ /\S/;
@@ -351,7 +353,7 @@ sub use-args(@args is copy) is export {
                 last if $tdir ne $d;
                 my $p = @w.tail.IO.path;
                 @fils.push: $p;
-                say "DEBUG: using font file '$p'";
+                say "DEBUG: using font file '$p'" if $debug;
             }
         }
 
@@ -361,6 +363,18 @@ sub use-args(@args is copy) is export {
         elsif $file.defined {
             # it may be a file list OR a font file
             say "DEBUG: a file is defined, is it a font file?";
+            if is-font-file $file {
+                @fils.push: $file;
+            }
+            else {
+                # is it a list of files
+                for $file.IO.lines -> $line is copy {
+                    $line = strip-comment $line;
+                    if is-font-file $line {
+                        @fils.push: $line;
+                    }
+                }
+            }
         }
         #else {
         #    unless @dirs.elems {
@@ -1435,6 +1449,19 @@ sub load-font-at-key(
     my $font = load-font :$file;
     %loaded-fonts{$key} = $font;
     $font;
+}
+
+sub is-font-file(
+    $file,
+    :$debug,
+    --> Bool
+    ) is export {
+    # just a name check for now
+    my $res = False;
+    if $file ~~ /:i '.' [otf|ttf|pfb] $/ {
+        $res = True;
+    }
+    $res
 }
 
 =finish
