@@ -237,7 +237,6 @@ my $Rlist    = 0;
 my $Rshow    = 0;
 my $Rsample  = 0;
 my $debug    = 0;
-my $dir;
 
 sub use-args(@args is copy) is export {
     my $mode = @args.shift;
@@ -265,15 +264,11 @@ sub use-args(@args is copy) is export {
     }
 
     # remaining args are a mixed bag
-    # we must have an arg (file, or dir, or 'eg')
-    my ($dir, $file, $fkey);   # file or dir
-    my $is-eg = False;
+    # we must have an arg (file, or dir, or fkey)
+    my ($dir, $file, $fkey, $key);   # file or dir
 
     my %opts;
     for @args {
-        when /^ :i eg $/ {
-            $is-eg = True;
-        }
         when /^ :i (\w+) '=' (\w+) / {
             my $key = ~$0;
             my $val = ~$1;
@@ -293,12 +288,17 @@ sub use-args(@args is copy) is export {
                 }
             }
             else {
+                # take the first
+                $file = %user-fonts<1><path>;
+                ; # ok #say "Listing your fonts...";
+                =begin comment
                 say qq:to/HERE/;
                 FATAL: Unrecognized font key '$fkey'.
                 
                 Use mode 'list' to show your fonts.
                 HERE
                 exit;
+                =end comment
             }           
         }
         when $_.IO.d {
@@ -317,32 +317,23 @@ sub use-args(@args is copy) is export {
         }
     } # end of arg handling
 
-    unless $dir or $file or $is-eg {
-        say "No file, dir, or eg was entered.";
+    unless $dir or $file or $fkey {
+        say "No file, dir, or fkey was entered.";
         exit;
     }
 
     #=begin comment
     # take care of $file or $dir, and %opts
-    # if we have a file, it may be a font file or a list of files
-    my @dirs;
+    # if we have a file, it must be a font file
     my @fils;
 
-    my @DIRS;
-    my @FILS;
-    for @dirs {
-        next if not $_;
-        next if not $_.IO.d;
-        say "DEBUG: need to investigate directory '$_'" if 1 or $debug;
-        #my $o = FreeTypeFace.new: :file($_);
-    }
     for @fils {
         next if not $_;
         next if not $_.e;
         say "DEBUG: trying a file '$_'" if $debug;
         my $o = FreeTypeFace.new: :file($_);
     }
-    #=end comment
+
     if $file {
         say "DEBUG: trying a file '$file'" if $debug;
         my $o = FreeTypeFace.new: :$file;
@@ -359,101 +350,34 @@ sub use-args(@args is copy) is export {
         # sample - Create a PDF document showing samples of
         #            selected fonts in a list of font files
 
-        my @dirs;
         my @fils;
-        if $is-eg {
-            # use the fonts in the first directory in $user-fonts-list
-            my $d;
-            # get the first directory
-            for $user-font-list.IO.lines -> $line is copy {
-                $line = strip-comment $line;
-                next unless $line ~~ /\S/;
-                my @w = $line.words;
-                $d = @w.tail.IO.dirname;
-                last;
-            }
-            say "DEBUG: using dir '$d' for listing dir" if $debug;
-            # get the files in that directory
-            for $user-font-list.IO.lines -> $line is copy {
-                $line = strip-comment $line;
-                next unless $line ~~ /\S/;
-                my @w = $line.words;
-                my $tdir = @w.tail.IO.dirname;
-                last if $tdir ne $d;
-                my $p = @w.tail.IO.path;
-                @fils.push: $p;
-                say "DEBUG: using font file '$p'" if $debug;
-            }
-        }
-
         if $dir.defined {
-            @dirs.push: $dir;
+            @fils = find :$dir, :type<file>, :name(/'.' [otf|ttf|pfb]/);
         }
-        elsif $file.defined {
-            # it may be a file list OR a font file
-            say "DEBUG: a file is defined, is it a font file?";
-            if is-font-file $file {
-                @fils.push: $file;
-            }
-            else {
-                # is it a list of files
-                for $file.IO.lines -> $line is copy {
-                    $line = strip-comment $line;
-                    if is-font-file $line {
-                        @fils.push: $line;
-                    }
-                }
-            }
-        }
-        #else {
-        #    unless @dirs.elems {
-        #        die "FATAL: Unknown option for mode 'list'";
-        #    }
-        #}
-
-        if @dirs {
-            say "DEBUG: using dir '{@dirs.head}' for 'list'";
+        else {
+            # get the user's list
+            @fils = get-user-font-list;
         }
 
         my %fam; # keyed by family name
         my %nam; # keyed by postscript name
 
-        my $nfont = 0;
-        if $is-eg {
-            # use the dir of the first font file
-            ; # ok
-        }
-
         my @fams;
-        for @dirs -> $dir {
-            my @fils;
-            if $is-eg {
-                @fils = get-user-font-list :path-only;
+        for @fils {
+            note "DEBUG: path = '$_'" if 1 or $debug;
+            my $file = $_.IO.absolute;
+            my $o      = FreeTypeFace.new: :$file;
+            my $pnam   = $o.postscript-name;
+            my $anam   = $o.adobe-name;
+            my $fam    = $o.family-name;
+            if %fam{$fam}:exists {
+                ; # ok
             }
             else {
-                @fils = find :$dir, :type<file>, :name(/:i '.' [o|t] tf $/);
+                %fam{$fam} = 1;
+                @fams.push: $fam;
             }
-            for @fils {
-                note "DEBUG: path = '$_'" if 1 or $debug;
-                my $file = $_.IO.absolute;
-                my $o      = FreeTypeFace.new: :$file;
-                my $pnam   = $o.postscript-name;
-                my $anam   = $o.adobe-name;
-                my $fam    = $o.family-name;
-                if %fam{$fam}:exists {
-                    ; # ok
-                }
-                else {
-                    %fam{$fam} = 1;
-                    @fams.push: $fam;
-                }
-                %nam{$pnam} = $_;
-
-         #      say "name: {$o.postscript-name}";
-         #      say "  family: {$o.family-name}";
-
-                #show-font-info $_, :$debug;
-            }
+            %nam{$pnam} = $_;
         }
 
         my @nams = %nam.keys.sort;
@@ -480,13 +404,19 @@ sub use-args(@args is copy) is export {
     #=====================================================
     if $Rshow {
         # list    - List family and font names in a font directory
+        #             input: $dir OR anything else uses user font list
         # show    - Show details of a font file
+        #             input: $file
         # sample  - Create a PDF document showing samples of
-        #             selected fonts in a list of font files
+        #           the selected font
+        #             input: $file OR key of user font hash
 
-        if $file {
+        if is-font-file $file {
             my $o = FreeTypeFace.new: :$file;
             #$o.show;
+        }
+        else {
+            $file = %user-fonts<1>;
         }
 
         # use a kludge for now
@@ -506,10 +436,17 @@ sub use-args(@args is copy) is export {
     } # end of $Rshow
 
     if $Rsample {
-        # list   - List family and font names in a font directory
-        # show   - Show details of a font file
-        # sample - Create a PDF document showing samples of
-        #            selected fonts in a list of font files
+        # sample  - Create a PDF document showing samples of
+        #           the selected font
+        #             input: $file OR key of user font hash
+
+        if is-font-file $file {
+            my $o = FreeTypeFace.new: :$file;
+            #$o.show;
+        }
+        else {
+            $file = %user-fonts<1>;
+        }
 
         say "End of mode 'sample'" if 1;
         exit;
@@ -517,8 +454,9 @@ sub use-args(@args is copy) is export {
 
 }
 
+# TODO make list in BEGIN and INIT
 sub get-user-font-list(
-    :$path-only,
+    :$all,
     :$debug,
     --> List
     ) is export {
@@ -527,7 +465,7 @@ sub get-user-font-list(
     for $user-font-list.IO.lines -> $line is copy {
         $line = strip-comment $line;
         next unless $line ~~ /\S/;
-        if $path-only {
+        unless $all {
             $line = $line.words.tail;
             $line = $line.IO.absolute;
             say "DEBUG: line path = '$line'" if 1 or $debug;
@@ -1521,6 +1459,22 @@ sub stringwidth(
     my $units-per-EM = $face.units-per-EM;
     my $unscaled = sum $face.for-glyphs($s, {.metrics.hori-advance });
     return $unscaled * $font-size / $units-per-EM;
+}
+
+sub make-glyph-box(
+    $ulx, $uly,
+    :$font!,
+    :$font-size!,
+    :$page!,
+    :$debug,
+    ) is export {
+
+    my $g = $page.graphics;
+    $g.Save;
+
+
+
+    $g.Restore
 }
 
 =finish

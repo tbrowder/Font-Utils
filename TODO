@@ -1,3 +1,8 @@
+Create a routine to make a glyph showing box with each
+glyph's hex code, glyph, font bbox, origin, bearings,
+horizontal advance, and baseline. Each glyph should
+be inside a box outlined by the font bbox.
+
 Get "Adobe" name for urw fonts (use in post-script name?)
 Work on tracking vertical position of text boxes
   + need a string breaking routine for font samples

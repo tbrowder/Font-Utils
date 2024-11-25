@@ -40,6 +40,7 @@ C<list $directory, :$out = $*OUT>
 
 Uses routine C<list> to provide a list
 of font families and their fonts in the input directory.
+Any other entry will show the user's list.
 
 =head4 show 
 
