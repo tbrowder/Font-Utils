@@ -97,15 +97,11 @@ class FreeTypeFace is export {
     method family-name          { $face.family-name     }
     method style-name           { $face.style-name      }
     method postscript-name      { $face.postscript-name }
-    #method adobe-name           { self.adobe-name       }
     method font-format          { $face.font-format     }
     method num-glyphs           { $face.num-glyphs      }
     method bbox                 { $face.bbox            }
     method height               { $face.height          }
     method leading              { $face.height          } # alias
-
-    # size and glyph info
-    #method set-font-size($size) { $face.
 
     method is-scalable          { $face.is-scalable          ?? True !! False }
     method is-fixed-width       { $face.is-fixed-width       ?? True !! False }
@@ -203,15 +199,14 @@ sub help() is export {
     or files containing lists of files and directories to
     investigate.
 
-    Optional arguments for the 'sample' mode may be mixed in
+    Optional key=value arguments for the 'sample' mode may be mixed in
     with them. See the README for details.
 
     The 'sample' mode can take one or more 'key=value' options
     as shown below.
 
-    All of the modes can take an 'eg' option which uses one or
-    more fonts or directories listed in the file
-    '\$HOME/.Font-Utils/font-files.list'.
+    All of the modes take one of several options depending on the mode
+    selected.
 
     Modes:
       list    - List family and font names in a set of font files
@@ -220,8 +215,11 @@ sub help() is export {
                   selected fonts
 
     Options:
-      eg      - For all modes, use the first font or directory in in
-                the user's font list
+      (src)   - For all modes, select a font file, directory, or
+                a key value from the %user-fonts. The action taken
+                depends on the mode. All selections fall back
+                to using the %user-fonts if necessary.
+  
       ng=X    - Where X is the maximum number of glyphs to show
       m=A4    - A4 media
       o=L     - Landscape orientation
@@ -288,7 +286,7 @@ sub use-args(@args is copy) is export {
                 }
             }
             else {
-                # take the first
+                # take the first file in the user's list
                 $file = %user-fonts<1><path>;
                 ; # ok #say "Listing your fonts...";
                 =begin comment
@@ -322,11 +320,10 @@ sub use-args(@args is copy) is export {
         exit;
     }
 
-    #=begin comment
     # take care of $file or $dir, and %opts
     # if we have a file, it must be a font file
-    my @fils;
 
+    my @fils;
     for @fils {
         next if not $_;
         next if not $_.e;
@@ -359,42 +356,39 @@ sub use-args(@args is copy) is export {
             @fils = get-user-font-list;
         }
 
-        my %fam; # keyed by family name
+        my %fam; # keyed by family name => [ files... ]
         my %nam; # keyed by postscript name
 
         my @fams;
         for @fils {
-            note "DEBUG: path = '$_'" if 1 or $debug;
+            note "DEBUG: path = '$_'" if 0 or $debug;
             my $file = $_.IO.absolute;
             my $o      = FreeTypeFace.new: :$file;
             my $pnam   = $o.postscript-name;
             my $anam   = $o.adobe-name;
             my $fam    = $o.family-name;
             if %fam{$fam}:exists {
-                ; # ok
+                %fam{$fam}.push: $file;
             }
             else {
-                %fam{$fam} = 1;
+                %fam{$fam} = [];
+                %fam{$fam}.push: $file;
                 @fams.push: $fam;
             }
             %nam{$pnam} = $_;
         }
 
         my @nams = %nam.keys.sort;
-        my $idx;
 
-        say "Font family names:";
-        $idx = 0;
-        for @fams {
-            ++$idx;
-            say "$idx   $_";
-        }
-
-        say "Font PostScript  names:";
-        $idx = 0;
-        for @nams {
-            ++$idx;
-            say "$idx   $_";
+        say "Font family names and fonts:";
+        my $idx = 0;
+        for @fams -> $fam {
+            my @f = @(%fam{$fam}); #++$idx;
+            for @f -> $f {
+                my $fil = $f.IO.basename;
+                ++$idx;
+                say "$idx  $fam   $fil";
+            }
         }
 
         say "End of mode 'list'" if 1;
@@ -468,7 +462,7 @@ sub get-user-font-list(
         unless $all {
             $line = $line.words.tail;
             $line = $line.IO.absolute;
-            say "DEBUG: line path = '$line'" if 1 or $debug;
+            say "DEBUG: line path = '$line'" if 0 or $debug;
         }
         @lines.push: $line;
     }
