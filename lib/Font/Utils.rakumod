@@ -76,8 +76,9 @@ class FreeTypeFace is export {
     }
 
     method adobe-name {
-        $!adobe-name ?? $!adobe-name !! $face.postscript-name
+        $!adobe-name ?? $!adobe-name !! $face.postscript-name;
     }
+
     method rawname {
         # basename without a suffix
         my $rname = self.basename;
@@ -96,6 +97,7 @@ class FreeTypeFace is export {
     method family-name          { $face.family-name     }
     method style-name           { $face.style-name      }
     method postscript-name      { $face.postscript-name }
+    #method adobe-name           { self.adobe-name       }
     method font-format          { $face.font-format     }
     method num-glyphs           { $face.num-glyphs      }
     method bbox                 { $face.bbox            }
@@ -563,6 +565,10 @@ sub show-font-info(
     }
 
     my $file = $path.Str; # David's sub REQUIRES a Str for the $filename
+
+    # get a sister FreeTypeFace to gradually take over
+    my $o = FreeTypeFace.new: :$file;
+
     my $face = Font::FreeType.new.face($file);
 
     say "Path: $file";
@@ -574,6 +580,8 @@ sub show-font-info(
         with $face.style-name;
     say "  PostScript name: ", $_
         with $face.postscript-name;
+    say "  Adobe name: ", $_
+        with $o.adobe-name;
     say "  Format: ", $_
         with $face.font-format;
 
