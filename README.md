@@ -36,7 +36,7 @@ Program
 
 `list $directory, :$out = $*OUT`
 
-Uses routine `list` to provide a list of font families and their fonts in the input directory.
+Uses routine `list` to provide a list of font families and their fonts in the input directory. Any other entry will show the user's list.
 
 #### show 
 

@@ -219,7 +219,7 @@ sub help() is export {
                 a key value from the %user-fonts. The action taken
                 depends on the mode. All selections fall back
                 to using the %user-fonts if necessary.
-  
+
       ng=X    - Where X is the maximum number of glyphs to show
       m=A4    - A4 media
       o=L     - Landscape orientation
@@ -580,7 +580,7 @@ sub hex2dec(
     $hex,
     :$debug
     ) is export {
-    # converts an input hex sring to a decimal number
+    # converts an input hex string to a decimal number
     my $dec = parse-base $hex, 16;
     $dec;
 }
@@ -852,16 +852,16 @@ sub dec2string($declist, :$debug --> Str) is export {
     # Given a list of space-separated decimal code points, convert
     # them to a string representation.
     my @list;
-    if $declist ~~ Str {
-        @list = $declist.words;
+    if $declist ~~ /\h/ { # Str {
+        @list = $declist.split(/\h+/); #.words;
     }
     else {
-        @list = @($declist);
+        @list.push: $declist; # = @($declist);
     }
     my $s = "";
     NUM: for @list -> $dec {
         say "DEBUG: dec '$dec'" if $debug;
-        if $dec.contains('-') {
+        if $dec ~~ /'-'/ { # .contains('-') {
             # it's a range
             my @ends = $dec.split('-');
             my $a = @ends.head.Int;
@@ -892,17 +892,19 @@ sub dec2string($declist, :$debug --> Str) is export {
 sub hex2string($hexlist, :$debug --> Str) is export {
     # Given a list of space-separated hexadecimal code points, convert
     # them to a string representation.
+    note "DEBUG: hexlist: '$hexlist'";
+
     my @list;
-    if $hexlist ~~ Str {
-        @list = $hexlist.words;
+    if $hexlist ~~ /\h/ {
+        @list = $hexlist.split(/\h+/); #words;
     }
     else {
-        @list = @($hexlist);
+        @list.push: $hexlist;
     }
     my $s = "";
     NUM: for @list -> $hex {
-        say "DEBUG: hex '$hex'" if $debug;
-        if $hex.contains('-') {
+        say "DEBUG: hex '$hex'" if 1 or $debug;
+        if $hex ~~ /'-'/ { # .contains('-') {
             # it's a range
             # careful, have to convert the range to decimal
             my @ends = $hex.split('-');
@@ -1465,7 +1467,6 @@ sub make-glyph-box(
 
     my $g = $page.graphics;
     $g.Save;
-
 
 
     $g.Restore

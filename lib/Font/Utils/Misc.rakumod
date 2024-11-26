@@ -4,36 +4,36 @@ unit module Font::Utils::Misc;
 constant %uni is export = %(
 
 # Basic Latin (ASCII)
-L-symbols => <21-2f 3a-40 5b-60 7b-7e>,
-L-chars   => <30-39 41-5a 61-7a>,
+L-symbols => "21-2f 3a-40 5b-60 7b-7e",
+L-chars   => "30-39 41-5a 61-7a",
 
 # Latin-1 Supplement
-L1-Sup-symbols => <a1-ac ae-bf>,
-L1-Sup-chars   => <c0-ff>,
+L1-Sup-symbols => "a1-ac ae-bf",
+L1-Sup-chars   => "c0-ff",
 
 # Latin Extended A
-L-Ext-A-chars  => <100-17f>,
+L-Ext-A-chars  => "100-17f",
 
 # Latin Extended B
-L-Ext-B-chars  => <180-24f>,
+L-Ext-B-chars  => "180-24f",
 
 # Latin Extended C
-L-Ext-C-chars  => <2c60-2c7f>,
+L-Ext-C-chars  => "2c60-2c7f",
 
 # Latin Extended D
-L-Ext-D-chars  => <a72-a7cd a7d0 a7d1 a7d3 a7d5-a7dc a7f2-a7ff>,
+L-Ext-D-chars  => "a72-a7cd a7d0 a7d1 a7d3 a7d5-a7dc a7f2-a7ff",
 
 # Latin Extended E
-L-Ext-E-chars  => <ab30-ab6b>,
+L-Ext-E-chars  => "ab30-ab6b",
 
 # Latin Extended F
 # Latin Extended G
 
 # Latin Additional
-L-Add-chars    => <1e00-1eff>,
+L-Add-chars    => "1e00-1eff",
 
 # Latin Ligatures (others in this group excluded)
-L-Lig-chars   => <fb00-fb06>,
+L-Lig-chars   => "fb00-fb06",
 
 );
 
