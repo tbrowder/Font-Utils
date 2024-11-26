@@ -8,8 +8,8 @@ L-symbols => "21-2f 3a-40 5b-60 7b-7e",
 L-chars   => "30-39 41-5a 61-7a",
 
 # Latin-1 Supplement
-L1-Sup-symbols => "a1-ac ae-bf",
-L1-Sup-chars   => "c0-ff",
+L-Sup-symbols => "a1-ac ae-bf",
+L-Sup-chars   => "c0-ff",
 
 # Latin Extended A
 L-Ext-A-chars  => "100-17f",
@@ -37,3 +37,11 @@ L-Lig-chars   => "fb00-fb06",
 
 );
 
+=finish
+
+L-Ext-A-chars
+L-Ext-B-chars
+L-Ext-C-chars
+L-Ext-D-chars
+L-Add-chars
+L-Lig-chars

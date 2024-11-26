@@ -4,17 +4,36 @@ use Font::Utils;
 use Font::Utils::Misc;
 
 my $debug = 0;
-my (@s, @c, $s, $c);
+my (@s, $s);
 
 @s = %uni<L-symbols>.words;
 $s = hex2string @s;
 is $s.comb.head, '!';
 
-@c = %uni<L-chars>.words;
-$c = hex2string @c;
-is $c.comb.head, '0';
+@s = %uni<L-chars>.words;
+$s = hex2string @s;
+is $s.comb.head, '0';
 
-@c = %uni<L-Sup-chars>.words;
-$c = hex2string @c;
+@s = %uni<L-Sup-chars>.words;
+$s = hex2string @s;
+
+# test them all
+@s = %uni<L-Ext-A-chars>.words;
+$s = hex2string @s;
+
+@s = %uni<L-Ext-B-chars>.words;
+$s = hex2string @s;
+
+@s = %uni<L-Ext-C-chars>.words;
+$s = hex2string @s;
+
+@s = %uni<L-Ext-D-chars>.words;
+$s = hex2string @s;
+
+@s = %uni<L-Add-chars>.words;
+$s = hex2string @s;
+
+@s = %uni<L-Lig-chars>.words;
+$s = hex2string @s;
 
 done-testing;
