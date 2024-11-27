@@ -13,12 +13,12 @@ sub dec2hex(
     :$debug
     --> Str
     ) is export {
-    my $hex = "";
     
     unless $my {
         return $dec.base: 16;
     }
 
+    my $hex = "";
     while $dec > 0 {
 
         my $q = $dec div 16;

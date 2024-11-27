@@ -576,13 +576,20 @@ sub show-font-info(
     say "  Stringwidth of '$tstr' at font size $sz: $sw points";
 }
 
+sub dec2hex(
+    $dec,
+    :$debug
+    ) is export {
+    $dec.base: 16;
+}
+
 sub hex2dec(
     $hex,
     :$debug
     ) is export {
-    # converts an input hex string to a decimal number
-    my $dec = parse-base $hex, 16;
-    $dec;
+    # converts an input hex string 
+    # to a decimal number
+    parse-base $hex, 16;
 }
 
 sub X(
@@ -892,7 +899,7 @@ sub dec2string($declist, :$debug --> Str) is export {
 sub hex2string($hexlist, :$debug --> Str) is export {
     # Given a list of space-separated hexadecimal code points, convert
     # them to a string representation.
-    note "DEBUG: hexlist: '$hexlist'";
+    note "DEBUG: hexlist: '$hexlist'" if $debug;
 
     my @list;
     if $hexlist ~~ /\h/ {
@@ -903,7 +910,7 @@ sub hex2string($hexlist, :$debug --> Str) is export {
     }
     my $s = "";
     NUM: for @list -> $hex {
-        say "DEBUG: hex '$hex'" if 1 or $debug;
+        say "DEBUG: hex '$hex'" if 0 or $debug;
         if $hex ~~ /'-'/ { # .contains('-') {
             # it's a range
             # careful, have to convert the range to decimal
