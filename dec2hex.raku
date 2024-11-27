@@ -8,11 +8,17 @@ say "hexadecimal: $h";
 
 sub dec2hex(
     UInt $dec is copy,
+    :$my, # use my method
 
     :$debug
     --> Str
     ) is export {
     my $hex = "";
+    
+    unless $my {
+        return $dec.base: 16;
+    }
+
     while $dec > 0 {
 
         my $q = $dec div 16;
