@@ -20,7 +20,29 @@ sub dec2hex(
         $dec = $q;
 
         # remainder should be < 16
-        $r = $r.Str;
+        die "FATAL: remainder is > 15, '$r'" if $r > 15;
+        if $r == 10 {
+            $r = 'A';
+        }
+        elsif $r == 11 {
+            $r = 'B';
+        }
+        elsif $r == 12 {
+            $r = 'C';
+        }
+        elsif $r == 13 {
+            $r = 'D';
+        }
+        elsif $r == 14 {
+            $r = 'E';
+        }
+        elsif $r == 15 {
+            $r = 'F';
+        }
+        else {
+            $r = $r.Str;
+        }
+
         $hex = $hex ~ $r;
        
         #my $h = $r.parse-base(16).chr;
