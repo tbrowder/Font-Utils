@@ -459,6 +459,13 @@ sub use-args(@args is copy) is export {
             say "       $file";
         }
 
+        # use a kludge for now
+        say "Producing a font sample for file:";
+        my $bnam = $file.IO.basename;
+        say "          '$bnam'...";
+
+        # exe...
+
         say "End of mode 'sample'" if 1;
         exit;
     } # end of $Rlist
