@@ -850,7 +850,8 @@ sub draw-rectangle-clip(
     $clip   = 0 if not $clip.defined;
     # what if none are defined?
     if $clip {
-        # MUST NOT TRANSFORM OR TRANSLATE
+        # MUST NOT TRANSFORM OR 
+        # TRANSLATE
         ($fill, $stroke) = 0, 0;
     }
     else {
@@ -872,6 +873,7 @@ sub draw-rectangle-clip(
             say "     NOT clipping the circle";
         }
     }
+
     my $g = $page.gfx;
     $g.Save if not $clip; # CRITICAL
     # NO translation
@@ -905,6 +907,7 @@ sub draw-rectangle-clip(
         $g.Clip;
         $g.EndPath;
     }
+
 } # sub draw-rectangle-clip
 
 sub make-graph-paper(

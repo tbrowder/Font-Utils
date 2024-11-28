@@ -958,7 +958,6 @@ sub rad2deg($radians) {
     $radians * 180 / pi
 }
 
-our &draw-box-clip = &draw-rectangle-clip;
 sub draw-rectangle-clip(
     :$llx!,
     :$lly!,
@@ -1466,18 +1465,112 @@ sub stringwidth(
 
 sub make-glyph-box(
     $ulx, $uly,
-    :$font!,
+    :$font!,  # the font being sampled
+    :$font2!, # the font used for text
+    :$glyph!, # char to be shown (hex 
+              # code)
     :$font-size!,
+    :$font2-size!, # for text
     :$page!,
+
+    # defaults
+    :$line-width = 0,
+    :$line-width2 = 0,
+    :$hori-border-space = 4,
+    :$vert-border-space = 4,
     :$debug,
     ) is export {
 
+    # basically follow format of the
+    # Unicode charts but with possible
+    # addition of the decimal number
+    #
+    # glyph centered horizonatally in
+    # a constant-width box
+    #
+    # four-digit hex number at bottom
+    # in mono font 
+    # 
     my $g = $page.graphics;
     $g.Save;
 
 
     $g.Restore
 }
+
+sub draw-box-clip(
+    # starting position, default is 
+    # upper left corner
+    $x, $y, 
+    :$width!,
+    :$height!,
+    :$page!,
+    :$stroke-color = (color Black),
+    :$fill-color   = (color White),
+    :$linewidth = 0,
+    :$fill is copy,
+    :$stroke is copy,
+    :$clip is copy,
+    :$position = "ul", # ul, ll, ur, lr
+    :$debug,
+    --> List # @bbox
+    ) is export {
+    $fill   = 0 if not $fill.defined;
+    $stroke = 0 if not $stroke.defined;
+    $clip   = 0 if not $clip.defined;
+    # what if none are defined?
+    if $clip {
+        # MUST NOT TRANSFORM OR 
+        # TRANSLATE
+        ($fill, $stroke) = 0, 0;
+    }
+    else {
+        # make stroke the default
+        $stroke = 1 if not ($fill or $stroke);
+    }
+
+    my ($llx, $lly, $urx, $ury);
+    my @bbox; # llx, lly, width, height
+
+    my $g = $page.gfx;
+    $g.Save if not $clip; # CRITICAL
+
+    # NO translation
+    if not $clip {
+        $g.SetLineWidth: $linewidth;
+        $g.StrokeColor = $stroke-color;
+        $g.FillColor   = $fill-color;
+    }
+
+    # draw the path
+    $g.MoveTo: $llx, $lly;
+    $g.LineTo: $llx+$width, $lly;
+    $g.LineTo: $llx+$width, $lly+$height;
+    $g.LineTo: $llx       , $lly+$height;
+    $g.ClosePath;
+
+    if not $clip {
+        if $fill and $stroke {
+            $g.FillStroke;
+        }
+        elsif $fill {
+            $g.Fill;
+        }
+        elsif $stroke {
+            $g.Stroke;
+        }
+        else {
+            die "FATAL: Unknown drawing status";
+        }
+        $g.Restore;
+    }
+    else {
+        $g.Clip;
+        $g.EndPath;
+    }
+
+    @bbox
+} # sub draw-box-clip
 
 =finish
 
