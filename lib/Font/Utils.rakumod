@@ -239,6 +239,17 @@ my $debug    = 0;
 sub use-args(@args is copy) is export {
     my $mode = @args.shift;
 
+    # also check for xxx = debug
+    my @targs = @args;
+    @args = [];
+    for @targs { 
+        if $_ ~~ /^ xxx / {
+            ++$debug;
+            next;
+        }
+        @args.push: $_;
+    }
+ 
     with $mode {
         when /^ :i L / {
             ++$Rlist;
@@ -307,13 +318,14 @@ sub use-args(@args is copy) is export {
             say "'$_' is a file";
             $file = $_;
         }
-        when /^ :i d / {
-            ++$debug;
-        }
         default {
             die "FATAL: Uknown option '$_'";
         }
     } # end of arg handling
+
+    if $debug {
+        say "DEBUG is selected";
+    }
 
     unless $dir or $file or $fkey {
         say "No file, dir, or fkey was entered.";
@@ -440,6 +452,11 @@ sub use-args(@args is copy) is export {
         }
         else {
             $file = %user-fonts<1>;
+        }
+
+        if $debug {
+            say "DEBUG: mode sample, file selected:";
+            say "       $file";
         }
 
         say "End of mode 'sample'" if 1;
@@ -1283,6 +1300,12 @@ sub text-box(
     #   constrain-width
     #
     $tb
+}
+
+sub make-font-sample-page(
+    :$font,
+    :$debug,
+    ) is export {
 }
 
 sub print-text-box(
