@@ -5,7 +5,12 @@ my $delete = 0;
 
 use Font::Utils;
 
-my $f = $user-font-list; # '$HOME/.Font-Utils/font-files.list';
+my $f;
+if $*USER eq 'tbrowde' {
+}
+else {
+    $f = $user-font-list; # '$HOME/.Font-Utils/font-files.list';
+}
 
 if not @*ARGS {
     print qq:to/HERE/;
