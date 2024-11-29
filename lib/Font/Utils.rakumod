@@ -5,6 +5,7 @@ use Font::FreeType::SizeMetrics;
 use Font::FreeType::Glyph;
 use Font::FreeType::Raw::Defs;
 
+use API6;
 use PDF::Lite;
 use PDF::Font::Loader :load-font;
 
@@ -1352,14 +1353,19 @@ sub make-font-sample-page(
         }
     }
 
-    if $paper.contains("letter", :i) {
-        $pdf.media-box = 0,0, 8.5*72, 11*72;
+    if $paper ~~ /:i letter / {
+        $pdf.media-box = [0,0, 8.5*72, 11*72];
     }
     else {
         die "Tom, need A4 dimens";
     }
 
     my $page = $pdf.add-page;
+    my $font = load-font :$file;
+
+    my $box1 = text-box $text, :$font, :verbatim;
+    my $box1 = text-box PDF::Content
+
 
     my $ofil = $o.adobe-name;
     $pdf.save-as: $ofil;

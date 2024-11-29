@@ -1,8 +1,10 @@
 use Test;
 
-use PDF::Font::Loader :load-font;
 use PDF::API6;
+use PDF::Content;	
+use PDF::Font::Loader :load-font;
 use PDF::Lite;
+use PDF::Content::Text::Box;
 
 use Font::Utils;
 use Font::Utils::Misc;
