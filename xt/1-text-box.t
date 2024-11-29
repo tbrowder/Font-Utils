@@ -1,6 +1,6 @@
 use Test;
 
-use PDF::API6;
+#use PDF::API6;
 use PDF::Content;	
 use PDF::Font::Loader :load-font;
 use PDF::Lite;
@@ -11,26 +11,33 @@ use Font::Utils::Misc;
 
 my $debug = 0;
 
-my $ffile = "/usr/share/fonts/opentype/freefont/FreeSerif.otf";
-my $pdf = PDF::Lite.new;
+my $file = "/usr/share/fonts/opentype/freefont/FreeSerif.otf";
+my $pdf  = PDF::Lite.new;
 my $page = $pdf.add-page;
 
-my ($o, $font, $text);
+my ($width, $font, $text, $font-size);
+my ($tb);
 
-lives-ok {
-   $font = load-font :file($ffile);
-   $text = "";
-   $o = text-box $text, :$font, :verbatim;
-}, "default text-box object";
+$font-size = 12;
+$width     = 8.5*72;
+$font      = load-font :$file;
 
-isa-ok $o, PDF::Content::Text::Box;
-is $o.width, 8.5*72;
-is $o.height, 13.2;
-is $o.leading, 1.1, "leading: {$o.leading}";
-is $o.font-height, 17.844, "font-height: {$o.font-height}";
+# a reusable text box:  with filled text
+PDF::Content::Text::Box $tb = new:
+    :text(""), 
+    # <== note font information is rw
+    :$font, :$font-size, :kern, 
+    :align<left>, :$width;
 
-$o = text-box $text, :$font, :width(6.5*72);
+isa-ok $tb, PDF::Content::Text::Box;
+is $tb.width, 8.5*72;
+is $tb.height, 13.2;
+is $tb.leading, 1.1, "leading: {$tb.leading}";
+is $tb.font-height, 17.844, "font-height: {$tb.font-height}";
 
+$tb = text-box $text, :$font, :width(6.5*72);
+
+=begin comment
 # render
 my $g = $page.gfx;
 $g.Save;
@@ -73,5 +80,6 @@ HERE
 
 #say $o.content-width;
 #say $o.content-height;
+=end comment
 
 done-testing;

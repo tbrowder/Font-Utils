@@ -5,7 +5,7 @@ use Font::FreeType::SizeMetrics;
 use Font::FreeType::Glyph;
 use Font::FreeType::Raw::Defs;
 
-use API6;
+use PDF::API6;
 use PDF::Lite;
 use PDF::Font::Loader :load-font;
 
@@ -1363,9 +1363,10 @@ sub make-font-sample-page(
     my $page = $pdf.add-page;
     my $font = load-font :$file;
 
+    =begin comment
     my $box1 = text-box $text, :$font, :verbatim;
     my $box1 = text-box PDF::Content
-
+    =end comment
 
     my $ofil = $o.adobe-name;
     $pdf.save-as: $ofil;
