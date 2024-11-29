@@ -5,7 +5,9 @@ use Font::FreeType::SizeMetrics;
 use Font::FreeType::Glyph;
 use Font::FreeType::Raw::Defs;
 
+use PDF::Lite;
 use PDF::Font::Loader :load-font;
+
 our %loaded-fonts is export;
 our $HOME is export = 0;
 our $user-font-list is export; # <== create-user-font-list-file :$nfonts
@@ -220,13 +222,16 @@ sub help() is export {
                 depends on the mode. All selections fall back
                 to using the %user-fonts if necessary.
 
+      m=A4    - A4 media (default: Letter)
+
+    HERE
+    =begin comment
+    # NYI
       ng=X    - Where X is the maximum number of glyphs to show
-      m=A4    - A4 media
       o=L     - Landscape orientation
       s=X     - Where X is the font size
       of=X    - Where X is the name of the output file
-
-    HERE
+    =end comment
     exit;
 }
 
@@ -465,6 +470,8 @@ sub use-args(@args is copy) is export {
         say "          '$bnam'...";
 
         # exe...
+        make-font-sample-page $file, 
+            :%opts, :$debug;
 
         say "End of mode 'sample'" if 1;
         exit;
@@ -1310,9 +1317,53 @@ sub text-box(
 }
 
 sub make-font-sample-page(
-    :$font,
+    $file,
+    :$text = "",
+    :%opts,
     :$debug,
     ) is export {
+
+    # create lines of glyph boxes
+    # out of a wrapped string of
+    # chars 
+
+    my $o = FreeTypeFace.new: :$file;
+    say "DEBUG: in make-font-...";
+    
+    my PDF::Lite $pdf .= new;
+    # Letter or A4
+    my $paper = "Letter";
+    if %opts and %opts.elems {
+        # m=A4 - A4 media (default: Letter)
+        for %opts.kv -> $k, $v {
+            if $k eq "m" {
+                if $v ~~ /:i l/ {
+                    $paper = "Letter";
+                }
+                elsif $v ~~ /:i 4/ {
+                    $paper = "A4";
+                }
+                else {
+                    say qq:to/HERE/
+                    WARNING: Unknown media selection '$_'
+                    HERE
+                }
+            }
+        }
+    }
+
+    if $paper.contains("letter", :i) {
+        $pdf.media-box = 0,0, 8.5*72, 11*72;
+    }
+    else {
+        die "Tom, need A4 dimens";
+    }
+
+    my $page = $pdf.add-page;
+
+    my $ofil = $o.adobe-name;
+    $pdf.save-as: $ofil;
+    say "See output file: $ofil";
 }
 
 sub print-text-box(
