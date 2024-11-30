@@ -32,6 +32,10 @@ BEGIN {
 }
 
 INIT {
+    if not $user-font-list.IO.r {
+        create-user-font-list-file;
+    }
+
     create-user-fonts-hash $user-font-list;
 }
 
