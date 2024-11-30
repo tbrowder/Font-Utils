@@ -1,3 +1,7 @@
+Fix build script to force creating
+  the "font-files.list" during
+  GitHub workflows testing
+
 Create a routine to make a glyph showing box with each
 glyph's hex code, glyph, font bbox, origin, bearings,
 horizontal advance, and baseline. Each glyph should

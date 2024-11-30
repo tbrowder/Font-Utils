@@ -7,7 +7,7 @@ and individual font files.
 
 B<NOTE>: The intent is for this module to work on Linux, MacOS, and
 Windows.  Please file an issue if you need it on your OS.  The package
-requires use of the 'V<PDF::Font::Loader:ver<0.8.8>>' which has recently
+requires use of the 'V<PDF::Font::Loader:ver<0.8.9>>' which has recently
 been ported to those two systems.
 
 =head1 SYNOPSIS
