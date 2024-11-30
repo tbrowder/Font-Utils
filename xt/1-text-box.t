@@ -47,7 +47,7 @@ $g.text-position = [72, 10*72];
 $g.print: $tb;
 $g.say();
 
-my @c = @(%uni<L-chars>);
+my @c = %uni<L-chr>.words;
 my $c = hex2string @c;
 $c ~= $c;
 # break the string into individual chars

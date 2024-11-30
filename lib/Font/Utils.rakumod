@@ -11,9 +11,10 @@ use PDF::Font::Loader :load-font;
 
 our %loaded-fonts is export;
 our $HOME is export = 0;
-our $user-font-list is export; # <== create-user-font-list-file :$nfonts
-our %user-fonts     is export; # <== create-user-fonts-hash $user-font-list
-    # key => basename, path
+# |= create-user-font-list-file :$nfonts
+our $user-font-list is export; 
+# |== create-user-fonts-hash $user-font-list
+our %user-fonts     is export; # key => basename, path
 BEGIN {
     if %*ENV<HOME>:exists {
         $HOME = %*ENV<HOME>;

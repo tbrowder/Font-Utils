@@ -35,9 +35,6 @@ jobs:
           sudo apt-get install -y fonts-ebgaramond-extra
           sudo apt-get install -y fonts-linuxlibertine
           sudo apt-get install -y fonts-cantarell
-          sudo mkdir /home/runner/.Font-Utils
-          #sudo touch /home/runner/.Font-Utils/font-files.list
-          sudo chown runner /home/runner/.Font-Utils
           zef install --/test --deps-only .
       - name: Run Tests
         run: zef install .

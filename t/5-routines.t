@@ -10,7 +10,7 @@ is 1, 1;
 # wrap-atring
 my (@s, @c, $s, $c, $cn, $sn, @lines);
 
-@c = %uni<L-chars>.words;
+@c = %uni<L-chr>.words;
 $c = hex2string @c;
 say "\$c: '$c'";
 is $c.comb.head, '0';
@@ -20,7 +20,7 @@ my $file = %user-fonts<1><path>;
 my $o = FreeTypeFace.new: :$file;
 @lines = $o.wrap-string($c, :font-size(12), :width(6.5*72));
 
-@s = %uni<L-Sup-chars>.words;
+@s = %uni<L-Sup>.words;
 $s = hex2string @s;
 say "\$s: '$s'";
 $sn = $s.chars;
