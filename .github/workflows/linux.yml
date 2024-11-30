@@ -8,8 +8,6 @@ on:
       - '*'
   pull_request:
 
-prep:
-  mkdir "$HOME/.Font-Utils"
 
 jobs:
   raku:
@@ -27,6 +25,7 @@ jobs:
           raku-version: ${{ matrix.raku-version }}
       - name: Install Dependencies
         run: |
+          mkdir "$HOME/.Font-Utils"
           sudo apt-get install -y fontconfig locate libharfbuzz-dev
           sudo apt-get install -y fonts-freefont-otf
           sudo apt-get install -y fonts-urw-base35
