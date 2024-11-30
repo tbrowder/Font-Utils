@@ -1,7 +1,7 @@
 name: Linux
 
-env:
-  ACTIONS_RUNNER_DEBUG: true
+#env:
+#  ACTIONS_RUNNER_DEBUG: true
 
 on:
   push:
