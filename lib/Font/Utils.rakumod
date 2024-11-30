@@ -11,10 +11,11 @@ use PDF::Font::Loader :load-font;
 
 our %loaded-fonts is export;
 our $HOME is export = 0;
-# |= create-user-font-list-file :$nfonts
+# |= create-user-font-list-file
 our $user-font-list is export; 
 # |== create-user-fonts-hash $user-font-list
 our %user-fonts     is export; # key => basename, path
+constant $nfonts = 63;         # max number of fonts to collect in Build
 BEGIN {
     if %*ENV<HOME>:exists {
         $HOME = %*ENV<HOME>;
@@ -1073,15 +1074,11 @@ sub draw-rectangle-clip(
 
 } # sub draw-rectangle-clip
 
-# our $user-font-list is export; # <== create-user-font-list-file :$nfonts
+# our $user-font-list is export; # <== create-user-font-list-file 
 # our %user-fonts     is export; # <== create-user-fonts-hash $user-font-list
 sub create-user-font-list-file(
-    # max fonts to collect
-    :$nfonts = 63, 
     :$debug,
     ) is export {
-
-    die "FATAL: \$nfonts is not defined" if not $nfonts.defined;
 
     use paths;
 
@@ -1418,7 +1415,6 @@ sub print-text-line(
 } # print-text-line
 
 sub do-build(
-    :$nfonts = 63, #= max fonts listed
     :$debug,
     :$delete,
     ) is export {
@@ -1439,7 +1435,7 @@ sub do-build(
         # create it
 
         say "DEBUG: calling create-user-font-list-file" if $debug;
-        create-user-font-list-file :$nfonts, :$debug;
+        create-user-font-list-file :$debug;
     }
 }
 
@@ -1486,7 +1482,7 @@ sub check-font-list(
 
 }
 
-# our $user-font-list is export; # <== create-user-font-list-file :$nfonts
+# our $user-font-list is export; # <== create-user-font-list-file 
 # our %user-fonts     is export; # <== create-user-fonts-hash $user-font-list
 sub create-user-fonts-hash(
     $font-file,
