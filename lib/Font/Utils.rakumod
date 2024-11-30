@@ -1080,6 +1080,8 @@ sub create-user-font-list-file(
     :$debug,
     ) is export {
 
+    die "FATAL: \$nfonts is not defined" if not $nfonts.defined;
+
     use paths;
 
     my @dirs  = </usr/share/fonts /Users ~/Library/Fonts>;
