@@ -22,18 +22,35 @@ $width     = 8.5*72;
 $font      = load-font :$file;
 
 # a reusable text box:  with filled text
+# but initially empty
 my PDF::Content::Text::Box $tb .= new(
     :text(""), 
     # <== note font information is rw
     :$font, :$font-size,
     :align<left>, 
-    :$width);
+    :$width
+);
 
 isa-ok $tb, PDF::Content::Text::Box;
 is $tb.width, 8.5*72;
 is $tb.height, 13.2;
 is $tb.leading, 1.1, "leading: {$tb.leading}";
 is $tb.font-height, 17.844, "font-height: {$tb.font-height}";
+
+# render it as $page.text
+$tb.text = "Howdy";
+$page.text: {
+    # first line baseline
+    .text-position = 72, 720; 
+    .print: $tb;
+}
+
+$pdf.save-as: "xt-test1.pdf";
+
+
+done-testing;
+
+=finish
 
 #$tb = text-box $text, :$font, :width(6.5*72);
 
@@ -43,9 +60,9 @@ my $g = $page.gfx;
 $g.Save;
 $g.BeginText;
 $g.text-position = [72, 10*72];
-#$g.set-text("Good night!");
-$g.print: $tb;
-$g.say();
+my $txt = "Good night!";
+$g.print: $txt
+#$g.say();
 
 my @c = %uni<L-chr>.words;
 my $c = hex2string @c;

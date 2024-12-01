@@ -51,8 +51,8 @@ input font's attributes.
 
 =head4 sample
 =begin code
-sample @fonts, :$text, :$media = 'Letter', :$orientation = 'Portrait',
-                       :$linespacing = 16, :$nglyphs, :$out = "sample.pdf"
+sample $font-file, :$media = 'Letter', 
+                        :$out = "sample.pdf"
 =end code
 
 Uses routine C<sample> to create a PDF document showing each
