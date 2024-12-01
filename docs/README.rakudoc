@@ -89,7 +89,7 @@ with a hyphen.
 For example:
 
 =begin code
-my @symbols = <21-2f 3a-40 5b-60 7b-7e>;
+my @symbols = "21-2f 3a-40 5b-60 7b-7e";
 my $s = hex2string @symbols;
 say $s;
 !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
@@ -108,7 +108,7 @@ with a hyphen.
 For example:
 
 =begin code
-my @symbols = <33-47 58-64 91-96 123-126>;
+my @symbols = "33-47 58-64 91-96 123-126";
 my $s = dec2string @symbols;
 say $s;
 !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
@@ -186,18 +186,16 @@ for the following named sets of Unicode glyphs:
 Set name | Hash key
 ---------+---------
 Basic Latin (ASCII) | (two sets)
-+ Symbols | L-symbols
-+ Characters | L-chars
-Latin-1 Supplement | (two sets)
-+ Symbols | L1-Sup-symbols
-+ Characters | L1-Sup-chars
-Latin Extended A | L-Ext-A-chars 
-Latin Extended B | L-Ext-B-chars
-Latin Extended C | L-Ext-B-chars
-Latin Extended D | L-Ext-B-chars
-Latin Extended E |  L-Ext-B-chars
-Latin Additional | L-Add-chars
-Latin Ligatures (non-latin glyphs excluded) | L-Lig-chars
++ Symbols | L-sym    
++ Characters | L-chr
+Latin-1 Supplement | L1-Sup
+Latin Extended A | L-Ext-A 
+Latin Extended B | L-Ext-B
+Latin Extended C | L-Ext-C
+Latin Extended D | L-Ext-D
+Latin Extended E | L-Ext-E
+Latin Additional | L-Additional
+Latin Ligatures  | L-Ligatures
 =end table
 
 =head1 AUTHOR
