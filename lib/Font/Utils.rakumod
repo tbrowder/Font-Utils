@@ -52,6 +52,7 @@ use MacOS::NativeLib "*";
 use QueryOS;
 use Font::FreeType;
 use Font::FreeType::Glyph;
+use Font::FreeType::SizeMetrics;
 use File::Find;
 use Text::Utils :strip-comment;
 use Bin::Utils;
@@ -68,6 +69,7 @@ class FreeTypeFace is export {
     use Font::FreeType;
 
     has $.file is required;
+    has $.font-size is required; #  = 12; # not yet required;
 
     # special use for URW fonts with wierd PostScript nakes
     # default is the PostScript name
@@ -75,6 +77,7 @@ class FreeTypeFace is export {
 
     my $p;
     my $face;
+    my Font::FreeType::SizeMetrics $sm;  # size-metrics object
 
     submethod TWEAK {
         $p    = $!file;
@@ -82,8 +85,27 @@ class FreeTypeFace is export {
             die "FATAL: '$p' is not a file path";
         }
         $face = Font::FreeType.new.face: $!file.Str;
+        $face.set-char-size: $!font-size;
+        $sm = $face.scaled-metrics;
     }
 
+#    method set-font-size(Numeric $size) {
+#        $face.set-char-size: $size;
+#        $sm = $face.scaled-metrics;
+#    }
+
+    # methods from $size-metrics
+    method ascender {
+        $sm.ascender
+    }
+    method descender {
+        $sm.descendera
+    }
+    method max-advance-width {
+        $sm.max-advance-width
+    }
+    
+    # other methods
     method adobe-name {
         $!adobe-name ?? $!adobe-name !! $face.postscript-name;
     }
@@ -130,13 +152,16 @@ class FreeTypeFace is export {
         $face.has-reliable-glyph-names ?? True !! False
     }
 
-    method stringwidth(Str $s, :$font-size = 12) {
+    #method stringwidth(Str $s, :$font-size = 12) {
+    method stringwidth(Str $s) {
+        my $font-size = self.font-size;
         my $units-per-EM = $face.units-per-EM;
         my $unscaled = sum $face.for-glyphs($s, {.metrics.hori-advance });
         return $unscaled * $font-size / $units-per-EM;
     }
 
-    method wrap-string(Str $s, :$font-size!, :$width! --> List) {
+    #method wrap-string(Str $s, :$font-size!, :$width! --> List) {
+    method wrap-string(Str $s, :$width! --> List) {
         my @lines; # to hold the $width size pieces
         # all the glyphs
         my @g = $s.comb;
@@ -144,7 +169,8 @@ class FreeTypeFace is export {
         my $tstr = "";  # temp string for building the shorter lines
         while @g.elems {
             my $c = @g.shift;
-            if self.stringwidth(($tstr ~ $c), :$font-size) <= $width {
+            #if self.stringwidth(($tstr ~ $c), :$font-size) <= $width {
+            if self.stringwidth($tstr ~ $c) <= $width {
                 $tstr ~= $c;
             }
             else {

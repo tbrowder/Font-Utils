@@ -17,13 +17,13 @@ is $c.comb.head, '0';
 $cn = $c.chars;
 
 my $file = %user-fonts<1><path>;
-my $o = FreeTypeFace.new: :$file;
-@lines = $o.wrap-string($c, :font-size(12), :width(6.5*72));
+my $o = FreeTypeFace.new: :$file, :font-size(12);
+@lines = $o.wrap-string($c, :width(6.5*72));
 
 @s = %uni<L-Sup>.words;
 $s = hex2string @s;
 say "\$s: '$s'";
 $sn = $s.chars;
-@lines = $o.wrap-string($s, :font-size(12), :width(6.5*72));
+@lines = $o.wrap-string($s, :width(6.5*72));
 
 done-testing;

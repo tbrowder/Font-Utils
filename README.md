@@ -46,8 +46,8 @@ Uses routine `show` to provide a list of the input font's attributes.
 
 #### sample
 
-    sample @fonts, :$text, :$media = 'Letter', :$orientation = 'Portrait',
-                           :$linespacing = 16, :$nglyphs, :$out = "sample.pdf"
+    sample $font-file, :$media = 'Letter', 
+                            :$out = "sample.pdf"
 
 Uses routine `sample` to create a PDF document showing each input font at a default size of 12 points on Letter paper in Portrait orientation.
 
@@ -73,7 +73,7 @@ Routines
 
 Given a list of hexadecimal code points, convert them to a string. You may indicate a range of code points by separating the end points with a hyphen. For example:
 
-    my @symbols = <21-2f 3a-40 5b-60 7b-7e>;
+    my @symbols = "21-2f 3a-40 5b-60 7b-7e";
     my $s = hex2string @symbols;
     say $s;
     !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
@@ -86,7 +86,7 @@ Given a list of hexadecimal code points, convert them to a string. You may indic
 
 Given a list of decimal code points, convert them to a string. You may indicate a range of code points by separating the end points with a hyphen. For example:
 
-    my @symbols = <33-47 58-64 91-96 123-126>;
+    my @symbols = "33-47 58-64 91-96 123-126";
     my $s = dec2string @symbols;
     say $s;
     !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
@@ -152,7 +152,7 @@ Included with the module is a hash (`%uni`) with the hexadecimal code points for
 <th>Set name</th> <th>Hash key</th>
 </tr></thead>
 <tbody>
-<tr> <td>Basic Latin (ASCII)</td> <td>(two sets)</td> </tr> <tr> <td>+ Symbols</td> <td>L-symbols</td> </tr> <tr> <td>+ Characters</td> <td>L-chars</td> </tr> <tr> <td>Latin-1 Supplement</td> <td>(two sets)</td> </tr> <tr> <td>+ Symbols</td> <td>L1-Sup-symbols</td> </tr> <tr> <td>+ Characters</td> <td>L1-Sup-chars</td> </tr> <tr> <td>Latin Extended A</td> <td>L-Ext-A-chars</td> </tr> <tr> <td>Latin Extended B</td> <td>L-Ext-B-chars</td> </tr> <tr> <td>Latin Extended C</td> <td>L-Ext-B-chars</td> </tr> <tr> <td>Latin Extended D</td> <td>L-Ext-B-chars</td> </tr> <tr> <td>Latin Extended E</td> <td>L-Ext-B-chars</td> </tr> <tr> <td>Latin Additional</td> <td>L-Add-chars</td> </tr> <tr> <td>Latin Ligatures (non-latin glyphs excluded)</td> <td>L-Lig-chars</td> </tr>
+<tr> <td>Basic Latin (ASCII)</td> <td>(two sets)</td> </tr> <tr> <td>+ Symbols</td> <td>L-sym</td> </tr> <tr> <td>+ Characters</td> <td>L-chr</td> </tr> <tr> <td>Latin-1 Supplement</td> <td>L1-Sup</td> </tr> <tr> <td>Latin Extended A</td> <td>L-Ext-A</td> </tr> <tr> <td>Latin Extended B</td> <td>L-Ext-B</td> </tr> <tr> <td>Latin Extended C</td> <td>L-Ext-C</td> </tr> <tr> <td>Latin Extended D</td> <td>L-Ext-D</td> </tr> <tr> <td>Latin Extended E</td> <td>L-Ext-E</td> </tr> <tr> <td>Latin Additional</td> <td>L-Additional</td> </tr> <tr> <td>Latin Ligatures</td> <td>L-Ligatures</td> </tr>
 </tbody>
 </table>
 

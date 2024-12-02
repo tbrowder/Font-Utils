@@ -9,7 +9,7 @@ for $f1.IO.lines -> $basename {
     my $dir = "/usr/local/git-repos/forks/fontforge/tests/fonts";
     my $file = "$dir/$basename";
 
-    my $o = Font::Utils::FreeTypeFace.new: :$file;
+    my $o = Font::Utils::FreeTypeFace.new: :$file, :font-size(10);
     say $o.has-kerning;
 }
 

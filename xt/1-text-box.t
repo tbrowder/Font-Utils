@@ -12,6 +12,7 @@ use Font::Utils::Misc;
 my $debug = 0;
 
 my $file = "/usr/share/fonts/opentype/freefont/FreeSerif.otf";
+
 my PDF::Lite $pdf .= new;
 my $page = $pdf.add-page;
 
@@ -20,6 +21,10 @@ my ($width, $font, $text, $font-size);
 $font-size = 12;
 $width     = 8.5*72;
 $font      = load-font :$file;
+
+# get a FaceFreeFont object for comparison
+my $fo = FreeTypeFace.new: :$file, :$font-size;
+
 
 # a reusable text box:  with filled text
 # but initially empty
@@ -33,7 +38,7 @@ my PDF::Content::Text::Box $tb .= new(
 
 isa-ok $tb, PDF::Content::Text::Box;
 is $tb.width, 8.5*72;
-is $tb.height, 13.2;
+is $tb.height, 13.2, "height = line-spacing = font-size x leading";
 is $tb.leading, 1.1, "leading: {$tb.leading}";
 is $tb.font-height, 17.844, "font-height: {$tb.font-height}";
 
@@ -45,8 +50,29 @@ $page.text: {
     .print: $tb;
 }
 
-$pdf.save-as: "xt-test1.pdf";
+# try cloning
+my $tb2 = $tb.clone: :text("More");
+isa-ok $tb2, PDF::Content::Text::Box;
+say "content-width: ", $tb2.content-width;
+say "content-height: ", $tb2.content-height;
+say "baseline-shift: ", $tb2.baseline-shift;
+say "leading: ", $tb2.leading;
 
+
+# render it as $page.text
+$page.text: {
+    # first line baseline
+    .text-position = 72, 600; 
+    .print: $tb2;
+
+    .text-position = 72, 500;
+    my @bbox = .print($tb2);
+    say "\@bbox = '{@bbox.gist}'";
+}
+
+my $ofil = "xt-test-box.pdf";
+$pdf.save-as: $ofil;
+say "See output file: '$ofil'"; 
 
 done-testing;
 
