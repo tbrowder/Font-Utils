@@ -289,7 +289,7 @@ sub help() is export {
       list    - List family and font names in a set of font files
       show    - Show details of a font file
       sample  - Create a PDF document showing samples of
-                  selected fonts
+                  a selected font
 
     Options:
       (src)   - For all modes, select a font file, directory, or
@@ -298,13 +298,13 @@ sub help() is export {
                 to using the %user-fonts if necessary.
 
       m=A4    - A4 media (default: Letter)
+      s=X     - Where X is the font size (default: 12)
 
     HERE
     =begin comment
     # NYI
       ng=X    - Where X is the maximum number of glyphs to show
       o=L     - Landscape orientation
-      s=X     - Where X is the font size
       of=X    - Where X is the name of the output file
     =end comment
     exit;
@@ -528,12 +528,13 @@ sub use-args(@args is copy) is export {
         #           the selected font
         #             input: $file OR key of user font hash
 
+        my $fo;
         if is-font-file $file {
-            my $o = FreeTypeFace.new: :$file;
-            #$o.show;
+            $fo = FreeTypeFace.new: :$file;
         }
         else {
             $file = %user-fonts<1>;
+            $fo = FreeTypeFace.new: :$file;
         }
 
         if $debug {
@@ -1393,6 +1394,8 @@ sub text-box(
 }
 
 sub make-font-sample-page(
+    #   make-font-sample-page $file,
+    #       :%opts, :$debug;
     $file,
     :$text = "",
     :%opts,
@@ -1403,16 +1406,21 @@ sub make-font-sample-page(
     # out of a wrapped string of
     # chars
 
-    my $o = FreeTypeFace.new: :$file;
     say "DEBUG: in make-font-...";
 
     my PDF::Lite $pdf .= new;
     # Letter or A4
     my $paper = "Letter";
+    my Numeric $font-size = 12;
+
     if %opts and %opts.elems {
         # m=A4 - A4 media (default: Letter)
+        # s=X  - font size (default: 12)
         for %opts.kv -> $k, $v {
-            if $k eq "m" {
+            if $k eq "s" {
+                $font-size = $v;
+            }
+            elsif $k eq "m" {
                 if $v ~~ /:i l/ {
                     $paper = "Letter";
                 }
@@ -1434,6 +1442,7 @@ sub make-font-sample-page(
     else {
         die "Tom, need A4 dimens";
     }
+    my $fo = FreeTypeFace.new: :$file, :$font-size;
 
     my $page = $pdf.add-page;
     my $font = load-font :$file;
@@ -1631,12 +1640,12 @@ sub make-glyph-box(
     :$font2!, # the font used for text
     :$glyph!, # char to be shown (hex
               # code)
-    :$font-size!,
+    :$font-size!,  # for the glyph
     :$font2-size!, # for text
     :$page!,
 
     # defaults
-    :$line-width = 0,
+    :$line-width = 0,       
     :$line-width2 = 0,
     :$hori-border-space = 4,
     :$vert-border-space = 4,
