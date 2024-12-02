@@ -12,7 +12,7 @@ use PDF::Font::Loader :load-font;
 our %loaded-fonts is export;
 our $HOME is export = 0;
 # |= create-user-font-list-file
-our $user-font-list is export; 
+our $user-font-list is export;
 # |== create-user-fonts-hash $user-font-list
 our %user-fonts     is export; # key => basename, path
 constant $nfonts = 63;         # max number of fonts to collect in Build
@@ -99,12 +99,12 @@ class FreeTypeFace is export {
         $sm.ascender
     }
     method descender {
-        $sm.descendera
+        $sm.descender
     }
     method max-advance-width {
         $sm.max-advance-width
     }
-    
+
     # other methods
     method adobe-name {
         $!adobe-name ?? $!adobe-name !! $face.postscript-name;
@@ -152,12 +152,54 @@ class FreeTypeFace is export {
         $face.has-reliable-glyph-names ?? True !! False
     }
 
+    #============================
+    # string methods
+
     #method stringwidth(Str $s, :$font-size = 12) {
-    method stringwidth(Str $s) {
+    method stringwidth2(Str $s) {
+        # this is David's version (but with fixed font size)
+        # TODO should delete distance of last char bbox and hori-advance
         my $font-size = self.font-size;
         my $units-per-EM = $face.units-per-EM;
         my $unscaled = sum $face.for-glyphs($s, {.metrics.hori-advance });
         return $unscaled * $font-size / $units-per-EM;
+    }
+    method stringwidth(Str $s) {
+        # this is my version using methods from David's Glyph.rakumod
+        # TODO adjust for left- and right-bearings of the bounding glyphs
+        my $w = 0;
+        $face.for-glyphs($s, {
+            my $x = .horizontal-advance;
+            $w += $x;
+        });
+        $w
+    }
+
+    method top-bearing(Str $s) {
+        my $y = 0;
+        $face.for-glyphs($s, {
+            my $t = .top-bearing;
+            $y = $t if $t > $y;
+        });
+        $y
+    }
+
+    method bottom-bearing(Str $s) {
+        my $y = 0;
+        $face.for-glyphs($s, {
+            my $h = .height;
+            my $t = .top-bearing;
+            my $b = $h - $t;
+            $y = $b if $b < $y;
+        });
+        $y
+    }
+
+    method left-bearing(Str $s) {
+    }
+    method right-bearing(Str $s) {
+    }
+    method string-bbox(Str $s) {
     }
 
     #method wrap-string(Str $s, :$font-size!, :$width! --> List) {
@@ -266,7 +308,8 @@ sub help() is export {
       of=X    - Where X is the name of the output file
     =end comment
     exit;
-}
+} # END of class FaceFreeFont
+#=======================================================
 
 # modes and options
 my $Rlist    = 0;
@@ -280,14 +323,15 @@ sub use-args(@args is copy) is export {
     # also check for xxx = debug
     my @targs = @args;
     @args = [];
-    for @targs { 
+    for @targs {
         if $_ ~~ /^ xxx / {
             ++$debug;
             next;
         }
         @args.push: $_;
     }
- 
+
+
     with $mode {
         when /^ :i L / {
             ++$Rlist;
@@ -341,16 +385,16 @@ sub use-args(@args is copy) is export {
                 =begin comment
                 say qq:to/HERE/;
                 FATAL: Unrecognized font key '$fkey'.
-                
+
                 Use mode 'list' to show your fonts.
                 HERE
                 exit;
                 =end comment
-            }           
+            }
         }
         when $_.IO.d {
             say "'$_' is a directory";
-            $dir = $_; 
+            $dir = $_;
         }
         when $_ ~~ /\w/ and $_.IO.r {
             say "'$_' is a file";
@@ -473,7 +517,7 @@ sub use-args(@args is copy) is export {
         # load the font file
         my $f1 = load-font-at-key $k1;
         my $f2 = load-font-at-key $k1;
- 
+
 
         say "End of mode 'show'" if 1;
         exit;
@@ -503,7 +547,7 @@ sub use-args(@args is copy) is export {
         say "          '$bnam'...";
 
         # exe...
-        make-font-sample-page $file, 
+        make-font-sample-page $file,
             :%opts, :$debug;
 
         say "End of mode 'sample'" if 1;
@@ -651,7 +695,7 @@ sub hex2dec(
     $hex,
     :$debug
     ) is export {
-    # converts an input hex string 
+    # converts an input hex string
     # to a decimal number
     parse-base $hex, 16;
 }
@@ -1100,7 +1144,7 @@ sub draw-rectangle-clip(
 
 } # sub draw-rectangle-clip
 
-# our $user-font-list is export; # <== create-user-font-list-file 
+# our $user-font-list is export; # <== create-user-font-list-file
 # our %user-fonts     is export; # <== create-user-fonts-hash $user-font-list
 sub create-user-font-list-file(
     :$debug,
@@ -1357,11 +1401,11 @@ sub make-font-sample-page(
 
     # create lines of glyph boxes
     # out of a wrapped string of
-    # chars 
+    # chars
 
     my $o = FreeTypeFace.new: :$file;
     say "DEBUG: in make-font-...";
-    
+
     my PDF::Lite $pdf .= new;
     # Letter or A4
     my $paper = "Letter";
@@ -1508,7 +1552,7 @@ sub check-font-list(
 
 }
 
-# our $user-font-list is export; # <== create-user-font-list-file 
+# our $user-font-list is export; # <== create-user-font-list-file
 # our %user-fonts     is export; # <== create-user-fonts-hash $user-font-list
 sub create-user-fonts-hash(
     $font-file,
@@ -1585,7 +1629,7 @@ sub make-glyph-box(
     $ulx, $uly,
     :$font!,  # the font being sampled
     :$font2!, # the font used for text
-    :$glyph!, # char to be shown (hex 
+    :$glyph!, # char to be shown (hex
               # code)
     :$font-size!,
     :$font2-size!, # for text
@@ -1607,8 +1651,8 @@ sub make-glyph-box(
     # a constant-width box
     #
     # four-digit hex number at bottom
-    # in mono font 
-    # 
+    # in mono font
+    #
     my $g = $page.graphics;
     $g.Save;
 
@@ -1617,9 +1661,9 @@ sub make-glyph-box(
 }
 
 sub draw-box-clip(
-    # starting position, default is 
+    # starting position, default is
     # upper left corner
-    $x, $y, 
+    $x, $y,
     :$width!,
     :$height!,
     :$page!,
@@ -1638,7 +1682,7 @@ sub draw-box-clip(
     $clip   = 0 if not $clip.defined;
     # what if none are defined?
     if $clip {
-        # MUST NOT TRANSFORM OR 
+        # MUST NOT TRANSFORM OR
         # TRANSLATE
         ($fill, $stroke) = 0, 0;
     }

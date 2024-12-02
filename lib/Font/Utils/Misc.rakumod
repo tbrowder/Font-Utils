@@ -38,12 +38,3 @@ L-Additional => "1e00-1eff",
 L-Ligatures => "fb00-fb06",
 
 );
-
-=finish
-
-L-Ext-A-chars
-L-Ext-B-chars
-L-Ext-C-chars
-L-Ext-D-chars
-L-Add-chars
-L-Lig-chars
