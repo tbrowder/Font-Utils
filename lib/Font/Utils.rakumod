@@ -422,12 +422,12 @@ sub use-args(@args is copy) is export {
         next if not $_;
         next if not $_.e;
         say "DEBUG: trying a file '$_'" if $debug;
-        my $o = FreeTypeFace.new: :file($_);
+        my $o = FreeTypeFace.new: :file($_), :font-size(12);;
     }
 
     if $file {
         say "DEBUG: trying a file '$file'" if $debug;
-        my $o = FreeTypeFace.new: :$file;
+        my $o = FreeTypeFace.new: :$file, :font-size(12);;
     }
 
     if $debug {
@@ -530,11 +530,11 @@ sub use-args(@args is copy) is export {
 
         my $fo;
         if is-font-file $file {
-            $fo = FreeTypeFace.new: :$file;
+            ; # ok $fo = FreeTypeFace.new: :$file;
         }
         else {
             $file = %user-fonts<1>;
-            $fo = FreeTypeFace.new: :$file;
+            # $fo = FreeTypeFace.new: :$file;
         }
 
         if $debug {
@@ -1452,7 +1452,7 @@ sub make-font-sample-page(
     my $box1 = text-box PDF::Content
     =end comment
 
-    my $ofil = $o.adobe-name;
+    my $ofil = $fo.adobe-name;
     $pdf.save-as: $ofil;
     say "See output file: $ofil";
 }

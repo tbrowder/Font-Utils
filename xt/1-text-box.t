@@ -11,6 +11,13 @@ use Font::Utils::Misc;
 
 my $debug = 0;
 
+my $quote = qq:to/HERE/;
+The General is sorry to be informed that the foolish and wicked
+practice of profane cursing and swearing is growing into
+fashion. He hopes the officers will, by their example as well
+as their influence, endeavor to check it.
+HERE
+
 my $file = "/usr/share/fonts/opentype/freefont/FreeSerif.otf";
 
 my PDF::Lite $pdf .= new;
@@ -19,7 +26,7 @@ my $page = $pdf.add-page;
 my ($width, $font, $text, $font-size);
 
 $font-size = 12;
-$width     = 8.5*72;
+$width     = 6.5*72;
 $font      = load-font :$file;
 
 # get a FaceFreeFont object for comparison
@@ -37,13 +44,13 @@ my PDF::Content::Text::Box $tb .= new(
 );
 
 isa-ok $tb, PDF::Content::Text::Box;
-is $tb.width, 8.5*72;
+is $tb.width, 6.5*72;
 is $tb.height, 13.2, "height = line-spacing = font-size x leading";
 is $tb.leading, 1.1, "leading: {$tb.leading}";
 is $tb.font-height, 17.844, "font-height: {$tb.font-height}";
 
 # render it as $page.text
-$tb.text = "Howdy";
+$tb.text = $quote;
 $page.text: {
     # first line baseline
     .text-position = 72, 720; 
