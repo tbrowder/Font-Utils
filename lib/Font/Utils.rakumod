@@ -152,6 +152,17 @@ class FreeTypeFace is export {
         $face.has-reliable-glyph-names ?? True !! False
     }
 
+    method extension {
+        my $ext = "unknown";
+        if self.font-format ~~ /:i open / {
+            $ext = "otf";
+        }
+        elsif self.font-format ~~ /:i true / {
+            $ext = "ttf";
+        }
+        $ext
+    }
+
     #============================
     # string methods
 
@@ -1451,10 +1462,11 @@ sub make-font-sample-page(
     my $box1 = text-box $text, :$font, :verbatim;
     my $box1 = text-box PDF::Content
     =end comment
+    my $ext = $fo.extension;
 
-    my $ofil = $fo.adobe-name;
+    my $ofil = $fo.adobe-name ~ "-{$ext}-sample.pdf";
     $pdf.save-as: $ofil;
-    say "See output file: $ofil";
+    say "See output file: '$ofil'";
 }
 
 sub print-text-box(
@@ -1645,7 +1657,7 @@ sub make-glyph-box(
     :$page!,
 
     # defaults
-    :$line-width = 0,       
+    :$line-width = 0,
     :$line-width2 = 0,
     :$hori-border-space = 4,
     :$vert-border-space = 4,
