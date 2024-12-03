@@ -18,30 +18,43 @@ fashion. He hopes the officers will, by their example as well
 as their influence, endeavor to check it.
 HERE
 
-my $file = "/usr/share/fonts/opentype/freefont/FreeSerif.otf";
+my $file  = "/usr/share/fonts/opentype/freefont/FreeSerif.otf";
+my $file2 = "/usr/share/fonts/opentype/freefont/FreeMono.otf";
 
 my PDF::Lite $pdf .= new;
 my $page = $pdf.add-page;
 
-my ($width, $font, $text, $font-size);
+my ($fo, $fo2, $tb, $tb2, $width, $font, $text, $font-size);
+my ($font2);
 
-$font-size = 12;
+$font-size  = 12;
+$font-size2 = 8;
 $width     = 6.5*72;
 $font      = load-font :$file;
+$font2     = load-font :$file2;
 
-# get a FreeTypeFace object for comparison
-my $fo = FreeTypeFace.new: :$file, :$font-size;
-
+# get two FreeTypeFace objects for comparison
+$fo  = FreeTypeFace.new: :$file, :$font-size;
+$fo2 = FreeTypeFace.new: :$file, :font-size($font-size2);
 
 # a reusable text box:  with filled text
 # but initially empty
-my PDF::Content::Text::Box $tb .= new(
+=begin comment
+#my PDF::Content::Text::Box $tb .= new(
+$tb = PDF::Content::Text::Box.new(
     :text(""),
     # <== note font information is rw
     :$font, :$font-size,
     :align<left>,
     :$width
 );
+=end comment
+$tb = PDF::Content::Text::Box.new:
+    :text(""),
+    # <== note font information is rw
+    :$font, :$font-size,
+    :align<left>,
+    :$width;
 
 isa-ok $tb, PDF::Content::Text::Box;
 is $tb.width, 6.5*72;
@@ -64,7 +77,7 @@ $page.text: {
 }
 
 # try cloning
-my $tb2 = $tb.clone: :text($quote), :width(4*72);;
+$tb2 = $tb.clone: :text($quote), :width(4*72);;
 isa-ok $tb2, PDF::Content::Text::Box;
 say "content-width: ", $tb2.content-width;
 say "content-height: ", $tb2.content-height;
@@ -111,7 +124,8 @@ say "\@bbox = '{@bbox.gist}'";
 
 
 
-my $ofil = "xt1test-box.pdf";
+my $ofil = "xt2test-box.pdf";
+
 $pdf.save-as: $ofil;
 say "See output file: '$ofil'";
 

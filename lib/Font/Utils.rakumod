@@ -1654,13 +1654,12 @@ sub stringwidth(
 }
 
 sub make-glyph-box(
-    $ulx, $uly,
-    :$font!,  # the font being sampled
-    :$font2!, # the font used for text
-    :$glyph!, # char to be shown (hex
-              # code)
-    :$font-size!,  # for the glyph
-    :$font2-size!, # for text
+    $ulx, $uly,          # upper-left corner of the glyph box
+    :$font!,             # the loaded font being sampled
+    :$font2!,            # the loaded mono font used for the hex code
+    FreeTypeFace :$fo!,  # the font being sampled
+    FreeTypeFace :$fo2!, # the mono font used for the hex code
+    Str :$hex!,          # char to be shown
     :$page!,
 
     # defaults
@@ -1669,22 +1668,43 @@ sub make-glyph-box(
     :$hori-border-space = 4,
     :$vert-border-space = 4,
     :$debug,
+    --> List # the glyph box bounding box
     ) is export {
 
-    # basically follow format of the
+    # basically follow thd format of the
     # Unicode charts but with possible
     # addition of the decimal number
-    #
-    # glyph centered horizonatally in
-    # a constant-width box
-    #
+
+    # The single glyph is a single char string
+    # from the $font object
+    # and is centered horizonatally in
+    # a constant-width box which is at least 
+    # the the size of the total font bbox
+
+
     # four-digit hex number at bottom
     # in mono font
-    #
-    my $g = $page.graphics;
+
+    # render as $page.text
+    $page.text: {
+        # first line baseline
+        .text-position = 72, 600;
+        .print: $tb2;
+        .text-position = 72, 500;
+        @bbox = .print: $tb2;
+    }
+    say "\@bbox = '{@bbox.gist}'";
+
+    # border it
+    my $g = $page.gfx;
     $g.Save;
-
-
+    $g.SetLineWidth: 0;
+    $g.MoveTo: @bbox[0], @bbox[3]; # top left
+    $g.LineTo: @bbox[0], @bbox[1]; # bottom left
+    $g.LineTo: @bbox[2], @bbox[1]; # bottom right
+    $g.LineTo: @bbox[2], @bbox[3]; # top right
+    $g.ClosePath;
+    $g.Save;
     $g.Restore
 }
 
