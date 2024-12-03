@@ -76,7 +76,6 @@ $page.text: {
     # first line baseline
     .text-position = 72, 600;
     .print: $tb2;
-
     .text-position = 72, 500;
     @bbox = .print: $tb2;
 }
@@ -93,6 +92,24 @@ $g.LineTo: @bbox[2], @bbox[3]; # top right
 $g.ClosePath;
 $g.Stroke;
 $g.Restore;
+
+# try another clone
+my $tb3 = $tb.clone: :text($quote), :align<justify>, :width(4*72);
+isa-ok $tb3, PDF::Content::Text::Box;
+say "content-width: ", $tb3.content-width;
+say "content-height: ", $tb3.content-height;
+say "baseline-shift: ", $tb3.baseline-shift;
+say "leading: ", $tb3.leading;
+
+# render it as $page.text
+$page.text: {
+    # first line baseline
+    .text-position = 72, 300;
+    @bbox = .print: $tb3;
+}
+say "\@bbox = '{@bbox.gist}'";
+
+
 
 my $ofil = "xt-test-box.pdf";
 $pdf.save-as: $ofil;
