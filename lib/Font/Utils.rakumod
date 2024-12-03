@@ -153,12 +153,19 @@ class FreeTypeFace is export {
     }
 
     method extension {
-        my $ext = "unknown";
+        my $ext = self.font-format;
         if self.font-format ~~ /:i open / {
             $ext = "otf";
         }
         elsif self.font-format ~~ /:i true / {
             $ext = "ttf";
+        }
+        elsif self.font-format ~~ /:i type \h+ 1 / {
+            $ext = "pfb";
+        }
+        else {
+            # remove spaces
+            $ext ~~ s:g/\h//
         }
         $ext
     }
