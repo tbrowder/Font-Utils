@@ -1,7 +1,7 @@
 use Test;
 
 use PDF::API6; # <== required for $page
-use PDF::Content;	
+use PDF::Content;
 use PDF::Font::Loader :load-font;
 use PDF::Lite;
 use PDF::Content::Text::Box;
@@ -36,10 +36,10 @@ my $fo = FreeTypeFace.new: :$file, :$font-size;
 # a reusable text box:  with filled text
 # but initially empty
 my PDF::Content::Text::Box $tb .= new(
-    :text(""), 
+    :text(""),
     # <== note font information is rw
     :$font, :$font-size,
-    :align<left>, 
+    :align<left>,
     :$width
 );
 
@@ -48,38 +48,55 @@ is $tb.width, 6.5*72;
 is $tb.height, 13.2, "height = line-spacing = font-size x leading";
 is $tb.leading, 1.1, "leading: {$tb.leading}";
 is $tb.font-height, 17.844, "font-height: {$tb.font-height}";
+say "content-width: ", $tb.content-width;
+say "content-height: ", $tb.content-height;
 
 # render it as $page.text
 $tb.text = $quote;
+say "content-width: ", $tb.content-width;
+say "content-height: ", $tb.content-height;
+
+my @bbox;
 $page.text: {
     # first line baseline
-    .text-position = 72, 720; 
-    .print: $tb;
+    .text-position = 72, 720;
+    @bbox = .print: $tb;
 }
 
 # try cloning
-my $tb2 = $tb.clone: :text("More");
+my $tb2 = $tb.clone: :text($quote), :width(4*72);;
 isa-ok $tb2, PDF::Content::Text::Box;
 say "content-width: ", $tb2.content-width;
 say "content-height: ", $tb2.content-height;
 say "baseline-shift: ", $tb2.baseline-shift;
 say "leading: ", $tb2.leading;
 
-
 # render it as $page.text
 $page.text: {
     # first line baseline
-    .text-position = 72, 600; 
+    .text-position = 72, 600;
     .print: $tb2;
 
     .text-position = 72, 500;
-    my @bbox = .print($tb2);
-    say "\@bbox = '{@bbox.gist}'";
+    @bbox = .print: $tb2;
 }
+say "\@bbox = '{@bbox.gist}'";
+
+# border it
+my $g = $page.gfx;
+$g.Save;
+$g.SetLineWidth: 0;
+$g.MoveTo: @bbox[0], @bbox[3]; # top left
+$g.LineTo: @bbox[0], @bbox[1]; # bottom left
+$g.LineTo: @bbox[2], @bbox[1]; # bottom right
+$g.LineTo: @bbox[2], @bbox[3]; # top right
+$g.ClosePath;
+$g.Stroke;
+$g.Restore;
 
 my $ofil = "xt-test-box.pdf";
 $pdf.save-as: $ofil;
-say "See output file: '$ofil'"; 
+say "See output file: '$ofil'";
 
 done-testing;
 
