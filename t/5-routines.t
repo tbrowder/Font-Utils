@@ -7,7 +7,7 @@ my $debug = 0;
 
 is 1, 1;
 
-# wrap-atring
+# wrap-string
 my (@s, @c, $s, $c, $cn, $sn, @lines);
 
 @c = %uni<L-chr>.words;

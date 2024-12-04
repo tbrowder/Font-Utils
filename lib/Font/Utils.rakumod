@@ -1696,6 +1696,12 @@ sub make-glyph-box(
 
     # border coords ($ulx, $uly already defined);
     my ($llx, $lly, $lrx, $lry, $urx, $ury);
+    $llx = $ulx;
+    $lly = $ulx - $height;
+    $lrx = $llx + $width;
+    $lry = $lly;
+    $urx = $lrx;
+    $ury = $uly;
 
     # Basically follow the format of the
     # Unicode charts but with possible
@@ -1715,13 +1721,15 @@ sub make-glyph-box(
     $page.text: {
         # first line baseline
         .text-position = 72, 500;
-        @bbox = .print: $hex;
+        @bbox = .print: $hex, :align<center>;
     }
-    say "\@bbox = '{@bbox.gist}'";
+    say "\@bbox = '{@bbox.gist}'" if $debug;
 
     # border it
     my $g = $page.gfx;
     $g.Save;
+
+    # the border
     $g.SetLineWidth: 0;
     $g.MoveTo: $ulx, $uly;         # top left
     $g.LineTo: $ulx, $uly - $height; # bottom left
@@ -1729,6 +1737,9 @@ sub make-glyph-box(
     $g.LineTo: @bbox[2], @bbox[3]; # top right
     $g.ClosePath;
     $g.Stroke;
+
+    # the baseline
+    # the previous baseline
     $g.Restore;
 
     # return the bbox

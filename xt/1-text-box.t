@@ -15,7 +15,7 @@ my $quote = qq:to/HERE/;
 The General is sorry to be informed that the foolish and wicked
 practice of profane cursing and swearing is growing into
 fashion. He hopes the officers will, by their example as well
-as their influence, endeavor to check it.
+as influence, endeavor to check it.
 HERE
 
 my $file = "/usr/share/fonts/opentype/freefont/FreeSerif.otf";
