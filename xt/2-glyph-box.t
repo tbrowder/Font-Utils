@@ -11,11 +11,12 @@ use Font::Utils::Misc;
 
 my $debug = 0;
 
+# TODO check "Checkpoints"
 my $quote = qq:to/HERE/;
 The General is sorry to be informed that the foolish and wicked
 practice of profane cursing and swearing is growing into
-fashion. He hopes the officers will, by their example as well
-as their influence, endeavor to check it.
+fashion. He hopes the officers will, by example as well
+as influence, endeavor to check it.
 HERE
 
 my $file  = "/usr/share/fonts/opentype/freefont/FreeSerif.otf";
@@ -25,17 +26,33 @@ my PDF::Lite $pdf .= new;
 my $page = $pdf.add-page;
 
 my ($fo, $fo2, $tb, $tb2, $width, $font, $text, $font-size);
-my ($font2);
+my ($font2, $font-size2);
 
 $font-size  = 12;
 $font-size2 = 8;
 $width     = 6.5*72;
 $font      = load-font :$file;
-$font2     = load-font :$file2;
+$font2     = load-font :file($file2);
 
 # get two FreeTypeFace objects for comparison
 $fo  = FreeTypeFace.new: :$file, :$font-size;
 $fo2 = FreeTypeFace.new: :$file, :font-size($font-size2);
+
+# create a glyph box
+my $ulx = 72;
+my $uly = 300;
+my $hex = "A734"; # Latin Extended-D
+make-glyph-box 
+    $ulx, $uly, # upper-left corner of the glyph box
+    :$font,     # the loaded font being sampled
+    :$font2,    # the loaded mono font used for the hex code
+    :$fo,       # the font being sampled
+    :$fo2,      # the mono font used for the hex code
+    :$hex,      # char to be shown
+    :$page;
+
+
+
 
 # a reusable text box:  with filled text
 # but initially empty

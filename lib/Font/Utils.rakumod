@@ -1077,11 +1077,23 @@ sub find-local-font is export {
     $f;
 }
 
-sub deg2rad($degrees) {
-    $degrees * pi / 180
+sub in2ps($in) is export {
+    $in * 72
+}
+sub in2cm($in) is export {
+    $in * 2.54
+}
+sub cm2in($cm) is export {
+    $cm / 2.54
+}
+sub cm2ps($cm) is export {
+    cm2in($cm) * 72
 }
 
-sub rad2deg($radians) {
+sub deg2rad($degrees) is export {
+    $degrees * pi / 180
+}
+sub rad2deg($radians) is export {
     $radians * 180 / pi
 }
 
@@ -1668,12 +1680,26 @@ sub make-glyph-box(
     :$hori-border-space = 4,
     :$vert-border-space = 4,
     :$debug,
-    --> List # the glyph box bounding box
+    --> List # the glyph box's bounding box
     ) is export {
 
-    # basically follow thd format of the
+    # dimensions of a Unicode glyph box:
+    #   width:  1.1 cm
+    #   height: 1.4 cm
+    #   glyph baseline 0.5 cm from cell bottom
+    #   hex code baseline 0.1 cm from cell bottom
+    #   hex code font height: 0.15 cm
+    #   hex code stroke gray 0.5
+
+    my $width  = cm2ps(1.1);
+    my $height = cm2ps(1.4);
+
+    # border coords ($ulx, $uly already defined);
+    my ($llx, $lly, $lrx, $lry, $urx, $ury);
+
+    # Basically follow the format of the
     # Unicode charts but with possible
-    # addition of the decimal number
+    # addition of the decimal number.
 
     # The single glyph is a single char string
     # from the $font object
@@ -1681,17 +1707,15 @@ sub make-glyph-box(
     # a constant-width box which is at least 
     # the the size of the total font bbox
 
-
     # four-digit hex number at bottom
     # in mono font
 
     # render as $page.text
+    my @bbox;
     $page.text: {
         # first line baseline
-        .text-position = 72, 600;
-        .print: $tb2;
         .text-position = 72, 500;
-        @bbox = .print: $tb2;
+        @bbox = .print: $hex;
     }
     say "\@bbox = '{@bbox.gist}'";
 
@@ -1699,13 +1723,16 @@ sub make-glyph-box(
     my $g = $page.gfx;
     $g.Save;
     $g.SetLineWidth: 0;
-    $g.MoveTo: @bbox[0], @bbox[3]; # top left
-    $g.LineTo: @bbox[0], @bbox[1]; # bottom left
-    $g.LineTo: @bbox[2], @bbox[1]; # bottom right
+    $g.MoveTo: $ulx, $uly;         # top left
+    $g.LineTo: $ulx, $uly - $height; # bottom left
+    $g.LineTo: $ulx + $width, $uly - $height; @bbox[2], @bbox[1]; # bottom right
     $g.LineTo: @bbox[2], @bbox[3]; # top right
     $g.ClosePath;
-    $g.Save;
-    $g.Restore
+    $g.Stroke;
+    $g.Restore;
+
+    # return the bbox
+    $llx, $lly, $urx, $ury;
 }
 
 sub draw-box-clip(
