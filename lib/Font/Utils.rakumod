@@ -1669,9 +1669,13 @@ sub make-glyph-box(
     $ulx, $uly,          # upper-left corner of the glyph box
     :$font!,             # the loaded font being sampled
     :$font2!,            # the loaded mono font used for the hex code
+=begin comment
     FreeTypeFace :$fo!,  # the font being sampled
     FreeTypeFace :$fo2!, # the mono font used for the hex code
+=end comment
     Str :$hex!,          # char to be shown
+    :$font-size  = 16,
+    :$font-size2 = 8,
     :$page!,
 
     # defaults
@@ -1684,20 +1688,23 @@ sub make-glyph-box(
     ) is export {
 
     # dimensions of a Unicode glyph box:
-    #   width:  1.1 cm
+    #   width:  1.1 cm # width is good
     #   height: 1.4 cm
+
+    constant $width  = cm2ps(1.1);
+    constant $height = cm2ps(1.4);
+
+    # dimensions of a Unicode glyph box:
     #   glyph baseline 0.5 cm from cell bottom
     #   hex code baseline 0.1 cm from cell bottom
-    #   hex code font height: 0.15 cm
-    #   hex code stroke gray 0.5
 
-    my $width  = cm2ps(1.1);
-    my $height = cm2ps(1.4);
+    constant $baseline-y  = cm2ps(0.5);
+    constant $baseline2-y = cm2ps(0.1);
 
     # border coords ($ulx, $uly already defined);
     my ($llx, $lly, $lrx, $lry, $urx, $ury);
     $llx = $ulx;
-    $lly = $ulx - $height;
+    $lly = $uly - $height;
     $lrx = $llx + $width;
     $lry = $lly;
     $urx = $lrx;
@@ -1710,18 +1717,33 @@ sub make-glyph-box(
     # The single glyph is a single char string
     # from the $font object
     # and is centered horizonatally in
-    # a constant-width box which is at least 
+    # a constant-width box which is at least
     # the the size of the total font bbox
 
     # four-digit hex number at bottom
-    # in mono font
+    # in mono font (4 chars normally)
+    my $s = $hex.uc; # ensure uppercase
+    while $s.chars < 4 {
+        $s = '0' ~ $s;
+    }
+
+    my $glyph = hex2string $hex;
 
     # render as $page.text
     my @bbox;
+    # dimensions of a Unicode glyph box:
+    #   glyph baseline 0.5 cm from cell bottom
+    #   hex code baseline 0.1 cm from cell bottom
     $page.text: {
-        # first line baseline
-        .text-position = 72, 500;
-        @bbox = .print: $hex, :align<center>;
+        # the glyph
+        .font = $font, $font-size;
+        .text-position = $llx + 0.5 * $width, $lly + $baseline-y;
+        @bbox = .print: $glyph, :align<center>;
+
+        # the hex code
+        .font = $font2, $font-size2;
+        .text-position = $llx + 0.5 * $width, $lly + $baseline2-y;
+        @bbox = .print: $s, :align<center>;
     }
     say "\@bbox = '{@bbox.gist}'" if $debug;
 
@@ -1731,15 +1753,38 @@ sub make-glyph-box(
 
     # the border
     $g.SetLineWidth: 0;
-    $g.MoveTo: $ulx, $uly;         # top left
-    $g.LineTo: $ulx, $uly - $height; # bottom left
-    $g.LineTo: $ulx + $width, $uly - $height; @bbox[2], @bbox[1]; # bottom right
-    $g.LineTo: @bbox[2], @bbox[3]; # top right
+    $g.MoveTo: $ulx, $uly; # top left
+    $g.LineTo: $llx, $lly; # bottom left
+    $g.LineTo: $lrx, $lry; # bottom right
+    $g.LineTo: $urx, $ury; # top right
     $g.ClosePath;
     $g.Stroke;
 
-    # the baseline
-    # the previous baseline
+    # dimensions of a Unicode glyph box:
+    #   glyph baseline 0.5 cm from cell bottom
+    #   hex code baseline 0.1 cm from cell bottom
+    # dimensions of a Unicode glyph box:
+    #   hex code font height: 0.15 cm
+    #   hex code stroke gray 0.5
+
+    # stroke the baselines
+    $g.MoveTo: $llx, $lly + $baseline-y;
+    $g.LineTo: $lrx, $lly + $baseline-y;
+    $g.Stroke;
+    $g.MoveTo: $llx, $lly + $baseline2-y;
+    $g.LineTo: $lrx, $lly + $baseline2-y;
+    $g.Stroke;
+
+    say "DEBUG: Font height: '{$font.height}'"; # unscaled?
+    my $font-height = $font.height; # @font-bbox[3] - @font-bbox[1];
+    # hack: scale it
+
+    # stroke the previous baseline
+    my $h = $font-height; # $font.height * $font-size;
+    $g.MoveTo: $llx, $lly + $baseline-y + $h;
+    $g.LineTo: $lrx, $lly + $baseline-y + $h;
+    $g.Stroke;
+
     $g.Restore;
 
     # return the bbox
