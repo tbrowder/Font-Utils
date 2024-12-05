@@ -36,23 +36,25 @@ submethod TWEAK {
 #        $sm = $face.scaled-metrics;
 #    }
 
-=finish
-
 # methods from $size-metrics
 method ascender {
-    $sm.ascender
+    $!sm.ascender
 }
 method descender {
-    $sm.descender
+    $!sm.descender
 }
 method max-advance-width {
-    $sm.max-advance-width
+    $!sm.max-advance-width
 }
+
 
 # other methods
 method adobe-name {
-    $!adobe-name ?? $!adobe-name !! $face.postscript-name;
+    $!adobe-name ?? $!adobe-name !! $!face.postscript-name;
 }
+
+method basename             { $!file.IO.basename        }
+
 
 method rawname {
     # basename without a suffix
@@ -68,33 +70,31 @@ method rawname {
     $rname;
 }
 
-method basename             { $p.IO.basename        }
+method family-name          { $!face.family-name     }
+method style-name           { $!face.style-name      }
+method postscript-name      { $!face.postscript-name }
+method font-format          { $!face.font-format     }
+method num-glyphs           { $!face.num-glyphs      }
+method bbox                 { $!face.bbox            }
+method height               { $!face.height          }
+method leading              { $!face.height          } # alias
 
-method family-name          { $face.family-name     }
-method style-name           { $face.style-name      }
-method postscript-name      { $face.postscript-name }
-method font-format          { $face.font-format     }
-method num-glyphs           { $face.num-glyphs      }
-method bbox                 { $face.bbox            }
-method height               { $face.height          }
-method leading              { $face.height          } # alias
-
-method is-scalable          { $face.is-scalable          ?? True !! False }
-method is-fixed-width       { $face.is-fixed-width       ?? True !! False }
-method has-kerning          { $face.has-kerning          ?? True !! False }
-method is-bold              { $face.is-bold              ?? True !! False }
-method is-italic            { $face.is-italic            ?? True !! False }
-method is-sfnt              { $face.is-sfnt              ?? True !! False }
-method fixed-sizes          { $face.fixed-sizes          ?? True !! False }
-method scaled-metrics       { $face.scaled-metrics       ?? True !! False }
-method has-vertical-metrics { $face.has-vertical-metrics ?? True !! False }
-method has-glyph-names      { $face.has-glyph-names      ?? True !! False }
+method is-scalable          { $!face.is-scalable          ?? True !! False }
+method is-fixed-width       { $!face.is-fixed-width       ?? True !! False }
+method has-kerning          { $!face.has-kerning          ?? True !! False }
+method is-bold              { $!face.is-bold              ?? True !! False }
+method is-italic            { $!face.is-italic            ?? True !! False }
+method is-sfnt              { $!face.is-sfnt              ?? True !! False }
+method fixed-sizes          { $!face.fixed-sizes          ?? True !! False }
+method scaled-metrics       { $!face.scaled-metrics       ?? True !! False }
+method has-vertical-metrics { $!face.has-vertical-metrics ?? True !! False }
+method has-glyph-names      { $!face.has-glyph-names      ?? True !! False }
 
 method has-horizontal-metrics   {
-    $face.has-horizontal-metrics   ?? True !! False
+    $!face.has-horizontal-metrics   ?? True !! False
 }
 method has-reliable-glyph-names {
-    $face.has-reliable-glyph-names ?? True !! False
+    $!face.has-reliable-glyph-names ?? True !! False
 }
 
 method extension {
@@ -123,15 +123,15 @@ method stringwidth2(Str $s) {
     # this is David's version (but with fixed font size)
     # TODO should delete distance of last char bbox and hori-advance
     my $font-size = self.font-size;
-    my $units-per-EM = $face.units-per-EM;
-    my $unscaled = sum $face.for-glyphs($s, {.metrics.hori-advance });
-    return $unscaled * $font-size / $units-per-EM;
+    my $units-per-EM = $!face.units-per-EM;
+    my $unscaled = sum $!face.for-glyphs($s, {.metrics.hori-advance });
+    return $unscaled * $!font-size / $units-per-EM;
 }
 method stringwidth(Str $s) {
     # this is my version using methods from David's Glyph.rakumod
     # TODO adjust for left- and right-bearings of the bounding glyphs
     my $w = 0;
-    $face.for-glyphs($s, {
+    $!face.for-glyphs($s, {
         my $x = .horizontal-advance;
         $w += $x;
     });
@@ -140,7 +140,7 @@ method stringwidth(Str $s) {
 
 method top-bearing(Str $s) {
     my $y = 0;
-    $face.for-glyphs($s, {
+    $!face.for-glyphs($s, {
         my $t = .top-bearing;
         $y = $t if $t > $y;
     });
@@ -149,7 +149,7 @@ method top-bearing(Str $s) {
 
 method bottom-bearing(Str $s) {
     my $y = 0;
-    $face.for-glyphs($s, {
+    $!face.for-glyphs($s, {
         my $h = .height;
         my $t = .top-bearing;
         my $b = $h - $t;
