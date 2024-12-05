@@ -68,7 +68,7 @@ use Compress::PDF;
 class FreeTypeFace is export {
     use Font::FreeType;
 
-    has $.file is required;
+    has PDF::Content::FontObj $.font is required; # a loaded font
     has $.font-size is required; #  = 12; # not yet required;
 
     # special use for URW fonts with wierd PostScript nakes
@@ -80,11 +80,14 @@ class FreeTypeFace is export {
     my Font::FreeType::SizeMetrics $sm;  # size-metrics object
 
     submethod TWEAK {
+        =begin comment
         $p    = $!file;
         if not $p.IO.e {
             die "FATAL: '$p' is not a file path";
         }
-        $face = Font::FreeType.new.face: $!file.Str;
+        =end comment
+        $p    = $!font.file;
+        $face = $!font.face; # Font::FreeType.new.face: $!file.Str;
         $face.set-char-size: $!font-size;
         $sm = $face.scaled-metrics;
     }
@@ -125,6 +128,7 @@ class FreeTypeFace is export {
     }
 
     method basename             { $p.IO.basename        }
+
     method family-name          { $face.family-name     }
     method style-name           { $face.style-name      }
     method postscript-name      { $face.postscript-name }
