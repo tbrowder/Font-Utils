@@ -56,7 +56,7 @@ $font-size2 = 6,
 
     :$page;
 
-say @bbox.gist;
+say @bbox.gist if $debug;
 
 my $ofil = "xt2glyph-box.pdf";
 

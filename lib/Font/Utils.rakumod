@@ -1776,8 +1776,10 @@ sub make-glyph-box(
     $g.Stroke;
 
     say "DEBUG: Font height: '{$font.height}'"; # unscaled?
-    my $font-height = $font.height; # @font-bbox[3] - @font-bbox[1];
     # hack: scale it
+    my @fbbox = font-bbox $font, :$font-size;
+    my $font-width  = @fbbox[2] - @fbbox[0];
+    my $font-height = @fbbox[3] - @fbbox[1];
 
     # stroke the previous baseline
     my $h = $font-height; # $font.height * $font-size;
@@ -1864,3 +1866,19 @@ sub draw-box-clip(
 
     @bbox
 } # sub draw-box-clip
+
+sub font-bbox(
+    PDF::Content::FontObj $font,
+    Numeric :$font-size!,
+    :$debug
+    --> List
+    ) is export {
+    # Returns the scaled bounding box for the font collection
+    my $units-per-EM = $font.face.units-per-EM;
+    #my $uheight = $font.face.height:
+    my $uwidth  = $font.face.width;
+    # return $unscaled * $font-size / $units-per-EM;
+    my $width  = $uwidth  * $font-size / $units-per-EM;
+    #my $height = $uheight * $font-size / $units-per-EM;
+    #0, 0, $width, $height;
+}
