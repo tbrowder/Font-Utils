@@ -65,6 +65,11 @@ use PDF::Tags;
 use PDF::Content::Text::Box;
 use Compress::PDF;
 
+use Font::Utils::FaceFreeType;
+
+=begin comment
+# move to its own rakumod file
+#=========================================================
 class FreeTypeFace is export {
     use Font::FreeType;
 
@@ -246,15 +251,17 @@ class FreeTypeFace is export {
         @lines;
     }
 
-=begin comment
+    =begin comment
     # TODO make methods
     # properties
     with $face.charmap {
         @properties.push: 'enc:' ~ .key.subst(/^FT_ENCODING_/, '').lc
             with .encoding;
-=end comment
+    =end comment
 
-}
+} # End of class FaceFreeType
+#=========================================================
+=end comment
 
 my $o = OS.new;
 my $onam = $o.name;
@@ -330,7 +337,7 @@ sub help() is export {
       of=X    - Where X is the name of the output file
     =end comment
     exit;
-} # END of class FaceFreeFont
+}
 #=======================================================
 
 # modes and options
@@ -440,16 +447,20 @@ sub use-args(@args is copy) is export {
     # if we have a file, it must be a font file
 
     my @fils;
+    my $font-size = 12;
+    my $font;
+
     for @fils {
         next if not $_;
         next if not $_.e;
         say "DEBUG: trying a file '$_'" if $debug;
-        my $o = FreeTypeFace.new: :file($_), :font-size(12);;
+        $font = load-font :file($_);
+        my $o = FaceFreeType.new: :file($_), :$font-size, :$font;
     }
 
     if $file {
         say "DEBUG: trying a file '$file'" if $debug;
-        my $o = FreeTypeFace.new: :$file, :font-size(12);;
+        my $o = FaceFreeType.new: :$file, :$font-size, :$font;
     }
 
     if $debug {
@@ -476,10 +487,12 @@ sub use-args(@args is copy) is export {
         my %nam; # keyed by postscript name
 
         my @fams;
+        my $font;
         for @fils {
             note "DEBUG: path = '$_'" if 0 or $debug;
             my $file = $_.IO.absolute;
-            my $o      = FreeTypeFace.new: :$file;
+            $font = load-font :$file;
+            my $o      = FaceFreeType.new: :$file, :$font-size, :$font;
             my $pnam   = $o.postscript-name;
             my $anam   = $o.adobe-name;
             my $fam    = $o.family-name;
@@ -522,7 +535,9 @@ sub use-args(@args is copy) is export {
         #             input: $file OR key of user font hash
 
         if is-font-file $file {
-            my $o = FreeTypeFace.new: :$file;
+            my $font = load-font :$file;
+            my $font-size = 12;
+            my $o = FaceFreeType.new: :$font, :$font-size, :$file;
             #$o.show;
         }
         else {
@@ -603,7 +618,7 @@ sub get-user-font-list(
 sub get-font-info(
     $path,
     :$debug
-    --> FreeTypeFace
+    --> FaceFreeType
     ) is export {
 
     my $file;
@@ -614,7 +629,7 @@ sub get-font-info(
         $file = %user-fonts{$path};
     }
 
-    my $o = FreeTypeFace.new: :$file;
+    my $o = FaceFreeType.new: :$file;
     $o;
 }
 
@@ -627,10 +642,12 @@ sub show-font-info(
         die "FATAL: \$path is not a valid font path";
     }
 
-    my $file = $path.Str; # David's sub REQUIRES a Str for the $filename
+    my $file = $path; # David's sub REQUIRES a Str for the $filename
+    my $font = load-font :$file;
+    my $font-size = 12;
 
     # get a sister FreeTypeFace to gradually take over
-    my $o = FreeTypeFace.new: :$file;
+    my $o = FaceFreeType.new: :$file, :$font, :$font-size;;
 
     my $face = Font::FreeType.new.face($file);
 
@@ -1470,16 +1487,16 @@ sub make-font-sample-page(
         }
     }
 
+    my $font = load-font :$file;
     if $paper ~~ /:i letter / {
         $pdf.media-box = [0,0, 8.5*72, 11*72];
     }
     else {
         die "Tom, need A4 dimens";
     }
-    my $fo = FreeTypeFace.new: :$file, :$font-size;
+    my $fo = FaceFreeType.new: :$file, :$font-size, :$font;
 
     my $page = $pdf.add-page;
-    my $font = load-font :$file;
 
     =begin comment
     my $box1 = text-box $text, :$font, :verbatim;

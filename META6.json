@@ -28,6 +28,7 @@
   "perl": "6.d",
   "provides": {
     "Font::Utils": "lib/Font/Utils.rakumod",
+    "Font::Utils::FaceFreeType": "lib/Font/Utils/FaceFreeType.rakumod",
     "Font::Utils::Misc": "lib/Font/Utils/Misc.rakumod",
     "Font::Utils::NameTags": "lib/Font/Utils/NameTags.rakumod"
   },
