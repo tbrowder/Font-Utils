@@ -12,11 +12,16 @@ use Font::Utils::Misc;
 
 my $debug = 0;
 
-my $quote = qq:to/HERE/;
-The General is sorry to be informed that the foolish and wicked
-practice of profane cursing and swearing is growing into
-fashion. He hopes the officers will, by their example as well
-as influence, endeavor to check it.
+my $quote = q:to/HERE/;
+The General is sorry to be informed that the foolish, and wicked
+practice, of profane cursing and swearing (a Vice heretofore little
+known in an American Army) is growing into fashion; he hopes the
+officers will, by example, as well as influence, endeavour to check
+it, and that both they, and the men will reflect, that we can have
+little hopes of the blessing of Heaven on our Arms, if we insult it by
+our impiety, and folly; added to this, it is a vice so mean and low,
+without any temptation, that every man of sense, and character,
+detests and despises it.
 HERE
 
 my $file = "/usr/share/fonts/opentype/freefont/FreeSerif.otf";
@@ -77,7 +82,7 @@ $page.text: {
     # first line baseline
     .text-position = 72, 600;
     .print: $tb2;
-    .text-position = 72, 500;
+    .text-position = 72, 400;
     @bbox = .print: $tb2;
 }
 say "\@bbox = '{@bbox.gist}'";
@@ -95,17 +100,39 @@ $g.Stroke;
 $g.Restore;
 
 # try another clone
-my $tb3 = $tb.clone: :text($quote), :align<justify>, :width(4*72);
+my $tb3 = $tb.clone: :text($quote), :align<justify>, :width(4*72),
+                     :word-wrap($fo.stringwidth(' '));
 isa-ok $tb3, PDF::Content::Text::Box;
 say "content-width: ", $tb3.content-width;
 say "content-height: ", $tb3.content-height;
 say "baseline-shift: ", $tb3.baseline-shift;
 say "leading: ", $tb3.leading;
 
+if 0 {
+    # David's solution:
+    given $tb3.lines.tail {
+        # +.decoded,   # <== the original plus sign was removed
+        .decoded,
+        .content-width,
+        .word-gap = 6; # <== this is trial and error (David's solution)
+    };
+}
+else {
+    # David's solution with my mod
+    given $tb3.lines.tail {
+        .decoded,        # <== the plus sign was removed
+        .content-width,
+        # .word-gap = 6; # <== this is trial and error (David's solution)
+        .word-gap = $fo.stringwidth(' ');
+    };
+}
+
+
+# I get the width of a ' ' character
 # render it as $page.text
 $page.text: {
     # first line baseline
-    .text-position = 72, 300;
+    .text-position = 72, 200;
     @bbox = .print: $tb3;
 }
 say "\@bbox = '{@bbox.gist}'";
