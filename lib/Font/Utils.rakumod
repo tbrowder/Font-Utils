@@ -1744,6 +1744,7 @@ sub make-glyph-box(
     # four-digit hex number at bottom
     # in mono font (4 chars normally)
     my $s = $hex.uc; # ensure uppercase
+    # fill with leading zeros...
     while $s.chars < 4 {
         $s = '0' ~ $s;
     }
@@ -1766,7 +1767,7 @@ sub make-glyph-box(
         .text-position = $llx + 0.5 * $width, $lly + $baseline2-y;
         @bbox = .print: $s, :align<center>;
     }
-    say "\@bbox = '{@bbox.gist}'" if $debug;
+    say "Glyph \@bbox = '{@bbox.gist}'" if $debug;
 
     # border it
     my $g = $page.gfx;
@@ -1796,7 +1797,6 @@ sub make-glyph-box(
     $g.LineTo: $lrx, $lly + $baseline2-y;
     $g.Stroke;
 
-    say "DEBUG: Font height: '{$fo.height}'"; # unscaled?
     =begin comment
     # hack: scale it
     my @fbbox = font-bbox $font, :$font-size;
@@ -1805,14 +1805,27 @@ sub make-glyph-box(
     =end comment
 
     # stroke the previous baseline
-    my $h = $fo.height; # $font.height * $font-size;
+    my $h  = $fo.height; # $font.height * $font-size;
+    my $by = $lly + $baseline-y + $h;
+    say "DEBUG: Font height: '{$fo.height}'"; # it should be scaled
+    say "DEBUG: Previous baseline height on the page: '$by'";
     $g.MoveTo: $llx, $lly + $baseline-y + $h;
     $g.LineTo: $lrx, $lly + $baseline-y + $h;
     $g.Stroke;
 
+    # stroke the fonts' max ascender
+    $g.MoveTo: $llx, $lly + $baseline-y + $fo.ascender;
+    $g.LineTo: $lrx, $lly + $baseline-y + $fo.ascender;
+    $g.Stroke;
+
+    # stroke the fonts' min descender
+    $g.MoveTo: $llx, $lly + $baseline-y + $fo.descender;
+    $g.LineTo: $lrx, $lly + $baseline-y + $fo.descender;
+    $g.Stroke;
+
     $g.Restore;
 
-    # return the bbox
+    # return the glyph-box bbox
     $llx, $lly, $urx, $ury;
 }
 
@@ -1890,19 +1903,21 @@ sub draw-box-clip(
     @bbox
 } # sub draw-box-clip
 
+=begin comment
 sub font-bbox(
     Font::Utils::FaceFreeType $fo,
     :$debug
     --> List
     ) is export {
     # Returns the scaled bounding box for the font collection
-=begin comment
+    =begin comment
     my $units-per-EM = $fo.face.units-per-EM;
     my $uheight = $fo.face.height:
     my $uwidth  = $fo.face.width;
     # return $unscaled * $font-size / $units-per-EM;
     my $width  = $uwidth  * $font-size / $units-per-EM;
     my $height = $uheight * $font-size / $units-per-EM;
-=end comment
+    =end comment
     0, 0, $fo.width, $fo.height;
 }
+=end comment
