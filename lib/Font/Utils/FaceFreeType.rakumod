@@ -79,8 +79,10 @@ method postscript-name      { $!face.postscript-name }
 method font-format          { $!face.font-format     }
 method num-glyphs           { $!face.num-glyphs      }
 method bbox                 { $!face.bbox            }
-method height               { $!face.height          }
-method leading              { $!face.height          } # alias
+#method height               { $!face.height          }
+method height               { $!sm.height          }
+#method leading              { $!face.height          } # alias
+method leading              { $!sm.height          } # alias
 
 method is-scalable          { $!face.is-scalable          ?? True !! False }
 method is-fixed-width       { $!face.is-fixed-width       ?? True !! False }

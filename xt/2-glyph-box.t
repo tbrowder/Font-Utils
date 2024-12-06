@@ -10,7 +10,7 @@ use Font::Utils;
 use Font::Utils::FaceFreeType;
 use Font::Utils::Misc;
 
-my $debug = 0;
+my $debug = 1;
 
 my $file  = "/usr/share/fonts/opentype/freefont/FreeSerif.otf";
 my $file2 = "/usr/share/fonts/opentype/freefont/FreeMono.otf";
@@ -51,6 +51,7 @@ $fo2 = Font::Utils::FaceFreeType.new: :file($file2) :font($font2) :font-size($fo
     # the actual box dimensions and baselines are hard-coded in the
     # sub and are a trial-match with a page printed from the Unicode
     # page on their website (Latin Extended-D)
+    :$debug,
     :$page;
 
 say @bbox.gist if $debug;
