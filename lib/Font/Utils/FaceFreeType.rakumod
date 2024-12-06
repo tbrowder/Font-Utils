@@ -41,15 +41,28 @@ submethod TWEAK {
 
 # methods from $size-metrics
 method ascender {
+    # top of the entire font set of glyphs
     $!sm.ascender
 }
 method descender {
+    # bottom of the entire font set of glyphs
     $!sm.descender
 }
 method max-advance-width {
+    # largest advance-width value of the entire font set of glyphs
     $!sm.max-advance-width
 }
 
+method max-advance-height {
+    # largest advance-height value of the entire font set of glyphs
+    # (for fonts with vertical layouts)
+    $!sm.max-advance-height
+}
+
+method bbox {
+    # bounding box value of the entire font set of glyphs
+    $!sm.bbox
+}
 
 # other methods
 method adobe-name {
@@ -78,11 +91,8 @@ method style-name           { $!face.style-name      }
 method postscript-name      { $!face.postscript-name }
 method font-format          { $!face.font-format     }
 method num-glyphs           { $!face.num-glyphs      }
-method bbox                 { $!face.bbox            }
-#method height               { $!face.height          }
-method height               { $!sm.height          }
-#method leading              { $!face.height          } # alias
-method leading              { $!sm.height          } # alias
+method height               { $!sm.height            }
+method leading              { $!sm.height            } # alias
 
 method is-scalable          { $!face.is-scalable          ?? True !! False }
 method is-fixed-width       { $!face.is-fixed-width       ?? True !! False }
@@ -132,6 +142,7 @@ method stringwidth2(Str $s) {
     my $unscaled = sum $!face.for-glyphs($s, {.metrics.hori-advance });
     return $unscaled * $!font-size / $units-per-EM;
 }
+
 method stringwidth(Str $s) {
     # this is my version using methods from David's Glyph.rakumod
     # TODO adjust for left- and right-bearings of the bounding glyphs
