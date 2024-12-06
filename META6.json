@@ -6,6 +6,7 @@
   "build-depends": [
   ],
   "depends": [
+    "OO::Monitors",
     "paths",
     "Compress::PDF",
     "MacOS::NativeLib",

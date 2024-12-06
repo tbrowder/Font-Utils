@@ -7,6 +7,7 @@ use PDF::Lite;
 use PDF::Content::Text::Box;
 
 use Font::Utils;
+use Font::Utils::FaceFreeType;
 use Font::Utils::Misc;
 
 my $debug = 0;
@@ -29,8 +30,8 @@ $font-size = 12;
 $width     = 6.5*72;
 $font      = load-font :$file;
 
-# get a FreeTypeFace object for comparison
-my $fo = FreeTypeFace.new: :$file, :$font-size;
+# get a FaceFreeType object for comparison
+my $fo = Font::Utils::FaceFreeType.new: :$file, :$font-size, :$font;
 
 
 # a reusable text box:  with filled text

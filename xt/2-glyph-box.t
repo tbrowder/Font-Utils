@@ -7,6 +7,7 @@ use PDF::Lite;
 use PDF::Content::Text::Box;
 
 use Font::Utils;
+use Font::Utils::FaceFreeType;
 use Font::Utils::Misc;
 
 my $debug = 0;
@@ -38,22 +39,18 @@ my $hex = "A734"; # Latin Extended-D
 # these dimensions are good for the fonts being used
 $font-size  = 19,
 $font-size2 = 6,
+
+$fo  = Font::Utils::FaceFreeType.new: :$file, :$font, :$font-size;
+$fo2 = Font::Utils::FaceFreeType.new: :file($file2) :font($font2) :font-size($font-size2);
+
 @bbox = make-glyph-box
     $ulx, $uly, # upper-left corner of the glyph box
-    :$font,     # the loaded font being sampled
-    :$font2,    # the loaded mono font used for the hex code
+    :$fo,     # the loaded font being sampled
+    :$fo2,    # the loaded mono font used for the hex code
     :$hex,      # char to be shown
-    :$font-size,
-    :$font-size2,
     # the actual box dimensions and baselines are hard-coded in the
     # sub and are a trial-match with a page printed from the Unicode
     # page on their website (Latin Extended-D)
-#=begin comment
-#    # these are not needed for normal use:
-#    :$fo,       # the font being sampled
-#    :$fo2,      # the mono font used for the hex code
-#=end comment
-
     :$page;
 
 say @bbox.gist if $debug;

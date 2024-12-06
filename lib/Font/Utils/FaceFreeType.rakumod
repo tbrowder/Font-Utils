@@ -1,4 +1,7 @@
-unit class Font::Utils::FaceFreeType;
+use OO::Monitors;
+
+#unit class Font::Utils::FaceFreeType;
+unit monitor Font::Utils::FaceFreeType;
 
 #class FreeTypeFace is export {
 

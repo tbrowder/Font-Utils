@@ -1,6 +1,12 @@
 use Test;
 
+use PDF::API6; # <== required for $page
+use PDF::Content;
+use PDF::Font::Loader :load-font;
+use PDF::Lite;
+
 use Font::Utils;
+use Font::Utils::FaceFreeType;
 use Font::Utils::Misc;
 
 my $debug = 0;
@@ -17,7 +23,8 @@ is $c.comb.head, '0';
 $cn = $c.chars;
 
 my $file = %user-fonts<1><path>;
-my $o = FreeTypeFace.new: :$file, :font-size(12);
+my $font = load-font :$file;
+my $o = Font::Utils::FaceFreeType.new: :$font, :$file, :font-size(12);
 @lines = $o.wrap-string($c, :width(6.5*72));
 
 @s = %uni<L-Sup>.words;

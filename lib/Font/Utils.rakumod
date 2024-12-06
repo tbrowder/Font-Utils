@@ -1688,15 +1688,15 @@ sub stringwidth(
 
 sub make-glyph-box(
     $ulx, $uly,          # upper-left corner of the glyph box
+=begin comment
     :$font!,             # the loaded font being sampled
     :$font2!,            # the loaded mono font used for the hex code
-=begin comment
-    FreeTypeFace :$fo!,  # the font being sampled
-    FreeTypeFace :$fo2!, # the mono font used for the hex code
-=end comment
-    Str :$hex!,          # char to be shown
     :$font-size  = 16,
     :$font-size2 = 8,
+=end comment
+    FaceFreeType :$fo!,  # the font being sampled
+    FaceFreeType :$fo2!, # the mono font used for the hex code
+    Str :$hex!,          # char to be shown
     :$page!,
 
     # defaults
@@ -1757,12 +1757,12 @@ sub make-glyph-box(
     #   hex code baseline 0.1 cm from cell bottom
     $page.text: {
         # the glyph
-        .font = $font, $font-size;
+        .font = $fo.font, $fo.font-size;
         .text-position = $llx + 0.5 * $width, $lly + $baseline-y;
         @bbox = .print: $glyph, :align<center>;
 
         # the hex code
-        .font = $font2, $font-size2;
+        .font = $fo2.font, $fo2.font-size;
         .text-position = $llx + 0.5 * $width, $lly + $baseline2-y;
         @bbox = .print: $s, :align<center>;
     }
@@ -1796,14 +1796,16 @@ sub make-glyph-box(
     $g.LineTo: $lrx, $lly + $baseline2-y;
     $g.Stroke;
 
-    say "DEBUG: Font height: '{$font.height}'"; # unscaled?
+    say "DEBUG: Font height: '{$fo.height}'"; # unscaled?
+    =begin comment
     # hack: scale it
     my @fbbox = font-bbox $font, :$font-size;
     my $font-width  = @fbbox[2] - @fbbox[0];
     my $font-height = @fbbox[3] - @fbbox[1];
+    =end comment
 
     # stroke the previous baseline
-    my $h = $font-height; # $font.height * $font-size;
+    my $h = $fo.height; # $font.height * $font-size;
     $g.MoveTo: $llx, $lly + $baseline-y + $h;
     $g.LineTo: $lrx, $lly + $baseline-y + $h;
     $g.Stroke;
@@ -1889,17 +1891,18 @@ sub draw-box-clip(
 } # sub draw-box-clip
 
 sub font-bbox(
-    PDF::Content::FontObj $font,
-    Numeric :$font-size!,
+    Font::Utils::FaceFreeType $fo,
     :$debug
     --> List
     ) is export {
     # Returns the scaled bounding box for the font collection
-    my $units-per-EM = $font.face.units-per-EM;
-    #my $uheight = $font.face.height:
-    my $uwidth  = $font.face.width;
+=begin comment
+    my $units-per-EM = $fo.face.units-per-EM;
+    my $uheight = $fo.face.height:
+    my $uwidth  = $fo.face.width;
     # return $unscaled * $font-size / $units-per-EM;
     my $width  = $uwidth  * $font-size / $units-per-EM;
-    #my $height = $uheight * $font-size / $units-per-EM;
-    #0, 0, $width, $height;
+    my $height = $uheight * $font-size / $units-per-EM;
+=end comment
+    0, 0, $fo.width, $fo.height;
 }

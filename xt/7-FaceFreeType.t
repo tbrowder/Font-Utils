@@ -1,10 +1,15 @@
 use Test;
 
-use PDF::API6; # <== required for $page
-use PDF::Content;
+=begin comment
+# these are not needed if no PDF::Lite $page is needed
+
+#use PDF::API6; # <== required for $page
+#use PDF::Content;
+#use PDF::Lite;
+#use PDF::Content::Text::Box;
+=end comment
+
 use PDF::Font::Loader :load-font;
-use PDF::Lite;
-use PDF::Content::Text::Box;
 
 use Font::Utils;
 use Font::Utils::Misc;
@@ -15,6 +20,8 @@ my $debug = 0;
 my $file  = "/usr/share/fonts/opentype/freefont/FreeSerif.otf";
 my $font  = load-font :$file;
 
-is 1, 1;
+my $fo = Font::Utils::FaceFreeType;
+
+is $fo, Font::Utils::FaceFreeType;
 
 done-testing;
