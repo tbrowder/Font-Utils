@@ -1507,9 +1507,13 @@ sub make-font-sample-page(
         $pdf.media-box = [0,0, 8.5*72, 11*72];
     }
     else {
+        my $win = cm2in 21;
+        my $hin = cm2in 29.7;
+
+        say "DEBUG: A4 paper dimens in inches: $win X $hin";
+        $pdf.media-box = [0,0, cm2ps(21), cm2ps(29.7)];
         die "Tom, need A4 dimens";
     }
-    #my $fo = FaceFreeType.new: :$file, :$font-size, :$font;
     my $fo = FaceFreeType.new: $font-size, :$font;
 
     my $page = $pdf.add-page;
