@@ -1710,29 +1710,34 @@ sub stringwidth(
 
 sub make-glyph-box(
     $ulx, $uly,          # upper-left corner of the glyph box
+
     FaceFreeType :$fo!,  # the font being sampled
     FaceFreeType :$fo2!, # the mono font used for the hex code
-    Str :$hex!,          # char to be shown
+    Str :$hex,           # hex char to be shown
     :%opts,              # s=
     :$page!,
 
     # defaults
     :$line-width = 0,
     :$line-width2 = 0,
-    :$hori-border-space = 4,
-    :$vert-border-space = 4,
-    :$debug,
-    --> List # the glyph box's bounding box
-    ) is export {
-
-    my $embellish = %opts<b>:exists ?? True !! False;
-
     # dimensions of a Unicode glyph box:
     #   width:  1.1 cm # width is good
     #   height: 1.4 cm
+    :$box-width  = cm2ps(1.1), # width of the complete box
+    :$box-height = cm2ps(1.4), # height of the complete box
+    :$hori-border-space = 4,
+    :$vert-border-space = 4,
+    :$debug,
+    ) is export {
 
-    constant $box-width  = cm2ps(1.1);
-    constant $box-height = cm2ps(1.4);
+    # There are four bounding boxes we need:
+    #   @glyph-box-bbox - the box containing everything to be shown on the page
+    #                     it's defined by the caller
+    #   @font-bbox      - the box for the font collection
+    #   @glyph-bbox     - the box for the glyph being shown
+    #   @hex-bbox       - the box for the hex code being shown
+
+    my $embellish = %opts<b>:exists ?? True !! False;
 
     # dimensions of a Unicode glyph box:
     #   glyph baseline 0.5 cm from cell bottom
@@ -1742,6 +1747,7 @@ sub make-glyph-box(
     constant $baselineY2 = cm2ps(0.1);
 
     # border coords ($ulx, $uly already defined);
+    # which is the @glyph-box-bbox
     my ($llx, $lly, $lrx, $lry, $urx, $ury);
     $llx = $ulx;
     $lly = $uly - $box-height;
@@ -1749,6 +1755,7 @@ sub make-glyph-box(
     $lry = $lly;
     $urx = $lrx;
     $ury = $uly;
+    my @glyph-box-bbox = $llx, $lly, $urx, $ury;
 
     # Basically follow the format of the
     # Unicode charts but with possible
@@ -1768,25 +1775,27 @@ sub make-glyph-box(
         $s = '0' ~ $s;
     }
 
-    my $glyph = hex2string $hex;
+    my Str $glyph = hex2string $hex;
 
     # render as $page.text
-    my @bbox;
+    my @glyph-bbox;
+    my @hex-bbox;
     # dimensions of a Unicode glyph box:
     #   glyph baseline 0.5 cm from cell bottom
     #   hex code baseline 0.1 cm from cell bottom
     $page.text: {
-        # the glyph
+        # the glyph as a text string
         .font = $fo.font, $fo.font-size;
         .text-position = $llx + 0.5 * $box-width, $lly + $baselineY;
-        @bbox = .print: $glyph, :align<center>;
+        @glyph-bbox = .print: $glyph, :align<center>;
 
-        # the hex code
+        # the hex code (already a string)
         .font = $fo2.font, $fo2.font-size;
         .text-position = $llx + 0.5 * $box-width, $lly + $baselineY2;
-        @bbox = .print: $s, :align<center>;
+        @hex-bbox = .print: $s, :align<center>;
     }
-    say "Glyph \@bbox = '{@bbox.gist}'" if $debug;
+    say "\@glyph-bbox = '{@glyph-bbox.gist}'" if $debug;
+    say "\@hex-bbox   = '{@hex-bbox.gist}'" if $debug;
 
     # border it
     my $g = $page.gfx;
@@ -1811,10 +1820,10 @@ sub make-glyph-box(
     if not $embellish {
         say "DEBUG: Finish embellish";
     }
-    my $vert-bar-len = 3; # vertical tick
-    my $bar-left-x = 0;   # set at origin
-    my $bar-right-x = 0;   # set at glyph advance-width
-    my $bar-len = 0; # glyph advance-width less origin
+    my $V-len      = 3; # vertical tick
+    my $bar-leftX  = 0; # set at origin
+    my $bar-rightX = 0; # set at glyph advance-width
+    my $bar-len    = 0; # glyph advance-width less origin
 
     # EMBELLISH
     # TODO: draw baseline the length of the font max-advance-width
