@@ -1469,7 +1469,7 @@ sub make-font-sample-page(
     # Letter or A4
     my $paper = "Letter";
     my Numeric $font-size = 12;
-    my Bool $show-extra-data = False;
+    my Bool $embellish = False;
 
     =begin comment
       b=X     - Any entry will result in showing the glyph's baseline, 
@@ -1484,7 +1484,7 @@ sub make-font-sample-page(
                 $font-size = $v;
             }
             elsif $k eq "b" {
-                $show-extra-data = True;
+                $embellish = True;
             }
             elsif $k eq "m" {
                 if $v ~~ /:i l/ {
@@ -1731,6 +1731,8 @@ sub make-glyph-box(
     --> List # the glyph box's bounding box
     ) is export {
 
+    my $embellish = %opts<b>:exists ?? True !! False;
+
     # dimensions of a Unicode glyph box:
     #   width:  1.1 cm # width is good
     #   height: 1.4 cm
@@ -1812,6 +1814,20 @@ sub make-glyph-box(
     #   hex code font height: 0.15 cm
     #   hex code stroke gray 0.5
 
+    if not $embellish {
+        say "DEBUG: Finish embellish";
+    }
+    my $vert-bar-len = 3; # vertical tick
+    my $bar-left-x = 0;   # set at origin
+    my $bar-right-x = 0;   # set at glyph advance-width
+    my $bar-len = 0; # glyph advance-width less origin
+
+    # EMBELLISH
+    # TODO: draw baseline the length of the font max-advance-width
+    #       put a short vertical line at the origin and the advance
+    #         width and the glyph width
+    #       draw lines at the font height and previous baselines
+ 
     # stroke the baselines
     $g.MoveTo: $llx, $lly + $baseline-y;
     $g.LineTo: $lrx, $lly + $baseline-y;
