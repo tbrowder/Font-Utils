@@ -1710,12 +1710,6 @@ sub stringwidth(
 
 sub make-glyph-box(
     $ulx, $uly,          # upper-left corner of the glyph box
-=begin comment
-    :$font!,             # the loaded font being sampled
-    :$font2!,            # the loaded mono font used for the hex code
-    :$font-size  = 16,
-    :$font-size2 = 8,
-=end comment
     FaceFreeType :$fo!,  # the font being sampled
     FaceFreeType :$fo2!, # the mono font used for the hex code
     Str :$hex!,          # char to be shown
@@ -1737,21 +1731,21 @@ sub make-glyph-box(
     #   width:  1.1 cm # width is good
     #   height: 1.4 cm
 
-    constant $width  = cm2ps(1.1);
-    constant $height = cm2ps(1.4);
+    constant $box-width  = cm2ps(1.1);
+    constant $box-height = cm2ps(1.4);
 
     # dimensions of a Unicode glyph box:
     #   glyph baseline 0.5 cm from cell bottom
     #   hex code baseline 0.1 cm from cell bottom
 
-    constant $baseline-y  = cm2ps(0.5);
-    constant $baseline2-y = cm2ps(0.1);
+    constant $baselineY  = cm2ps(0.5);
+    constant $baselineY2 = cm2ps(0.1);
 
     # border coords ($ulx, $uly already defined);
     my ($llx, $lly, $lrx, $lry, $urx, $ury);
     $llx = $ulx;
-    $lly = $uly - $height;
-    $lrx = $llx + $width;
+    $lly = $uly - $box-height;
+    $lrx = $llx + $box-width;
     $lry = $lly;
     $urx = $lrx;
     $ury = $uly;
@@ -1784,12 +1778,12 @@ sub make-glyph-box(
     $page.text: {
         # the glyph
         .font = $fo.font, $fo.font-size;
-        .text-position = $llx + 0.5 * $width, $lly + $baseline-y;
+        .text-position = $llx + 0.5 * $box-width, $lly + $baselineY;
         @bbox = .print: $glyph, :align<center>;
 
         # the hex code
         .font = $fo2.font, $fo2.font-size;
-        .text-position = $llx + 0.5 * $width, $lly + $baseline2-y;
+        .text-position = $llx + 0.5 * $box-width, $lly + $baselineY2;
         @bbox = .print: $s, :align<center>;
     }
     say "Glyph \@bbox = '{@bbox.gist}'" if $debug;
@@ -1799,7 +1793,7 @@ sub make-glyph-box(
     $g.Save;
 
     # the border
-    $g.SetLineWidth: 0;
+    $g.SetLineWidth: 1;
     $g.MoveTo: $ulx, $uly; # top left
     $g.LineTo: $llx, $lly; # bottom left
     $g.LineTo: $lrx, $lry; # bottom right
@@ -1829,11 +1823,11 @@ sub make-glyph-box(
     #       draw lines at the font height and previous baselines
  
     # stroke the baselines
-    $g.MoveTo: $llx, $lly + $baseline-y;
-    $g.LineTo: $lrx, $lly + $baseline-y;
+    $g.MoveTo: $llx, $lly + $baselineY;
+    $g.LineTo: $lrx, $lly + $baselineY;
     $g.Stroke;
-    $g.MoveTo: $llx, $lly + $baseline2-y;
-    $g.LineTo: $lrx, $lly + $baseline2-y;
+    $g.MoveTo: $llx, $lly + $baselineY2;
+    $g.LineTo: $lrx, $lly + $baselineY2;
     $g.Stroke;
 
     =begin comment
@@ -1845,21 +1839,21 @@ sub make-glyph-box(
 
     # stroke the previous baseline
     my $h  = $fo.height; # $font.height * $font-size;
-    my $by = $lly + $baseline-y + $h;
+    my $by = $lly + $baselineY + $h;
     say "DEBUG: Font height: '{$fo.height}'"; # it should be scaled
     say "DEBUG: Previous baseline height on the page: '$by'";
-    $g.MoveTo: $llx, $lly + $baseline-y + $h;
-    $g.LineTo: $lrx, $lly + $baseline-y + $h;
+    $g.MoveTo: $llx, $lly + $baselineY + $h;
+    $g.LineTo: $lrx, $lly + $baselineY + $h;
     $g.Stroke;
 
     # stroke the fonts' max ascender
-    $g.MoveTo: $llx, $lly + $baseline-y + $fo.ascender;
-    $g.LineTo: $lrx, $lly + $baseline-y + $fo.ascender;
+    $g.MoveTo: $llx, $lly + $baselineY + $fo.ascender;
+    $g.LineTo: $lrx, $lly + $baselineY + $fo.ascender;
     $g.Stroke;
 
     # stroke the fonts' min descender
-    $g.MoveTo: $llx, $lly + $baseline-y + $fo.descender;
-    $g.LineTo: $lrx, $lly + $baseline-y + $fo.descender;
+    $g.MoveTo: $llx, $lly + $baselineY + $fo.descender;
+    $g.LineTo: $lrx, $lly + $baselineY + $fo.descender;
     $g.Stroke;
 
     $g.Restore;
