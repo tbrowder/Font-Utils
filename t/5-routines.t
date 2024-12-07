@@ -24,7 +24,7 @@ $cn = $c.chars;
 
 my $file = %user-fonts<1><path>;
 my $font = load-font :$file;
-my $o = Font::Utils::FaceFreeType.new: :$font, :$file, :font-size(12);
+my $o = Font::Utils::FaceFreeType.new: :$font, :font-size(12);
 @lines = $o.wrap-string($c, :width(6.5*72));
 
 @s = %uni<L-Sup>.words;
