@@ -12,7 +12,7 @@ use Font::FreeType::SizeMetrics;  # size-metrics object
 
 has PDF::Content::FontObj $.font is required; # a loaded font
 has $.font-size is required; #  = 12; # not yet required;
-has $.file is required;
+has $.file; # now avail in $font # is required;
 
 # special use for URW fonts with wierd PostScript nakes
 # default is the PostScript name
@@ -32,6 +32,7 @@ submethod TWEAK {
     $!face = $!font.face; # Font::FreeType.new.face: $!file.Str;
     $!face.set-char-size: $!font-size;
     $!sm = $!face.scaled-metrics;
+    $!file = $!font.file;
 }
 
 #    method set-font-size(Numeric $size) {

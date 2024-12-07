@@ -40,9 +40,13 @@ my $hex = "A734"; # Latin Extended-D
 $font-size  = 19,
 $font-size2 = 6,
 
-$fo  = Font::Utils::FaceFreeType.new: :$file, :$font, :$font-size;
-$fo2 = Font::Utils::FaceFreeType.new: :file($file2) :font($font2) :font-size($font-size2);
+#$fo  = Font::Utils::FaceFreeType.new: :$file, :$font, :$font-size;
+$fo  = Font::Utils::FaceFreeType.new: :$font, :$font-size;
+#$fo2 = Font::Utils::FaceFreeType.new: :file($file2) :font($font2) :font-size($font-size2);
+$fo2 = Font::Utils::FaceFreeType.new: :font($font2) :font-size($font-size2);
 
+my %opts;
+%opts<b> = 1; # any value is ok, :exists is True
 @bbox = make-glyph-box
     $ulx, $uly, # upper-left corner of the glyph box
     :$fo,     # the loaded font being sampled
@@ -51,6 +55,7 @@ $fo2 = Font::Utils::FaceFreeType.new: :file($file2) :font($font2) :font-size($fo
     # the actual box dimensions and baselines are hard-coded in the
     # sub and are a trial-match with a page printed from the Unicode
     # page on their website (Latin Extended-D)
+    :%opts,
     :$debug,
     :$page;
 

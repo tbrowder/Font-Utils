@@ -30,6 +30,12 @@ $s = hex2string @s;
 @s = %uni<L-Ext-D>.words;
 $s = hex2string @s;
 
+@s = %uni<L-Ext-E>.words;
+$s = hex2string @s;
+
+@s = %uni<L-Ext-F>.words;
+$s = hex2string @s;
+
 @s = %uni<L-Additional>.words;
 $s = hex2string @s;
 

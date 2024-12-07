@@ -327,7 +327,10 @@ sub help() is export {
                 to using the %user-fonts if necessary.
 
       m=A4    - A4 media (default: Letter)
-      s=X     - Where X is the font size (default: 12)
+      s=X     - Where X is the font size (default: 16)
+      b=X     - Any entry will result in showing the glyph's baseline, 
+                  the glyph's origin, its horizontal-advance, and the 
+                  previous line's baseline
 
     HERE
     =begin comment
@@ -335,6 +338,9 @@ sub help() is export {
       ng=X    - Where X is the maximum number of glyphs to show
       o=L     - Landscape orientation
       of=X    - Where X is the name of the output file
+      d=X     - Where X is a code selecting what additional information
+                  will be displayed on the box
+                  reference 
     =end comment
     exit;
 }
@@ -1457,19 +1463,28 @@ sub make-font-sample-page(
     # out of a wrapped string of
     # chars
 
-    say "DEBUG: in make-font-...";
+    say "DEBUG: in make-font-sample-page...";
 
     my PDF::Lite $pdf .= new;
     # Letter or A4
     my $paper = "Letter";
     my Numeric $font-size = 12;
+    my Bool $show-extra-data = False;
 
+    =begin comment
+      b=X     - Any entry will result in showing the glyph's baseline, 
+                  the glyph's origin, its horizontal-advance, and the 
+    =end comment
     if %opts and %opts.elems {
         # m=A4 - A4 media (default: Letter)
         # s=X  - font size (default: 12)
+        # b=X  - add baseline and other data to the glyph box
         for %opts.kv -> $k, $v {
             if $k eq "s" {
                 $font-size = $v;
+            }
+            elsif $k eq "b" {
+                $show-extra-data = True;
             }
             elsif $k eq "m" {
                 if $v ~~ /:i l/ {
@@ -1494,7 +1509,8 @@ sub make-font-sample-page(
     else {
         die "Tom, need A4 dimens";
     }
-    my $fo = FaceFreeType.new: :$file, :$font-size, :$font;
+    #my $fo = FaceFreeType.new: :$file, :$font-size, :$font;
+    my $fo = FaceFreeType.new: $font-size, :$font;
 
     my $page = $pdf.add-page;
 
@@ -1504,6 +1520,12 @@ sub make-font-sample-page(
     =end comment
     my $ext = $fo.extension;
 
+    # Plan is to print all the Latin glyphs on as many pages
+    # as necessary. Demark each set with its formal name.
+    # Make a cover with a TOC.
+     
+
+    # 
     my $ofil = $fo.adobe-name ~ "-{$ext}-sample.pdf";
     $pdf.save-as: $ofil;
     say "See output file: '$ofil'";
@@ -1697,6 +1719,7 @@ sub make-glyph-box(
     FaceFreeType :$fo!,  # the font being sampled
     FaceFreeType :$fo2!, # the mono font used for the hex code
     Str :$hex!,          # char to be shown
+    :%opts,              # s=
     :$page!,
 
     # defaults
