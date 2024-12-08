@@ -79,11 +79,11 @@ L-Ext-E => "ab30-ab6b",
 
 # Latin Extended F
 # TODO complete
-L-Ext-F => "10780-10785 10787-107BA",
+L-Ext-F => "10780-10785 10787-107ba",
 
 # Latin Extended G
 # TODO complete
-L-Ext-G => "1DF00-1DF1E 1DF25-1DF2A",
+L-Ext-G => "1df00-1df1e 1df25-1df2a",
 
 # Latin Additional
 L-Additional => "1e00-1eff",
