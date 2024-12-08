@@ -1535,7 +1535,7 @@ sub make-font-sample-page(
         say "DEBUG: ukey = '$ukey'";
         my @s     = %uni{$ukey}.words;
         for @s -> $hex {
-            say "DEBUG: seeing hex code '$hex'";
+            say "    seeing hex code range '$hex'";
         }
     }
 
