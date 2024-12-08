@@ -13,7 +13,7 @@ use Font::Utils::Misc;
 my $debug = 1;
 
 my $file  = "/usr/share/fonts/opentype/freefont/FreeSerif.otf";
-my $file2 = "/usr/share/fonts/opentype/freefont/FreeMono.otf";
+my $file2 = "/usr/share/fonts/opentype/freefont/FreeSans.otf";
 
 my PDF::Lite $pdf .= new;
 my $page = $pdf.add-page;
@@ -40,9 +40,7 @@ my $hex = "A734"; # Latin Extended-D
 $font-size  = 19,
 $font-size2 = 6,
 
-#$fo  = Font::Utils::FaceFreeType.new: :$file, :$font, :$font-size;
 $fo  = Font::Utils::FaceFreeType.new: :$font, :$font-size;
-#$fo2 = Font::Utils::FaceFreeType.new: :file($file2) :font($font2) :font-size($font-size2);
 $fo2 = Font::Utils::FaceFreeType.new: :font($font2) :font-size($font-size2);
 
 my %opts;

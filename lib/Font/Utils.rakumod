@@ -594,7 +594,7 @@ sub use-args(@args is copy) is export {
         say "          '$bnam'...";
 
         # exe...
-        make-font-sample-page $file,
+        make-font-sample-doc $file,
             :%opts, :$debug;
 
         say "End of mode 'sample'" if 1;
@@ -1453,12 +1453,12 @@ sub text-box(
     $tb
 }
 
-sub make-font-sample-page(
-    #   make-font-sample-page $file,
+sub make-font-sample-doc(
+    #   make-font-sample-doc $file,
     #       :%opts, :$debug;
-    $file, # the desired font file
-    :$text = "",
-    :%opts,
+    $file,   # the desired font file
+    :$file2, # for the hex code
+    :%opts,   # controls: media, font-size, embellishment
     :$debug,
     ) is export {
 
@@ -1469,10 +1469,20 @@ sub make-font-sample-page(
     say "DEBUG: in make-font-sample-page...";
 
     my PDF::Lite $pdf .= new;
+    # defaults
     # Letter or A4
     my $paper = "Letter";
     my Numeric $font-size = 12;
+    my Numeric $font-size2 = 8;
     my Bool $embellish = False;
+    my $font = load-font :$file;
+    my $font2;
+    if  $file2.defined {
+        $font2 = load-font :file($file2);
+    }
+    else {
+         $font2 = load-font :family<Helvitica>, :core-font;
+    }
 
     =begin comment
       b=X     - Any entry will result in showing the glyph's baseline, 
@@ -1507,7 +1517,6 @@ sub make-font-sample-page(
         }
     }
 
-    my $font = load-font :$file;
     if $paper ~~ /:i letter / {
         $pdf.media-box = [0,0, 8.5*72, 11*72];
     }
@@ -1517,29 +1526,56 @@ sub make-font-sample-page(
     }
     my $fo = FaceFreeType.new: :$font-size, :$font;
 
-    my $page = $pdf.add-page;
+    # need a font to show the hex codes in the glyph boxes
+    my $fo2 = FaceFreeType.new: :font-size($font-size2), :font($font2);
 
-    =begin comment
-    my $box1 = text-box $text, :$font, :verbatim;
-    my $box1 = text-box PDF::Content
-    =end comment
-    my $ext = $fo.extension;
+
+    # define margins, etc.
+    my $lmarginw = 72;
+    my $rmarginw = 72;
+    my $tmarginh = 72;
+    my $bmarginh = 72;
+    my $pwidth  = $pdf.media-box[2];
+    my $pheight = $pdf.media-box[3];
+    # content area
+    my $cwidth  = $pwidth  - $lmarginw - $rmarginw;
+    my $cheight = $pheight - $tmarginh - $bmarginh;
+
+    my ($ulx, $llx);
+    $ulx = $llx = $lmarginw;
+    # consider font heights for y coords for text
+    my $uly = $pheight - $tmarginh - $fo.ascender;
+    my $lly = $bmarginh + $fo.descender;
 
     # Plan is to print all the Latin glyphs on as many pages
     # as necessary. Demark each set with its formal name.
+
     # Make a cover with a TOC.
+    my $page = $pdf.add-page;
+
+    # font glyph pages
      
-    for %uni-titles.keys.sort -> $k {
+    my ($g, @bbox);
+    FGROUP: for %uni-titles.keys.sort -> $k {
         my $title = %uni-titles{$k}<title>;
         my $ukey  = %uni-titles{$k}<key>;
         say "DEBUG: ukey = '$ukey'";
+
+        $page = $pdf.add-page;
+        # for each new page;
+        my $g = $page.gfx;
+
+        # one line of text introducing a new group of glyphs
+        @bbox = $g.print(.text("Font: {$fo.abobe-name}, type: {$fo.type}"),
+                  .text-position($ulx, $uly));
+
         my @s     = %uni{$ukey}.words;
         for @s -> $hex {
             say "    seeing hex code range '$hex'";
         }
     }
 
-    my $ofil = $fo.adobe-name ~ "-{$ext}-sample.pdf";
+    my $ofil = $fo.adobe-name ~ "-{$fo.extension}-sample.pdf";
     $pdf.save-as: $ofil;
     say "See output file: '$ofil'";
 }
@@ -1957,6 +1993,24 @@ sub draw-box-clip(
 
     @bbox
 } # sub draw-box-clip
+
+sub rlineto(
+    $x, $y,
+    :$gfx!,
+    :$debug,
+    ) is export {
+    # must have a current point
+    my $g = $gfx;
+    my $cp = $g.current-point;   
+    if not $cp.defined {
+        say "WARNING: current point is not defined. Setting it to '0, 0'";
+        $cp = [0, 0];
+        $g.MoveTo: 0, 0;
+    }
+    my $xdelta = $x;
+    my $ydelta = $y;
+    $g.LineTo: $xdelta, $ydelta;
+}
 
 =begin comment
 sub font-bbox(
