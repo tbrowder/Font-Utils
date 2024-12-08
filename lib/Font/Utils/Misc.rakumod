@@ -12,7 +12,7 @@ constant %uni-titles is export = %(
     },
     c => {
         title => "Latin-1 Supplement",
-        key   => "L-sup";
+        key   => "L-Sup";
     },
     d => {
         title => "Latin Extended A",

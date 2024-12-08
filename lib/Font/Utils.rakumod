@@ -9,6 +9,9 @@ use PDF::API6;
 use PDF::Lite;
 use PDF::Font::Loader :load-font;
 
+use Font::Utils::Misc;
+use Font::Utils::FaceFreeType;;
+
 our %loaded-fonts is export;
 our $HOME is export = 0;
 # |= create-user-font-list-file
@@ -466,7 +469,7 @@ sub use-args(@args is copy) is export {
 
     if $file {
         say "DEBUG: trying a file '$file'" if $debug;
-        my $o = FaceFreeType.new: :$file, :$font-size, :$font;
+        #my $o = FaceFreeType.new: :$file, :$font-size, :$font;
     }
 
     if $debug {
@@ -1453,7 +1456,7 @@ sub text-box(
 sub make-font-sample-page(
     #   make-font-sample-page $file,
     #       :%opts, :$debug;
-    $file,
+    $file, # the desired font file
     :$text = "",
     :%opts,
     :$debug,
@@ -1473,7 +1476,9 @@ sub make-font-sample-page(
 
     =begin comment
       b=X     - Any entry will result in showing the glyph's baseline, 
-                  the glyph's origin, its horizontal-advance, and the 
+                  the glyph's origin, its horizontal-advance, and other
+                  data
+                  
     =end comment
     if %opts and %opts.elems {
         # m=A4 - A4 media (default: Letter)
@@ -1510,7 +1515,7 @@ sub make-font-sample-page(
         # A4 in mm: 210 x 297
         $pdf.media-box = [0,0, cm2ps(21), cm2ps(29.7)];
     }
-    my $fo = FaceFreeType.new: $font-size, :$font;
+    my $fo = FaceFreeType.new: :$font-size, :$font;
 
     my $page = $pdf.add-page;
 
@@ -1524,8 +1529,16 @@ sub make-font-sample-page(
     # as necessary. Demark each set with its formal name.
     # Make a cover with a TOC.
      
+    for %uni-titles.keys.sort -> $k {
+        my $title = %uni-titles{$k}<title>;
+        my $ukey  = %uni-titles{$k}<key>;
+        say "DEBUG: ukey = '$ukey'";
+        my @s     = %uni{$ukey}.words;
+        for @s -> $hex {
+            say "DEBUG: seeing hex code '$hex'";
+        }
+    }
 
-    # 
     my $ofil = $fo.adobe-name ~ "-{$ext}-sample.pdf";
     $pdf.save-as: $ofil;
     say "See output file: '$ofil'";
