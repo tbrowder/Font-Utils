@@ -7,7 +7,7 @@ use Font::FreeType::Raw::Defs;
 
 use PDF::API6;
 use PDF::Lite;
-use PDF::Font::Loader :load-font;
+use PDF::Font::Loader :load-font, :find-font;
 
 use Font::Utils::Misc;
 use Font::Utils::FaceFreeType;;
@@ -1457,7 +1457,7 @@ sub make-font-sample-doc(
     #   make-font-sample-doc $file,
     #       :%opts, :$debug;
     $file,   # the desired font file
-    :$file2, # for the hex code
+    :$file2 is copy, # for the hex code
     :%opts,   # controls: media, font-size, embellishment
     :$debug,
     ) is export {
@@ -1481,7 +1481,9 @@ sub make-font-sample-doc(
         $font2 = load-font :file($file2);
     }
     else {
-         $font2 = load-font :family<Helvitica>, :core-font;
+         #$file = find
+         $file2 = find-font :family<Helvetica>;
+         $font2 = load-font :file($file2);
     }
 
     =begin comment
@@ -1566,8 +1568,8 @@ sub make-font-sample-doc(
         my $g = $page.gfx;
 
         # one line of text introducing a new group of glyphs
-        @bbox = $g.print(.text("Font: {$fo.abobe-name}, type: {$fo.type}"),
-                  .text-position($ulx, $uly));
+        @bbox = $g.print("Font: {$fo.adobe-name}, type: {$fo.font-format}",
+                  :text-position($ulx, $uly));
 
         my @s     = %uni{$ukey}.words;
         for @s -> $hex {

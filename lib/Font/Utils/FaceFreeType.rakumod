@@ -3,37 +3,57 @@ use OO::Monitors;
 #unit class Font::Utils::FaceFreeType;
 unit monitor Font::Utils::FaceFreeType;
 
-#class FreeTypeFace is export {
-
+use PDF::Content;
 use PDF::Font::Loader :load-font;
 
 use Font::FreeType;
 use Font::FreeType::SizeMetrics;  # size-metrics object
 
 has PDF::Content::FontObj $.font is required; # a loaded font
-has $.font-size is required; #  = 12; # not yet required;
+has $.font-size is required; 
 has $.file; # now avail in $font # is required;
 
-# special use for URW fonts with wierd PostScript nakes
+# special use for URW fonts with wierd PostScript names
 # default is the PostScript name
+# if no PostScript name, use file basename (without the file extension: "rawname")
 has $.adobe-name is rw = "";
+has $.postscript-name is rw = "";
 
 has $.face;
 has Font::FreeType::SizeMetrics $.sm;  # size-metrics object
+has $.rawname;
+has $.basename;
 
 submethod TWEAK {
-    =begin comment
-    $p    = $!file;
-    if not $p.IO.e {
-        die "FATAL: '$p' is not a file path";
-    }
-    $p    = $!font.file;
-    =end comment
     $!face = $!font.face; # Font::FreeType.new.face: $!file.Str;
     $!face.set-char-size: $!font-size;
     $!sm = $!face.scaled-metrics;
     $!file = $!font.file;
-}
+    $!basename = $!file.IO.basename;
+
+    # create the rawname
+    # basename without a suffix
+    $!rawname = $!file.IO.basename;
+    $!rawname ~~ s:i/'.' \S* $//; # [otf|ttf|pfb] $//;
+
+    =begin comment
+    # sanity check
+    if $!rawname ~~ /'.'/ {
+        die qq:to/HERE/;
+        FATAL: Unexpected font file with multiple periods ({$!rawname})
+                          in its basename. Please file an issue.
+        HERE
+    }
+    =end comment
+
+    if $!face.postscript-name.defined {
+        $!postscript-name = $!face.postscript-name:
+    }
+    else {
+        $!postscript-name = $!rawname;
+    }
+
+} # end of TWEAK
 
 #    method set-font-size(Numeric $size) {
 #        $face.set-char-size: $size;
@@ -67,29 +87,11 @@ method bbox {
 
 # other methods
 method adobe-name {
-    $!adobe-name ?? $!adobe-name !! $!face.postscript-name;
-}
-
-method basename             { $!file.IO.basename        }
-
-
-method rawname {
-    # basename without a suffix
-    my $rname = self.basename;
-    $rname ~~ s:i/'.' [otf|ttf|pfb] $//;
-    # sanity check
-    if $rname.contains('.') {
-        die qq:to/HERE/;
-        FATAL: Unexpected font file with multiple periods
-                          in its basename. Please file an issue.
-        HERE
-    }
-    $rname;
+    $!adobe-name ?? $!adobe-name !! $!postscript-name;
 }
 
 method family-name          { $!face.family-name     }
 method style-name           { $!face.style-name      }
-method postscript-name      { $!face.postscript-name }
 method font-format          { $!face.font-format     }
 method num-glyphs           { $!face.num-glyphs      }
 method height               { $!sm.height            }
