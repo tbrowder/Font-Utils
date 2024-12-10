@@ -1578,6 +1578,7 @@ sub make-font-sample-doc(
     # max boxes on a line are limited by content width
     my $maxng = $cwidth div $glyph-box-width;
 
+    my $total-glyphs = 0;
     my @srows;
     
     my $srow;
@@ -1602,6 +1603,9 @@ sub make-font-sample-doc(
             my $hs = hex2string $hex;
             $hexstr ~= $hs;
         }
+        my $nchars = $hexstr.chars;
+        $total-glyphs += $nchars;
+        say "DEBUG: \$hexstr has $nchars single glyph strings" if $debug;
 
         =begin comment
         while @s -> $hex{
@@ -1614,11 +1618,12 @@ sub make-font-sample-doc(
         if $debug {
             for @s -> $hex {
                 say "    seeing hex code range '$hex'";
-                my $hs = hex2string $hex;
-                say "    resulting string: '$hs'";
+                #my $hs = hex2string $hex;
+                #say "    resulting string: '$hs'";
             }
         }
     }
+    say "Total number of glyphs: '$total-glyphs'" if $debug;
 
     my $ofil = $fo.adobe-name ~ "-{$fo.extension}-sample.pdf";
     $pdf.save-as: $ofil;

@@ -87,7 +87,7 @@ L-Ext-B => "180-24f",
 L-Ext-C => "2c60-2c7f",
 
 # Latin Extended D
-L-Ext-D => "a72-a7cd a7d0 a7d1 a7d3 a7d5-a7dc a7f2-a7ff",
+L-Ext-D => "a720-a7cd a7d0 a7d1 a7d3 a7d5-a7dc a7f2-a7ff",
 
 # Latin Extended E
 L-Ext-E => "ab30-ab6b",
