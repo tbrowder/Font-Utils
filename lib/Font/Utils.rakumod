@@ -1457,6 +1457,7 @@ sub make-font-sample-doc(
     #   make-font-sample-doc $file,
     #       :%opts, :$debug;
     $file,   # the desired font file
+    # defaults are provided for the rest of the args
     :$file2 is copy, # for the hex code
     :%opts,   # controls: media, font-size, embellishment
     :$debug,
@@ -1472,7 +1473,7 @@ sub make-font-sample-doc(
     # defaults
     # Letter or A4
     my $paper = "Letter";
-    my Numeric $font-size = 12;
+    my Numeric $font-size = 16;
     my Numeric $font-size2 = 8;
     my Bool $embellish = False;
     my $font = load-font :$file;
@@ -1494,7 +1495,7 @@ sub make-font-sample-doc(
     =end comment
     if %opts and %opts.elems {
         # m=A4 - A4 media (default: Letter)
-        # s=X  - font size (default: 12)
+        # s=X  - font size (default: 16)
         # b=X  - add baseline and other data to the glyph box
         for %opts.kv -> $k, $v {
             if $k eq "s" {
@@ -1568,7 +1569,7 @@ sub make-font-sample-doc(
         }
     }
 
-    my ($srow, $g, @bbox, @srows);
+    my ($g, @bbox);
     =begin comment
         # for each new page;
         my $g = $page.gfx;
@@ -1577,9 +1578,13 @@ sub make-font-sample-doc(
     # max boxes on a line are limited by content width
     my $maxng = $cwidth div $glyph-box-width;
 
+    my @srows;
+    
+    my $srow;
     FGROUP: for %uni-titles.keys.sort -> $k {
         my $title = %uni-titles{$k}<title>;
-        my $srow = Srow.new: :$title;;
+        $srow = Srow.new: :$title;
+        @srows.push: $srow;
         
         my $ukey  = %uni-titles{$k}<key>;
         say "DEBUG: ukey = '$ukey'" if $debug;
@@ -1591,9 +1596,26 @@ sub make-font-sample-doc(
         =end comment
 
         my @s     = %uni{$ukey}.words;
+        # turn the @s into one long string
+        my $hexstr = "";
+        for @s -> $hex {
+            my $hs = hex2string $hex;
+            $hexstr ~= $hs;
+        }
+
+        =begin comment
+        while @s -> $hex{
+            # fill a string with max glyphs for the content width
+            my $s = "";;
+            
+        }
+        =end comment
+        
         if $debug {
             for @s -> $hex {
                 say "    seeing hex code range '$hex'";
+                my $hs = hex2string $hex;
+                say "    resulting string: '$hs'";
             }
         }
     }
