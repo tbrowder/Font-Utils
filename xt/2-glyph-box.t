@@ -47,12 +47,12 @@ my %opts;
 %opts<b> = 1; # any value is ok, :exists is True
 @bbox = make-glyph-box
     $ulx, $uly, # upper-left corner of the glyph box
-    :$fo,     # the loaded font being sampled
-    :$fo2,    # the loaded mono font used for the hex code
+    :$fo,       # the loaded font being sampled
+    :$fo2,      # the loaded mono font used for the hex code
     :$hex,      # char to be shown
-    # the actual box dimensions and baselines are hard-coded in the
-    # sub and are a trial-match with a page printed from the Unicode
-    # page on their website (Latin Extended-D)
+    # the actual box dimensions and baselines are hard-coded as
+    # global constants and are a trial-match with a page printed 
+    # from the Unicode # page on their website (Latin Extended-D)
     :%opts,
     :$debug,
     :$page;

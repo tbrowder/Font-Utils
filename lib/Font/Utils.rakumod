@@ -1557,23 +1557,44 @@ sub make-font-sample-doc(
 
     # font glyph pages
      
-    my ($g, @bbox);
-    FGROUP: for %uni-titles.keys.sort -> $k {
-        my $title = %uni-titles{$k}<title>;
-        my $ukey  = %uni-titles{$k}<key>;
-        say "DEBUG: ukey = '$ukey'";
+    # TODO create ALL the input data as Srow objects FIRST
+    #   THEN create the pages
+    class Srow {
+        has $.title is rw;
+        # hexadecimal repr, number depends on
+        # width of glyph-box and page content width
+        has @.glyphs is rw; 
+        submethod TWEAK {
+        }
+    }
 
-        $page = $pdf.add-page;
+    my ($srow, $g, @bbox, @srows);
+    =begin comment
         # for each new page;
         my $g = $page.gfx;
+    =end comment
 
+    # max boxes on a line are limited by content width
+    my $maxng = $cwidth div $glyph-box-width;
+
+    FGROUP: for %uni-titles.keys.sort -> $k {
+        my $title = %uni-titles{$k}<title>;
+        my $srow = Srow.new: :$title;;
+        
+        my $ukey  = %uni-titles{$k}<key>;
+        say "DEBUG: ukey = '$ukey'" if $debug;
+
+        =begin comment
         # one line of text introducing a new group of glyphs
         @bbox = $g.print("Font: {$fo.adobe-name}, type: {$fo.font-format}",
                   :text-position($ulx, $uly));
+        =end comment
 
         my @s     = %uni{$ukey}.words;
-        for @s -> $hex {
-            say "    seeing hex code range '$hex'";
+        if $debug {
+            for @s -> $hex {
+                say "    seeing hex code range '$hex'";
+            }
         }
     }
 
@@ -1771,38 +1792,43 @@ sub make-glyph-box(
     # defaults
     :$line-width = 0,
     :$line-width2 = 0,
+
+    =begin comment
     # dimensions of a Unicode glyph box:
     #   width:  1.1 cm # width is good
     #   height: 1.4 cm
-    :$box-width  = cm2ps(1.1), # width of the complete box
-    :$box-height = cm2ps(1.4), # height of the complete box
+    :$glyph-box-width  = cm2ps(1.1), # width of the complete box
+    :$glyph-box-height = cm2ps(1.4), # height of the complete box
+    # dimensions of a Unicode glyph box:
+    #   glyph baseline 0.5 cm from cell bottom
+    #   hex code baseline 0.1 cm from cell bottom
+    constant $glyph-box-baselineY  = cm2ps(0.5);
+    constant $glyph-box-baselineY2 = cm2ps(0.1);
+    =end comment
+
     :$hori-border-space = 4,
     :$vert-border-space = 4,
+
     :$debug,
     ) is export {
 
     # There are four bounding boxes we need:
-    #   @glyph-box-bbox - the box containing everything to be shown on the page
-    #                     it's defined by the caller
+    #   @glyph-box-bbox - the box containing everything to be shown on 
+    #                     the page for a single glyph and is defined
+    #                     by global constants
     #   @font-bbox      - the box for the font collection
     #   @glyph-bbox     - the box for the glyph being shown
     #   @hex-bbox       - the box for the hex code being shown
 
     my $embellish = %opts<b>:exists ?? True !! False;
 
-    # dimensions of a Unicode glyph box:
-    #   glyph baseline 0.5 cm from cell bottom
-    #   hex code baseline 0.1 cm from cell bottom
-
-    constant $baselineY  = cm2ps(0.5);
-    constant $baselineY2 = cm2ps(0.1);
 
     # border coords ($ulx, $uly already defined);
     # which is the @glyph-box-bbox
     my ($llx, $lly, $lrx, $lry, $urx, $ury);
     $llx = $ulx;
-    $lly = $uly - $box-height;
-    $lrx = $llx + $box-width;
+    $lly = $uly - $glyph-box-height;
+    $lrx = $llx + $glyph-box-width;
     $lry = $lly;
     $urx = $lrx;
     $ury = $uly;
@@ -1837,12 +1863,13 @@ sub make-glyph-box(
     $page.text: {
         # the glyph as a text string
         .font = $fo.font, $fo.font-size;
-        .text-position = $llx + 0.5 * $box-width, $lly + $baselineY;
+        .text-position = $llx + 0.5 * $glyph-box-width, $lly + $glyph-box-baselineY;
         @glyph-bbox = .print: $glyph, :align<center>;
 
         # the hex code (already a string)
         .font = $fo2.font, $fo2.font-size;
-        .text-position = $llx + 0.5 * $box-width, $lly + $baselineY2;
+        .text-position = $llx + 0.5 * $glyph-box-width, $lly + $glyph-box-baselineY2;
+
         @hex-bbox = .print: $s, :align<center>;
     }
     say "\@glyph-bbox = '{@glyph-bbox.gist}'" if $debug;
@@ -1883,11 +1910,11 @@ sub make-glyph-box(
     #       draw lines at the font height and previous baselines
  
     # stroke the baselines
-    $g.MoveTo: $llx, $lly + $baselineY;
-    $g.LineTo: $lrx, $lly + $baselineY;
+    $g.MoveTo: $llx, $lly + $glyph-box-baselineY;
+    $g.LineTo: $lrx, $lly + $glyph-box-baselineY;
     $g.Stroke;
-    $g.MoveTo: $llx, $lly + $baselineY2;
-    $g.LineTo: $lrx, $lly + $baselineY2;
+    $g.MoveTo: $llx, $lly + $glyph-box-baselineY2;
+    $g.LineTo: $lrx, $lly + $glyph-box-baselineY2;
     $g.Stroke;
 
     =begin comment
@@ -1899,21 +1926,21 @@ sub make-glyph-box(
 
     # stroke the previous baseline
     my $h  = $fo.height; # $font.height * $font-size;
-    my $by = $lly + $baselineY + $h;
+    my $by = $lly + $glyph-box-baselineY + $h;
     say "DEBUG: Font height: '{$fo.height}'"; # it should be scaled
     say "DEBUG: Previous baseline height on the page: '$by'";
-    $g.MoveTo: $llx, $lly + $baselineY + $h;
-    $g.LineTo: $lrx, $lly + $baselineY + $h;
+    $g.MoveTo: $llx, $lly + $glyph-box-baselineY + $h;
+    $g.LineTo: $lrx, $lly + $glyph-box-baselineY + $h;
     $g.Stroke;
 
     # stroke the fonts' max ascender
-    $g.MoveTo: $llx, $lly + $baselineY + $fo.ascender;
-    $g.LineTo: $lrx, $lly + $baselineY + $fo.ascender;
+    $g.MoveTo: $llx, $lly + $glyph-box-baselineY + $fo.ascender;
+    $g.LineTo: $lrx, $lly + $glyph-box-baselineY + $fo.ascender;
     $g.Stroke;
 
     # stroke the fonts' min descender
-    $g.MoveTo: $llx, $lly + $baselineY + $fo.descender;
-    $g.LineTo: $lrx, $lly + $baselineY + $fo.descender;
+    $g.MoveTo: $llx, $lly + $glyph-box-baselineY + $fo.descender;
+    $g.LineTo: $lrx, $lly + $glyph-box-baselineY + $fo.descender;
     $g.Stroke;
 
     $g.Restore;

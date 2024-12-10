@@ -1,6 +1,21 @@
 unit module Font::Utils::Misc;
 
-# List keys and titles
+# constants for a glyph box per the Unicode code point charts
+# at <https://unicode.org>
+
+#=begin comment
+# dimensions of a Unicode glyph box:
+#   width:  1.1 cm # width is good
+#   height: 1.4 cm
+constant $glyph-box-width  is export = 2.54 / 1.1 * 72; #cm2ps(1.1), # width of the complete box
+constant $glyph-box-height is export = 2.54 / 1.4 * 72; #cm2ps(1.4), # height of the complete box
+#   glyph baseline 0.5 cm from cell bottom
+#   hex code baseline 0.1 cm from cell bottom
+constant $glyph-box-baselineY  is export = 2.54 / 0.5 * 72; #cm2ps(0.5);
+constant $glyph-box-baselineY2 is export = 2.54 / 0.1 * 72; #cm2ps(0.1);
+#=end comment
+
+# List keys and titles for Unicode Latin glyphs
 constant %uni-titles is export = %(
     a => {
         title => "Basic Latin (ASCII) (symbols)",
