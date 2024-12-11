@@ -1467,7 +1467,7 @@ sub make-font-sample-doc(
     # out of a wrapped string of
     # chars
 
-    say "DEBUG: in make-font-sample-page...";
+    say "DEBUG: in make-font-sample-page..." if $debug;
 
     my PDF::Lite $pdf .= new;
     # defaults
@@ -1496,7 +1496,7 @@ sub make-font-sample-doc(
     if %opts and %opts.elems {
         # m=A4 - A4 media (default: Letter)
         # s=X  - font size (default: 16)
-        # b=X  - add baseline and other data to the glyph box
+        # b=X  - add baseline and other data to the glyph box ($embellish)
         for %opts.kv -> $k, $v {
             if $k eq "s" {
                 $font-size = $v;
@@ -1520,16 +1520,18 @@ sub make-font-sample-doc(
         }
     }
 
-    if $paper ~~ /:i letter / {
-        $pdf.media-box = [0,0, 8.5*72, 11*72];
+    if $paper ~~ /:i letter / { 
+        $pdf.media-box = [0,0, 8.5*72, 11*72]; 
     }
-    else {
-        # A4 in mm: 210 x 297
-        $pdf.media-box = [0,0, cm2ps(21), cm2ps(29.7)];
+    else { 
+        # A4 in mm: 210 x 297 
+        $pdf.media-box = [0,0, cm2ps(21), cm2ps(29.7)]; 
     }
+
     my $fo = FaceFreeType.new: :$font-size, :$font;
 
     # need a font to show the hex codes in the glyph boxes
+    # this is FreeSans
     my $fo2 = FaceFreeType.new: :font-size($font-size2), :font($font2);
 
 
@@ -1567,6 +1569,9 @@ sub make-font-sample-doc(
         has @.glyphs is rw; 
         submethod TWEAK {
         }
+        method push($glyph) {
+            self.glyphs.push: $glyph;
+        }
     }
 
     my ($g, @bbox);
@@ -1577,6 +1582,8 @@ sub make-font-sample-doc(
 
     # max boxes on a line are limited by content width
     my $maxng = $cwidth div $glyph-box-width;
+    say "Content width:   $cwidth" if $debug;
+    say "Glyph box width: $glyph-box-width" if $debug;
 
     my $total-glyphs = 0;
     my @srows;
@@ -1603,12 +1610,29 @@ sub make-font-sample-doc(
             my $hs = hex2string $hex;
             $hexstr ~= $hs;
         }
+
         my $nchars = $hexstr.chars;
         $total-glyphs += $nchars;
         say "DEBUG: \$hexstr has $nchars single glyph strings" if $debug;
 
+        # TODO break the string into $maxng length chunks
+        my @gstrs = $hexstr.comb;
+        while @gstrs.elems > $maxng {
+            # get a chunk of length $maxng length
+            # an Srow
+            $srow = Srow.new;
+            for 0..^$maxng {
+                $srow.push: @gstrs.shift;
+            }
+            # and finished with this row
+            @srows.push: $srow;
+        }
+        $srow.push($_) for @gstrs.shift;
+        # and finished with this row
+        @srows.push: $srow;
+
         =begin comment
-        while @s -> $hex{
+        while @s -> $hex {
             # fill a string with max glyphs for the content width
             my $s = "";;
             
@@ -1624,6 +1648,9 @@ sub make-font-sample-doc(
         }
     }
     say "Total number of glyphs: '$total-glyphs'" if $debug;
+    say "Total number of glyphs per row: '$maxng'";
+    say "Total number of \$srows: '{@srows.elems}'" if $debug;
+    
 
     my $ofil = $fo.adobe-name ~ "-{$fo.extension}-sample.pdf";
     $pdf.save-as: $ofil;
