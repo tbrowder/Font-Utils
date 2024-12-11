@@ -6,6 +6,7 @@ use PDF::Font::Loader :load-font;
 use PDF::Lite;
 use PDF::Content::Text::Box;
 
+use Compress::PDF;
 use Font::Utils;
 use Font::Utils::FaceFreeType;
 use Font::Utils::Misc;
@@ -66,6 +67,7 @@ say @bbox.gist if $debug;
 my $ofil = "xt2glyph-box.pdf";
 
 $pdf.save-as: $ofil;
+compress $ofil, :quiet, :dpi(300);
 say "See output file: '$ofil'";
 
 done-testing;

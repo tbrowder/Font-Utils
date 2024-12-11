@@ -6,6 +6,8 @@ use PDF::Font::Loader :load-font;
 use PDF::Lite;
 use PDF::Content::Text::Box;
 
+use Compress::PDF;
+
 use Font::Utils;
 use Font::Utils::FaceFreeType;
 use Font::Utils::Misc;
@@ -141,6 +143,7 @@ say "\@bbox = '{@bbox.gist}'";
 
 my $ofil = "xt1test-box.pdf";
 $pdf.save-as: $ofil;
+compress $ofil, :dpi(300), :quiet, :force;
 say "See output file: '$ofil'";
 
 done-testing;

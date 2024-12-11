@@ -5,6 +5,7 @@ use Font::FreeType::SizeMetrics;
 use Font::FreeType::Glyph;
 use Font::FreeType::Raw::Defs;
 
+use Compress::PDF;
 use PDF::API6;
 use PDF::Lite;
 use PDF::Font::Loader :load-font, :find-font;
@@ -1563,15 +1564,18 @@ sub make-font-sample-doc(
     # TODO create ALL the input data as Srow objects FIRST
     #   THEN create the pages
     class Srow {
-        has $.title is rw;
+        has $.title; # is rw;
         # hexadecimal repr, number depends on
         # width of glyph-box and page content width
-        has @.glyphs is rw; 
+        has @.glyphs; # is rw; 
         submethod TWEAK {
         }
         method push($glyph) {
             self.glyphs.push: $glyph;
         }
+        #method set-title($title) {
+        #    self.title = $title;
+        #}
     }
 
     my ($g, @bbox);
@@ -1595,7 +1599,7 @@ sub make-font-sample-doc(
         @srows.push: $srow;
         
         my $ukey  = %uni-titles{$k}<key>;
-        say "DEBUG: ukey = '$ukey'" if $debug;
+        say "DEBUG: ukey = '$ukey'" if 0 and $debug;
 
         =begin comment
         # one line of text introducing a new group of glyphs
@@ -1613,7 +1617,7 @@ sub make-font-sample-doc(
 
         my $nchars = $hexstr.chars;
         $total-glyphs += $nchars;
-        say "DEBUG: \$hexstr has $nchars single glyph strings" if $debug;
+        say "DEBUG: \$hexstr has $nchars single glyph strings" if 0 and $debug;
 
         # TODO break the string into $maxng length chunks
         my @gstrs = $hexstr.comb;
@@ -1627,9 +1631,12 @@ sub make-font-sample-doc(
             # and finished with this row
             @srows.push: $srow;
         }
-        $srow.push($_) for @gstrs.shift;
-        # and finished with this row
-        @srows.push: $srow;
+        if @gstrs.elems {
+            $srow = Srow.new;
+            $srow.push($_) for @gstrs;
+            # and finished with this row
+            @srows.push: $srow;
+        }
 
         =begin comment
         while @s -> $hex {
@@ -1639,7 +1646,7 @@ sub make-font-sample-doc(
         }
         =end comment
         
-        if $debug {
+        if 0 and $debug {
             for @s -> $hex {
                 say "    seeing hex code range '$hex'";
                 #my $hs = hex2string $hex;
@@ -1651,9 +1658,24 @@ sub make-font-sample-doc(
     say "Total number of glyphs per row: '$maxng'";
     say "Total number of \$srows: '{@srows.elems}'" if $debug;
     
+    for @srows -> $srow {
+        if $srow.title {
+            my $t = $srow.title;
+            say "DEBUG: title: '$t'";
+        }
+        else {
+            my @g = $srow.glyphs;
+            for @g -> $g {
+                print " $g";
+            }
+            say();
+        }
+    }
 
     my $ofil = $fo.adobe-name ~ "-{$fo.extension}-sample.pdf";
+
     $pdf.save-as: $ofil;
+    compress $ofil, :quiet, :force, :dpi(300);
     say "See output file: '$ofil'";
 }
 
