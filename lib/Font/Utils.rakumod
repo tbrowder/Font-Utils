@@ -332,8 +332,8 @@ sub help() is export {
 
       m=A4    - A4 media (default: Letter)
       s=X     - Where X is the font size (default: 16)
-      b=X     - Any entry will result in showing the glyph's baseline, 
-                  the glyph's origin, its horizontal-advance, and the 
+      b=X     - Any entry will result in showing the glyph's baseline,
+                  the glyph's origin, its horizontal-advance, and the
                   previous line's baseline
 
     HERE
@@ -344,7 +344,7 @@ sub help() is export {
       of=X    - Where X is the name of the output file
       d=X     - Where X is a code selecting what additional information
                   will be displayed on the box
-                  reference 
+                  reference
     =end comment
     exit;
 }
@@ -1488,46 +1488,28 @@ sub make-font-sample-doc(
          $font2 = load-font :file($file2);
     }
 
-    =begin comment
-      b=X     - Any entry will result in showing the glyph's baseline, 
-                  the glyph's origin, its horizontal-advance, and other
-                  data
-                  
-    =end comment
     if %opts and %opts.elems {
         # m=A4 - A4 media (default: Letter)
         # s=X  - font size (default: 16)
         # b=X  - add baseline and other data to the glyph box ($embellish)
         for %opts.kv -> $k, $v {
-            if $k eq "s" {
-                $font-size = $v;
-            }
+            if $k eq "s" { $font-size = $v; }
             elsif $k eq "b" {
                 $embellish = True;
+                # Results in showing the glyph's baseline, the glyph's origin, 
+                #   its horizontal-advance, and other data
             }
             elsif $k eq "m" {
-                if $v ~~ /:i l/ {
-                    $paper = "Letter";
-                }
-                elsif $v ~~ /:i 4/ {
-                    $paper = "A4";
-                }
-                else {
-                    say qq:to/HERE/
-                    WARNING: Unknown media selection '$_'
-                    HERE
-                }
+                # A4 in mm: 210 x 297
+                if $v ~~ /:i l/ { $paper = "Letter"; }
+                elsif $v ~~ /:i 4/ { $paper = "A4"; }
+                else { say "WARNING: Unknown media selection '$_'"; }
             }
         }
     }
 
-    if $paper ~~ /:i letter / { 
-        $pdf.media-box = [0,0, 8.5*72, 11*72]; 
-    }
-    else { 
-        # A4 in mm: 210 x 297 
-        $pdf.media-box = [0,0, cm2ps(21), cm2ps(29.7)]; 
-    }
+    if $paper ~~ /:i letter / { $pdf.media-box = [0,0, 8.5*72, 11*72]; }
+    else { $pdf.media-box = [0,0, cm2ps(21), cm2ps(29.7)]; }
 
     my $fo = FaceFreeType.new: :$font-size, :$font;
 
@@ -1535,12 +1517,9 @@ sub make-font-sample-doc(
     # this is FreeSans
     my $fo2 = FaceFreeType.new: :font-size($font-size2), :font($font2);
 
-
     # define margins, etc.
-    my $lmarginw = 72;
-    my $rmarginw = 72;
-    my $tmarginh = 72;
-    my $bmarginh = 72;
+    my $lmarginw = 72; my $rmarginw = 72;
+    my $tmarginh = 72; my $bmarginh = 72;
     my $pwidth  = $pdf.media-box[2];
     my $pheight = $pdf.media-box[3];
     # content area
@@ -1556,33 +1535,19 @@ sub make-font-sample-doc(
     # Plan is to print all the Latin glyphs on as many pages
     # as necessary. Demark each set with its formal name.
 
-    # Make a cover with a TOC.
-    my $page = $pdf.add-page;
-
-    # font glyph pages
-     
-    # TODO create ALL the input data as Srow objects FIRST
+    # create ALL the input data as Srow objects FIRST
     #   THEN create the pages
     class Srow {
         has $.title; # is rw;
         # hexadecimal repr, number depends on
         # width of glyph-box and page content width
-        has @.glyphs; # is rw; 
+        has @.glyphs; # is rw;
         submethod TWEAK {
         }
         method push($glyph) {
             self.glyphs.push: $glyph;
         }
-        #method set-title($title) {
-        #    self.title = $title;
-        #}
     }
-
-    my ($g, @bbox);
-    =begin comment
-        # for each new page;
-        my $g = $page.gfx;
-    =end comment
 
     # max boxes on a line are limited by content width
     my $maxng = $cwidth div $glyph-box-width;
@@ -1591,13 +1556,13 @@ sub make-font-sample-doc(
 
     my $total-glyphs = 0;
     my @srows;
-    
+
     my $srow;
-    FGROUP: for %uni-titles.keys.sort -> $k {
+    for %uni-titles.keys.sort -> $k {
         my $title = %uni-titles{$k}<title>;
         $srow = Srow.new: :$title;
         @srows.push: $srow;
-        
+
         my $ukey  = %uni-titles{$k}<key>;
         say "DEBUG: ukey = '$ukey'" if 0 and $debug;
 
@@ -1642,10 +1607,10 @@ sub make-font-sample-doc(
         while @s -> $hex {
             # fill a string with max glyphs for the content width
             my $s = "";;
-            
+
         }
         =end comment
-        
+
         if 0 and $debug {
             for @s -> $hex {
                 say "    seeing hex code range '$hex'";
@@ -1657,18 +1622,44 @@ sub make-font-sample-doc(
     say "Total number of glyphs: '$total-glyphs'" if $debug;
     say "Total number of glyphs per row: '$maxng'";
     say "Total number of \$srows: '{@srows.elems}'" if $debug;
-    
+
+    #==== create the document ================
+    my ($page, $g, @bbox);
+    #==== Make a cover with a TOC.
+    my $dpage = $pdf.add-page;
+    my $dg    = $dpage.gfx;
+
+    #==== create the font glyph pages
+    my $page-num = 0;
+    my %page-nums;
+
+    $page = $pdf.add-page; ++$page-num;
+    $g = $page.gfx;
+
+    # We have to start at the baseline of the content area
+    #   and work down the page, breaking to a new page
+    #   when we reach the bottom.
+    # If the last line is a title, we stop and put it
+    #   as the first item on a new page.
+    # We also note the page number for each title
+    #   entry for the TOC.
+
+    #my ($ulx, $llx);
+    my ($x, $y) = $ulx, $uly;
+
     for @srows -> $srow {
         if $srow.title {
-            my $t = $srow.title;
-            say "DEBUG: title: '$t'";
+            my $text = $srow.title;
+            say "DEBUG: title: '$text'" if $debug;
+            @bbox = $g.print($text, :text-position($x, $y));
+            $y = @bbox[3];
         }
         else {
             my @g = $srow.glyphs;
             for @g -> $g {
-                print " $g";
+                print " $g" if $debug;
             }
-            say();
+            say() if $debug;
         }
     }
 
@@ -1889,7 +1880,7 @@ sub make-glyph-box(
     ) is export {
 
     # There are four bounding boxes we need:
-    #   @glyph-box-bbox - the box containing everything to be shown on 
+    #   @glyph-box-bbox - the box containing everything to be shown on
     #                     the page for a single glyph and is defined
     #                     by global constants
     #   @font-bbox      - the box for the font collection
@@ -1984,7 +1975,7 @@ sub make-glyph-box(
     #       put a short vertical line at the origin and the advance
     #         width and the glyph width
     #       draw lines at the font height and previous baselines
- 
+
     # stroke the baselines
     $g.MoveTo: $llx, $lly + $glyph-box-baselineY;
     $g.LineTo: $lrx, $lly + $glyph-box-baselineY;
@@ -2106,7 +2097,7 @@ sub rlineto(
     ) is export {
     # must have a current point
     my $g = $gfx;
-    my $cp = $g.current-point;   
+    my $cp = $g.current-point;
     if not $cp.defined {
         say "WARNING: current point is not defined. Setting it to '0, 0'";
         $cp = [0, 0];
