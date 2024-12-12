@@ -604,7 +604,6 @@ sub use-args(@args is copy) is export {
 
 }
 
-# TODO make list in BEGIN and INIT
 sub get-user-font-list(
     :$all,
     :$debug,
@@ -1531,6 +1530,7 @@ sub make-font-sample-doc(
     # consider font heights for y coords for text
     my $uly = $pheight - $tmarginh - $fo.ascender;
     my $lly = $bmarginh + $fo.descender;
+    say "DEBUG: \$ulx, \$uly = '$ulx', '$uly'" if 1 or $debug;
 
     # Plan is to print all the Latin glyphs on as many pages
     # as necessary. Demark each set with its formal name.
@@ -1568,8 +1568,11 @@ sub make-font-sample-doc(
 
         =begin comment
         # one line of text introducing a new group of glyphs
-        @bbox = $g.print("Font: {$fo.adobe-name}, type: {$fo.font-format}",
-                  :text-position($ulx, $uly));
+        $page.text: {
+            .font = $fo.font, $fo.font-size;
+            .text-position = $x, $y;
+            @bbox = .print: $glyph, :align<center>;
+        }
         =end comment
 
         my @s     = %uni{$ukey}.words;
@@ -1619,6 +1622,7 @@ sub make-font-sample-doc(
             }
         }
     }
+
     say "Total number of glyphs: '$total-glyphs'" if $debug;
     say "Total number of glyphs per row: '$maxng'";
     say "Total number of \$srows: '{@srows.elems}'" if $debug;
@@ -1646,13 +1650,19 @@ sub make-font-sample-doc(
 
     #my ($ulx, $llx);
     my ($x, $y) = $ulx, $uly;
-
+    my ($boxH);
     for @srows -> $srow {
         if $srow.title {
             my $text = $srow.title;
-            say "DEBUG: title: '$text'" if $debug;
-            @bbox = $g.print($text, :text-position($x, $y));
-            $y = @bbox[3];
+            $page.text: {
+                .font = $fo.font, $fo.font-size;
+                .text-position = $x, $y;
+                @bbox = .print: $text, :align<left>;
+            }
+            $boxH = @bbox[3] - @bbox[1];
+            $y -= $boxH;
+            say "DEBUG: title: '$text'" if 1 or $debug;
+            say "DEBUG: \$y = '$y'" if 1 or $debug;
         }
         else {
             my @g = $srow.glyphs;
@@ -1932,11 +1942,9 @@ sub make-glyph-box(
         .font = $fo.font, $fo.font-size;
         .text-position = $llx + 0.5 * $glyph-box-width, $lly + $glyph-box-baselineY;
         @glyph-bbox = .print: $glyph, :align<center>;
-
         # the hex code (already a string)
         .font = $fo2.font, $fo2.font-size;
         .text-position = $llx + 0.5 * $glyph-box-width, $lly + $glyph-box-baselineY2;
-
         @hex-bbox = .print: $s, :align<center>;
     }
     say "\@glyph-bbox = '{@glyph-bbox.gist}'" if $debug;
