@@ -335,11 +335,11 @@ sub help() is export {
       b=X     - Any entry will result in showing the glyph's baseline,
                   the glyph's origin, its horizontal-advance, and the
                   previous line's baseline
+      ng=X    - Show the first X glyphs
 
     HERE
     =begin comment
     # NYI
-      ng=X    - Where X is the maximum number of glyphs to show
       o=L     - Landscape orientation
       of=X    - Where X is the name of the output file
       d=X     - Where X is a code selecting what additional information
@@ -1089,7 +1089,7 @@ sub hex2string($hexlist, :$debug --> Str) is export {
             next NUM;
         }
 
-        say "char hex value '$hex'" if $debug;
+        note "DEBUG: char hex value '$hex'" if 1 or $debug;
         # convert from hex to decimal
         my $x = parse-base "$hex", 16;
         # get its char
@@ -1460,6 +1460,7 @@ sub make-font-sample-doc(
     # defaults are provided for the rest of the args
     :$file2 is copy, # for the hex code
     :%opts,   # controls: media, font-size, embellishment
+              # number of glyphs to show
     :$debug,
     ) is export {
 
@@ -1475,6 +1476,7 @@ sub make-font-sample-doc(
     my $paper = "Letter";
     my Numeric $font-size = 16;
     my Numeric $font-size2 = 8;
+    my UInt    $num-to-show = 0; # no limit
     my Bool $embellish = False;
     my $font = load-font :$file;
     my $font2;
@@ -1491,8 +1493,10 @@ sub make-font-sample-doc(
         # m=A4 - A4 media (default: Letter)
         # s=X  - font size (default: 16)
         # b=X  - add baseline and other data to the glyph box ($embellish)
+        # ng=X - show only X glyphs
         for %opts.kv -> $k, $v {
             if $k eq "s" { $font-size = $v; }
+            elsif $k eq "ng" { $num-to-show = $v; }
             elsif $k eq "b" {
                 $embellish = True;
                 # Results in showing the glyph's baseline, the glyph's origin, 
@@ -1578,7 +1582,8 @@ sub make-font-sample-doc(
         my @s     = %uni{$ukey}.words;
         # turn the @s into one long string
         my $hexstr = "";
-        for @s -> $hex {
+        for @s.kv -> $i, $hex {
+            last if $num-to-show and $i > $num-to-show;
             my $hs = hex2string $hex;
             $hexstr ~= $hs;
         }
@@ -1654,6 +1659,12 @@ sub make-font-sample-doc(
     for @srows -> $srow {
         if $srow.title {
             my $text = $srow.title;
+            # check if enough room to get a couple of rows following
+            if $y < $lly + $fo.height + 2 * $glyph-box-height {
+                $pdf.add-page;
+                $x = $ulx; 
+                $y = $uly;
+            }
             $page.text: {
                 .font = $fo.font, $fo.font-size;
                 .text-position = $x, $y;
@@ -1670,6 +1681,30 @@ sub make-font-sample-doc(
                 print " $g" if $debug;
             }
             say() if $debug;
+            # check for enough vertical space
+            if $y < $lly + $glyph-box-height {
+                $pdf.add-page;
+                $x = $ulx; 
+                $y = $uly;
+            }
+            # add a glyph box row
+            for @g -> $char-str {
+                # convert to $hex number str
+                my $dec = $char-str.ord;
+                my $hex = dec2hex $dec;
+                # draw one box
+                @bbox = make-glyph-box
+                $x, $y, # upper-left corner of the glyph box
+                :$fo,       # the loaded font being sampled
+                :$fo2,      # the loaded mono font used for the hex code
+                :$hex,      # char to be shown
+                :%opts, :$debug, :$page;
+                # mv right for the next one
+                $x += $glyph-box-width;
+            }
+            $boxH = @bbox[3] - @bbox[1];
+            $x = $ulx;
+            $y -= $boxH;
         }
     }
 
