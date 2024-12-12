@@ -31,7 +31,12 @@ $font-size2 =  8;
 $fo  = Font::Utils::FaceFreeType.new: :$font, :$font-size;
 $fo2 = Font::Utils::FaceFreeType.new: :font($font2) :font-size($font-size2);
 # create a sample glyph page
-make-font-sample-doc $file, :$debug;
+my %opts;
+%opts<ng> = 20; # show max of 20 glyphs per section
+%opts<ns> = 3;  # show only 3 sections
+%opts<sn> = 4;  # show only section 4
+%opts<of> = "myspec.pdF";  # define output file name
+make-font-sample-doc $file, :%opts, :$debug;
 
 done-testing;
 
@@ -49,7 +54,8 @@ $fo  = Font::Utils::FaceFreeType.new: :$font, :$font-size;
 $fo2 = Font::Utils::FaceFreeType.new: :font($font2) :font-size($font-size2);
 
 my %opts;
-%opts<b> = 1; # any value is ok, :exists is True
+%opts<b> = 1;  # any value is ok, :exists is True
+%opts<n> = 50; # number of glyphs to show
 @bbox = make-glyph-box
     $ulx, $uly, # upper-left corner of the glyph box
     :$fo,       # the loaded font being sampled

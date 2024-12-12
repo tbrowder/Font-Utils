@@ -1460,7 +1460,7 @@ sub make-font-sample-doc(
     # defaults are provided for the rest of the args
     :$file2 is copy, # for the hex code
     :%opts,   # controls: media, font-size, embellishment
-              # number of glyphs to show
+              # number of glyphs to show, etc.
     :$debug,
     ) is export {
 
@@ -1476,8 +1476,12 @@ sub make-font-sample-doc(
     my $paper = "Letter";
     my Numeric $font-size = 16;
     my Numeric $font-size2 = 8;
-    my UInt    $num-to-show = 0; # no limit
     my Bool $embellish = False;
+
+    my UInt    $ng-to-show = 0; # no limit on number of glyphs
+    my UInt    $ns-to-show = 0; # no limit on number of sections
+    my UInt    $sn-to-show = 0; # show only this section
+
     my $font = load-font :$file;
     my $font2;
     if  $file2.defined {
@@ -1489,14 +1493,22 @@ sub make-font-sample-doc(
          $font2 = load-font :file($file2);
     }
 
+    my $ofil;
+
     if %opts and %opts.elems {
         # m=A4 - A4 media (default: Letter)
         # s=X  - font size (default: 16)
         # b=X  - add baseline and other data to the glyph box ($embellish)
-        # ng=X - show only X glyphs
+        # ng=X - show max of X glyphs per section
+        # ns=X - show first X sections
+        # sn=X - show only section X
+        # of=X - set $ofil to X
         for %opts.kv -> $k, $v {
             if $k eq "s" { $font-size = $v; }
-            elsif $k eq "ng" { $num-to-show = $v; }
+            elsif $k eq "of" { $ofil = $v; }
+            elsif $k eq "ng" { $ng-to-show = $v; }
+            elsif $k eq "ns" { $ns-to-show = $v; }
+            elsif $k eq "sn" { $sn-to-show = $v; }
             elsif $k eq "b" {
                 $embellish = True;
                 # Results in showing the glyph's baseline, the glyph's origin, 
@@ -1515,6 +1527,15 @@ sub make-font-sample-doc(
     else { $pdf.media-box = [0,0, cm2ps(21), cm2ps(29.7)]; }
 
     my $fo = FaceFreeType.new: :$font-size, :$font;
+    if not $ofil.defined {
+        $ofil = $fo.adobe-name ~ "-{$fo.extension}-sample.pdf";
+    }
+    else {
+        # ensure name ends in ".pdf"
+        unless $ofil ~~ /:i '.' pdf $/ {
+            die "FATAL: output file name must end in '.pdf'";
+        }
+    }
 
     # need a font to show the hex codes in the glyph boxes
     # this is FreeSans
@@ -1562,7 +1583,17 @@ sub make-font-sample-doc(
     my @srows;
 
     my $srow;
-    for %uni-titles.keys.sort -> $k {
+    my $ns = 0; # number of sections (titles)
+    SECTION: for %uni-titles.keys.sort -> $k {
+        ++$ns;
+        # decisions to be made
+        if $sn-to-show {
+            next SECTION unless $ns == $ns-to-show;
+        }
+        elsif $ns-to-show {
+            last SECTION unless $ns < $ns-to-show;
+        } 
+
         my $title = %uni-titles{$k}<title>;
         $srow = Srow.new: :$title;
         @srows.push: $srow;
@@ -1583,7 +1614,7 @@ sub make-font-sample-doc(
         # turn the @s into one long string
         my $hexstr = "";
         for @s.kv -> $i, $hex {
-            last if $num-to-show and $i > $num-to-show;
+            last if $ng-to-show and $i > $ng-to-show;
             my $hs = hex2string $hex;
             $hexstr ~= $hs;
         }
@@ -1708,7 +1739,6 @@ sub make-font-sample-doc(
         }
     }
 
-    my $ofil = $fo.adobe-name ~ "-{$fo.extension}-sample.pdf";
 
     $pdf.save-as: $ofil;
     compress $ofil, :quiet, :force, :dpi(300);
@@ -1898,7 +1928,7 @@ sub make-glyph-box(
     FaceFreeType :$fo!,  # the font being sampled
     FaceFreeType :$fo2!, # the mono font used for the hex code
     Str :$hex,           # hex char to be shown
-    :%opts,              # s=
+    :%opts,              
     :$page!,
 
     # defaults
