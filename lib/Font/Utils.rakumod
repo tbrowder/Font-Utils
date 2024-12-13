@@ -20,6 +20,8 @@ our $user-font-list is export;
 # |== create-user-fonts-hash $user-font-list
 our %user-fonts     is export; # key => basename, path
 constant $nfonts = 63;         # max number of fonts to collect in Build
+# |== create-ignored-hex-codepoints-hash
+our %ignored-hex-codepoints is export; # hex code point => ignore
 BEGIN {
     if %*ENV<HOME>:exists {
         $HOME = %*ENV<HOME>;
@@ -43,6 +45,8 @@ INIT {
     }
 
     create-user-fonts-hash $user-font-list;
+
+    create-ignored-hex-codepoints-hash;
 }
 
 =begin comment
@@ -1511,7 +1515,7 @@ sub make-font-sample-doc(
             elsif $k eq "sn" { $sn-to-show = $v; }
             elsif $k eq "b" {
                 $embellish = True;
-                # Results in showing the glyph's baseline, the glyph's origin, 
+                # Results in showing the glyph's baseline, the glyph's origin,
                 #   its horizontal-advance, and other data
             }
             elsif $k eq "m" {
@@ -1560,17 +1564,28 @@ sub make-font-sample-doc(
     # Plan is to print all the Latin glyphs on as many pages
     # as necessary. Demark each set with its formal name.
 
-    # create ALL the input data as Srow objects FIRST
+    # create ALL the input data as Section objects FIRST
     #   THEN create the pages
-    class Srow {
-        has $.title; # is rw;
+    class Glyph-Row {
+        has @.glyphs;
+        method push($glyph) {
+            # Reject known unwanted glyphs per Unicode.org control
+            # code points, vertical affects for Latin languages, space
+            # types other than for left-right languages, etc.
+            self.glyphs.push($glyph)
+                unless %ignored-hex-codepoints{$glyph}:exists;
+        }
+    }
+
+    class Section {
+        has $.title;
+        has $.number; # 1...Nsections;
         # hexadecimal repr, number depends on
         # width of glyph-box and page content width
-        has @.glyphs; # is rw;
-        submethod TWEAK {
-        }
-        method push($glyph) {
-            self.glyphs.push: $glyph;
+        has @.glyph-rows;
+
+        method push($glyph-row) {
+            self.glyph-rows.push($glyph-row);
         }
     }
 
@@ -1579,10 +1594,11 @@ sub make-font-sample-doc(
     say "Content width:   $cwidth" if $debug;
     say "Glyph box width: $glyph-box-width" if $debug;
 
-    my $total-glyphs = 0;
-    my @srows;
+    my $total-glyphs     = 0;
+    my $total-glyph-rows = 0;
+    my @sections;
 
-    my $srow;
+    my $section;
     my $ns = 0; # number of sections (titles)
     SECTION: for %uni-titles.keys.sort -> $k {
         ++$ns;
@@ -1592,11 +1608,11 @@ sub make-font-sample-doc(
         }
         elsif $ns-to-show {
             last SECTION unless $ns < $ns-to-show;
-        } 
+        }
 
         my $title = %uni-titles{$k}<title>;
-        $srow = Srow.new: :$title;
-        @srows.push: $srow;
+        $section = Section.new: :$title, :number($ns);
+        @sections.push: $section;
 
         my $ukey  = %uni-titles{$k}<key>;
         say "DEBUG: ukey = '$ukey'" if 0 and $debug;
@@ -1610,7 +1626,7 @@ sub make-font-sample-doc(
         }
         =end comment
 
-        my @s     = %uni{$ukey}.words;
+        my @s = %uni{$ukey}.words;
         # turn the @s into one long string
         my $hexstr = "";
         for @s.kv -> $i, $hex {
@@ -1625,21 +1641,23 @@ sub make-font-sample-doc(
 
         # TODO break the string into $maxng length chunks
         my @gstrs = $hexstr.comb;
+        my $glyph-row;
         while @gstrs.elems > $maxng {
             # get a chunk of length $maxng length
-            # an Srow
-            $srow = Srow.new;
+            # a row
+            $glyph-row = Glyph-Row.new;
             for 0..^$maxng {
-                $srow.push: @gstrs.shift;
+                $glyph-row.push: @gstrs.shift;
+                ++$total-glyph-rows;
             }
             # and finished with this row
-            @srows.push: $srow;
+            @sections.tail.push: $glyph-row;
         }
         if @gstrs.elems {
-            $srow = Srow.new;
-            $srow.push($_) for @gstrs;
+            $glyph-row = Glyph-Row.new;
+            $glyph-row.push($_) for @gstrs;
             # and finished with this row
-            @srows.push: $srow;
+            @sections.tail.push: $glyph-row;
         }
 
         =begin comment
@@ -1660,8 +1678,8 @@ sub make-font-sample-doc(
     }
 
     say "Total number of glyphs: '$total-glyphs'" if $debug;
-    say "Total number of glyphs per row: '$maxng'";
-    say "Total number of \$srows: '{@srows.elems}'" if $debug;
+    say "Total number of glyphs per row: '$maxng'" if $debug;
+    say "Total number of glyph rows: '$total-glyph-rows'" if $debug;
 
     #==== create the document ================
     my ($page, $g, @bbox);
@@ -1687,27 +1705,27 @@ sub make-font-sample-doc(
     #my ($ulx, $llx);
     my ($x, $y) = $ulx, $uly;
     my ($boxH);
-    for @srows -> $srow {
-        if $srow.title {
-            my $text = $srow.title;
-            # check if enough room to get a couple of rows following
-            if $y < $lly + $fo.height + 2 * $glyph-box-height {
-                $pdf.add-page;
-                $x = $ulx; 
-                $y = $uly;
-            }
-            $page.text: {
-                .font = $fo.font, $fo.font-size;
-                .text-position = $x, $y;
-                @bbox = .print: $text, :align<left>;
-            }
-            $boxH = @bbox[3] - @bbox[1];
-            $y -= $boxH;
-            say "DEBUG: title: '$text'" if 1 or $debug;
-            say "DEBUG: \$y = '$y'" if 1 or $debug;
+    for @sections -> $section {
+        my $text = $section.title;
+        # check if enough room to get a couple of glyph rows following
+        if $y < $lly + $fo.height + 2 * $glyph-box-height {
+            $pdf.add-page;
+            $x = $ulx;
+            $y = $uly;
         }
-        else {
-            my @g = $srow.glyphs;
+        $page.text: {
+            .font = $fo.font, $fo.font-size;
+            .text-position = $x, $y;
+            @bbox = .print: $text, :align<left>;
+        }
+        $boxH = @bbox[3] - @bbox[1];
+        $y -= $boxH;
+        say "DEBUG: title: '$text'" if 1 or $debug;
+        say "DEBUG: \$y = '$y'" if 1 or $debug;
+
+        # now iterate over this section's glyph-rows
+        for $section.glyph-rows -> $glyph-row {
+            my @g = $glyph-row.glyphs;
             for @g -> $g {
                 print " $g" if $debug;
             }
@@ -1715,7 +1733,7 @@ sub make-font-sample-doc(
             # check for enough vertical space
             if $y < $lly + $glyph-box-height {
                 $pdf.add-page;
-                $x = $ulx; 
+                $x = $ulx;
                 $y = $uly;
             }
             # add a glyph box row
@@ -1738,7 +1756,6 @@ sub make-font-sample-doc(
             $y -= $boxH;
         }
     }
-
 
     $pdf.save-as: $ofil;
     compress $ofil, :quiet, :force, :dpi(300);
@@ -1928,7 +1945,7 @@ sub make-glyph-box(
     FaceFreeType :$fo!,  # the font being sampled
     FaceFreeType :$fo2!, # the mono font used for the hex code
     Str :$hex,           # hex char to be shown
-    :%opts,              
+    :%opts,
     :$page!,
 
     # defaults
@@ -2179,6 +2196,45 @@ sub rlineto(
     my $xdelta = $x;
     my $ydelta = $y;
     $g.LineTo: $xdelta, $ydelta;
+}
+
+# |== create-ignored-hex-codepoints-hash
+sub create-ignored-hex-codepoints-hash(
+    :$debug,
+    ) is export {
+
+    # our %ignored-hex-codepoints is export; # hex code point => ignore
+
+    # the only space we want to show: 0x0020, # SPACE
+    constant @ignored-glyphs = [
+        # Unicode code points for unwanted glyphs to show in charts
+        0x0009, # CHARACTER TABULATION
+        0x000A, # LINE FEED (LF)              vertical
+        0x000B, # LINE TABULATION             vertical
+        0x000C, # FORM FEED (FF)              vertical
+        0x000D, # CARRIAGE RETURN (CR)        vertical
+        0x00A0, # NO-BREAK SPACE
+        0x1680, # OGHAM SPACE MARK
+        0x180E, # MONGOLIAN VOWEL SEPARATOR
+        0x2000, # EN QUAD <= normalized to 0x2002
+        0x2001, # EM QUAD <= normalized to 0x2003
+        0x2002, # EN SPACE
+        0x2003, # EM SPACE
+        0x2004, # THREE-PER-EM SPACE
+        0x2005, # FOUR-PER-EM SPACE
+        0x2006, # SIX-PER-EM SPACE
+        0x2007, # FIGURE SPACE <= unicode considers this non-breaking
+        0x2008, # PUNCTUATION SPACE
+        0x2009, # THIN SPACE
+        0x200A, # HAIR SPACE                  <= PROBLEM
+        0x2028, # LINE SEPARATOR              vertical
+        0x2029, # PARAGRAPH SEPARATOR         vertical
+        0x202F, # NARROW NO-BREAK SPACE
+        0x205F, # MEDIUM MATHEMATICAL SPACE
+        0x2060, # WORD JOINER
+        0x3000, # IDEOGRAPHIC SPACE
+        0xFEFF, # ZERO WIDTH NO-BREAK SPACE
+    ];
 }
 
 =begin comment
