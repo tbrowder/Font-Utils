@@ -6,13 +6,6 @@ use Font::Utils::Misc;
 my $debug = 0;
 my (@s, $s);
 
-# proper subset: $a member of $b but has fewer members
-my @set = 1, 2;
-is (1) (<) @set, True;
-
-#done-testing;
-#=finish
-
 my @hex-ignored = [
         # Unicode code points for unwanted glyphs to show in charts
         0x0009, # CHARACTER TABULATION
@@ -83,28 +76,6 @@ for @hex-ignored.kv -> $i, $hexin is copy {
 
     is $hexout, @hex[$i];
     say "\$dec-input: '$dec-input', hex result: '$hexout'" if $debug;
-}
-
-my @misc-bad-hex = <
-    0009
-    000A
-    000B
-    000C
->;
-
-for @misc-bad-hex {
-    is is-ignored($_), True, "bad hex codepoint";
-}
-
-my @misc-good-hex = <
-    0042
-    0043
-    0044
-    0045
->;
-
-for @misc-good-hex {
-    is is-ignored($_), False, "good hex codepoint";
 }
 
 #==========================

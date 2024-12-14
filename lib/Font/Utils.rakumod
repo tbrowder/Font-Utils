@@ -20,8 +20,8 @@ our $user-font-list is export;
 # |== create-user-fonts-hash $user-font-list
 our %user-fonts     is export; # key => basename, path
 constant $nfonts = 63;         # max number of fonts to collect in Build
-# |== create-ignored-hex-codepoints-hash
-our %ignored-hex-codepoints is export; # hex code point => ignore
+# |== create-ignored-dec-codepoints-list
+our @ignored-dec-codepoints is export; # dec code point => ignore
 BEGIN {
     if %*ENV<HOME>:exists {
         $HOME = %*ENV<HOME>;
@@ -46,7 +46,7 @@ INIT {
 
     create-user-fonts-hash $user-font-list;
 
-    create-ignored-hex-codepoints-hash;
+    create-ignored-dec-codepoints-list;
 }
 
 =begin comment
@@ -744,9 +744,13 @@ sub dec2hex(
     $dec.base: 16;
 }
 
+subset HexStr is export where           { $_ ~~ /^ <[0..9a..fA..F]>+ $/ }
+subset HexStrRange is export where      { $_ ~~ /^ <[-0..9a..fA..F]>+ $/ }
+subset HexStrRangeWords is export where { $_ ~~ /^ [\h+ | <[-0..9a..fA..F]>+] $/ }
 sub hex2dec(
-    $hex,
-    :$debug
+    HexStr $hex,
+    :$debug,
+    --> UInt
     ) is export {
     # converts an input hex string
     # to a decimal number
@@ -1057,7 +1061,20 @@ sub dec2string($declist, :$debug --> Str) is export {
 
 } # sub dec2string
 
-sub hex2string($hexlist, :$debug --> Str) is export {
+sub hexrange2hexglyphs(
+    HexStrRange @hexes, 
+    :$debug
+     --> List
+    ) is export {
+    # Given a list of space-separated hexadecimal code points, convert
+    # them to a string representation.
+} 
+
+sub hex2string(
+    $hexlist, 
+    :$debug 
+    --> Str
+    ) is export {
     # Given a list of space-separated hexadecimal code points, convert
     # them to a string representation.
     note "DEBUG: hexlist: '$hexlist'" if $debug;
@@ -1567,13 +1584,13 @@ sub make-font-sample-doc(
     # create ALL the input data as Section objects FIRST
     #   THEN create the pages
     class Glyph-Row {
-        has @.glyphs;
-        method push($glyph) {
+        has HexStr @.glyphs;
+        method push(HexStr $glyph) {
             # Reject known unwanted glyphs per Unicode.org control
             # code points, vertical affects for Latin languages, space
             # types other than for left-right languages, etc.
             self.glyphs.push($glyph)
-                unless %ignored-hex-codepoints{$glyph}:exists;
+                unless is-ignored($glyph)
         }
     }
 
@@ -1626,21 +1643,12 @@ sub make-font-sample-doc(
         }
         =end comment
 
-        my @s = %uni{$ukey}.words;
-        # turn the @s into one long string
-        my $hexstr = "";
-        for @s.kv -> $i, $hex {
-            last if $ng-to-show and $i > $ng-to-show;
-            my $hs = hex2string $hex;
-            $hexstr ~= $hs;
-        }
-
-        my $nchars = $hexstr.chars;
+        my HexStrRange @gstrs = %uni{$ukey}.words;
+        my $nchars = @gstrs.elems;
         $total-glyphs += $nchars;
-        say "DEBUG: \$hexstr has $nchars single glyph strings" if 0 and $debug;
+        say "DEBUG: \@s has $nchars single glyph strings" if 0 and $debug;
 
-        # TODO break the string into $maxng length chunks
-        my @gstrs = $hexstr.comb;
+        # TODO break @gstrs into $maxng length chunks
         my $glyph-row;
         while @gstrs.elems > $maxng {
             # get a chunk of length $maxng length
@@ -1664,15 +1672,12 @@ sub make-font-sample-doc(
         while @s -> $hex {
             # fill a string with max glyphs for the content width
             my $s = "";;
-
         }
         =end comment
 
         if 0 and $debug {
-            for @s -> $hex {
+            for @gstrs -> $hex {
                 say "    seeing hex code range '$hex'";
-                #my $hs = hex2string $hex;
-                #say "    resulting string: '$hs'";
             }
         }
     }
@@ -2198,12 +2203,21 @@ sub rlineto(
     $g.LineTo: $xdelta, $ydelta;
 }
 
-# |== create-ignored-hex-codepoints-hash
-sub create-ignored-hex-codepoints-hash(
+sub is-ignored(
+    HexStr $hex,
+    :$debug,
+    --> Bool
+) is export {
+    my $dec = hex2dec $hex;
+    $dec (<) @ignored-dec-codepoints
+}
+
+# |== create-ignored-dec-codepoints-list
+sub create-ignored-dec-codepoints-list(
     :$debug,
     ) is export {
 
-    # our %ignored-hex-codepoints is export; # hex code point => ignore
+    # our @ignored-dec-codepoints is export; # hex code point => ignore
 
     # the only space we want to show: 0x0020, # SPACE
     constant @ignored-glyphs = [
@@ -2235,6 +2249,31 @@ sub create-ignored-hex-codepoints-hash(
         0x3000, # IDEOGRAPHIC SPACE
         0xFEFF, # ZERO WIDTH NO-BREAK SPACE
     ];
+
+    # see t/7-ignored-hex-codepoint.t
+    =begin comment
+    for @hex-ignored.kv -> $i, $hexin is copy {
+        # due to the format, $hexin is now a decimal number,
+        # so convert it back to a hex string
+        my $dec-input = $hexin;
+        my $hexout = dec2hex $dec-input;
+        # need to pad
+        my $nc = $hexout.chars;
+        while $hexout.chars < 4 {
+            $hexout = '0' ~ $hexout;
+        }
+
+        is $hexout, @hex[$i];
+        say "\$dec-input: '$dec-input', hex result: '$hexout'" if $debug;
+    =end comment
+
+
+    for @ignored-glyphs -> UInt $dec {
+        @ignored-dec-codepoints.push: $dec;
+    }
+    unless @ignored-dec-codepoints.elems == @ignored-glyphs.elems {
+        die "FATAL: \@ignored-dec-codepoints.elems !== @ignored-glyphs.elems";
+    }
 }
 
 =begin comment

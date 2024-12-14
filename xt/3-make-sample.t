@@ -30,6 +30,10 @@ $font-size2 =  8;
 
 $fo  = Font::Utils::FaceFreeType.new: :$font, :$font-size;
 $fo2 = Font::Utils::FaceFreeType.new: :font($font2) :font-size($font-size2);
+
+isa-ok $fo, Font::Utils::FaceFreeType;
+isa-ok $fo2, Font::Utils::FaceFreeType;
+
 # create a sample glyph page
 my %opts;
 %opts<ng> = 20; # show max of 20 glyphs per section
@@ -62,7 +66,7 @@ my %opts;
     :$fo2,      # the loaded mono font used for the hex code
     :$hex,      # char to be shown
     # the actual box dimensions and baselines are hard-coded as
-    # global constants and are a trial-match with a page printed 
+    # global constants and are a trial-match with a page printed
     # from the Unicode # page on their website (Latin Extended-D)
     :%opts,
     :$debug,
