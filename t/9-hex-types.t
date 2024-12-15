@@ -1,11 +1,11 @@
 use Test;
 
-use Font::Utils;
+#use Font::Utils;
 use Font::Utils::Misc;
 
 my $debug = 0;
 
-=begin comment
+if 1 {
 # A single token: no whitespace allowed.
 # Ultimately, all HexStrRange objects will
 # be converted to a list of HexStr objects.
@@ -41,7 +41,7 @@ subset HexStrRangeWords of Str is export where { $_ ~~
         \h*  # optional trailing whitespace
     $/
 }
-=end comment
+}
 
 my $s1 = "0a";
 my $s2 = "0a-0d";

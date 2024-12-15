@@ -129,8 +129,6 @@ with $onam {
         @fdirs = <
             /usr/share/fonts/opentype/freefont
         >;
-        =begin comment
-        =end comment
 
         #   /usr/share/fonts/opentype/linux-libertine
         #   /usr/share/fonts/opentype/cantarell
@@ -221,7 +219,6 @@ sub use-args(@args is copy) is export {
         @args.push: $_;
     }
 
-
     with $mode {
         when /^ :i L / {
             ++$Rlist;
@@ -272,14 +269,6 @@ sub use-args(@args is copy) is export {
                 # take the first file in the user's list
                 $file = %user-fonts<1><path>;
                 ; # ok #say "Listing your fonts...";
-                =begin comment
-                say qq:to/HERE/;
-                FATAL: Unrecognized font key '$fkey'.
-
-                Use mode 'list' to show your fonts.
-                HERE
-                exit;
-                =end comment
             }
         }
         when $_.IO.d {
@@ -415,7 +404,6 @@ sub use-args(@args is copy) is export {
         # load the font file
         my $f1 = load-font-at-key $k1;
         my $f2 = load-font-at-key $k1;
-
 
         say "End of mode 'show'" if 1;
         exit;
@@ -587,6 +575,7 @@ sub show-font-info(
 sub dec2hex(
     $dec,
     :$debug
+    --> HexStr
     ) is export {
     $dec.base: 16;
 }
@@ -651,9 +640,9 @@ sub pdf-font-samples(
            :$page, :$size, :$orientation, :$margins, :$debug;
     }
 
-
 } # sub pdf-font-samples
 
+# TODO put this sub in dev/
 sub make-page(
     $next-font-index is copy,
     @fonts,
@@ -727,7 +716,7 @@ sub make-page(
         @position = [$cx, $y];
         @bbox = .print: $ptitle, :@position,
                        :font($title-font), :font-size(16), :align<center>, :kern;
-my $pn = "Page $curr-page of $npages"; # upper-right, right-justified
+        my $pn = "Page $curr-page of $npages"; # upper-right, right-justified
         @position = [$rx, $y];
         @bbox = .print: $pn, :@position,
                        :font($pn-font), :font-size(10), :align<right>, :kern;
@@ -831,8 +820,8 @@ sub rescale(
     # Given a font object with its size setting (.size) and a string of text you
     # want to be an actual height X, returns the calculated setting
     # size to achieve that top bearing.
+    # TODO fill in
 } # sub rescale(
-
 
 sub write-line(
     $page,
@@ -864,81 +853,20 @@ sub write-line(
     }
 } # sub write-line
 
-sub dec2string($declist, :$debug --> Str) is export {
-    # Given a list of space-separated decimal code points, convert
-    # them to a string representation.
-    my @list;
-    if $declist ~~ /\h/ { # Str {
-        @list = $declist.split(/\h+/); #.words;
-    }
-    else {
-        @list.push: $declist; # = @($declist);
-    }
-    my $s = "";
-    NUM: for @list -> $dec {
-        say "DEBUG: dec '$dec'" if $debug;
-        if $dec ~~ /'-'/ { # .contains('-') {
-            # it's a range
-            my @ends = $dec.split('-');
-            my $a = @ends.head.Int;
-            my $b = @ends.tail.Int;
-            say "DEBUG: range: $a .. $b" if $debug;
-            for $a..$b {
-                say "char decimal value '$_'" if 0 or $debug;
-                # get its hex value
-                #my $hex = $_.base(16);
-                # get its char
-                my $c = $_.chr;
-                say "   its character: '$c'" if 0 or $debug;
-                $s ~= $c
-            }
-            next NUM;
-        }
-
-        say "char decimal value '$dec'" if $debug;
-        # get its char
-        my $c = $dec.chr;
-        say "   its character: '$c'" if $debug;
-        $s ~= $c
-    }
-    $s
-
-} # sub dec2string
-
 sub HexStrRangeWords2HexStrs(
-    HexStrRangeWords $hex,
+    HexStrRangeWords @words,
     :$debug
      --> List
     ) is export {
     # Given a list of space-separated hexadecimal code points, convert
     # them to a string representation.
-}
+    my @c;
 
-sub hex2string(
-    $hexlist,
-    :$debug
-    --> Str
-    ) is export {
-    # Given a list of space-separated hexadecimal code points, convert
-    # them to a string representation.
-    note "DEBUG: hexlist: '$hexlist'" if $debug;
-
-    my @list;
-    if $hexlist ~~ /\h/ {
-        @list = $hexlist.split(/\h+/); #words;
-    }
-    else {
-        @list.push: $hexlist;
-    }
-    my $s = "";
-    NUM: for @list -> $hex {
-        say "DEBUG: hex '$hex'" if 0 or $debug;
-        if $hex ~~ /'-'/ { # .contains('-') {
-            # it's a range
-            # careful, have to convert the range to decimal
-            my @ends = $hex.split('-');
-            my $a = @ends.head;
-            my $b = @ends.tail;
+    for @words -> $w is copy {{
+        if $w ~~ /:i (<[0..9A..Fa..f]>+) '-' (<[0..9A..Fa..f]>+) / {
+            my $a = ~$0;
+            my $b = ~$1;
+            # it's a range, careful, have to convert the range to decimal
             # convert from hex to decimal
             my $aa = parse-base "$a", 16;
             my $bb = parse-base "$b", 16;
@@ -946,25 +874,19 @@ sub hex2string(
             note "DEBUG: range dec: '$aa' .. '$bb'" if $debug;
             for $aa..$bb {
                 say "char decimal value '$_'" if 0 or $debug;
-                # get its char
-                my $c = $_.chr;
-                say "   its character: '$c'" if 0 or $debug;
-                $s ~= $c;
+                # get its hex str
+                my HexStr $c = dec2hex $_;
+                say "   its hex value: '$c'" if 0 or $debug;
+                @c.push: $c;
             }
-            next NUM;
         }
-
-        note "DEBUG: char hex value '$hex'" if 1 or $debug;
-        # convert from hex to decimal
-        my $x = parse-base "$hex", 16;
-        # get its char
-        my $c = $x.chr;
-        say "   its character: '$c'" if $debug;
-        $s ~= $c
+        else {
+            @c.push: $_;
+        }
     }
-    $s
-} # sub hex2string
 
+    @c
+}
 
 sub find-local-font is export {
     # use the installed file set
@@ -1083,7 +1005,6 @@ sub create-user-font-list-file(
     # font hashes: type => <basename> = $path:
     my (%otf, %ttf, %pfb);
 
-#    my $nbc = 0;
     for @dirs -> $dir {
         for paths($dir) -> $path {
 
@@ -1192,13 +1113,12 @@ sub create-user-font-list-file(
 
     >;
 
-#note "DEBUG: my font list has {@order.elems} files (early exit)"; exit;
+    #note "DEBUG: my font list has {@order.elems} files (early exit)"; exit;
 
     my @full-font-list;
 
     for @order {
         if %otf{$_}:exists {
-
             my $b = $_;
             my $p = %otf{$b};
             @full-font-list.push: "$b $p";
@@ -1320,8 +1240,9 @@ sub text-box(
 
 sub make-font-sample-doc(
     #   make-font-sample-doc $file,
-    #       :%opts, :$debug;
-    $file,   # the desired font file
+    #         :%opts, :$debug;
+    $file,    # the desired font file
+    #===========================================
     # defaults are provided for the rest of the args
     :$file2 is copy, # for the hex code
     :%opts,   # controls: media, font-size, embellishment
@@ -1349,13 +1270,13 @@ sub make-font-sample-doc(
 
     my $font = load-font :$file;
     my $font2;
-    if  $file2.defined {
+    if $file2.defined {
         $font2 = load-font :file($file2);
     }
     else {
-         #$file = find
-         $file2 = find-font :family<Helvetica>;
-         $font2 = load-font :file($file2);
+        #$file = find
+        $file2 = find-font :family<Helvetica>;
+        $font2 = load-font :file($file2);
     }
 
     my $ofil;
@@ -1369,8 +1290,8 @@ sub make-font-sample-doc(
         # sn=X - show only section X
         # of=X - set $ofil to X
         for %opts.kv -> $k, $v {
-            if $k eq "s" { $font-size = $v; }
-            elsif $k eq "of" { $ofil = $v; }
+            if $k eq "s"     { $font-size  = $v; }
+            elsif $k eq "of" { $ofil       = $v; }
             elsif $k eq "ng" { $ng-to-show = $v; }
             elsif $k eq "ns" { $ns-to-show = $v; }
             elsif $k eq "sn" { $sn-to-show = $v; }
@@ -1381,8 +1302,8 @@ sub make-font-sample-doc(
             }
             elsif $k eq "m" {
                 # A4 in mm: 210 x 297
-                if $v ~~ /:i l/ { $paper = "Letter"; }
-                elsif $v ~~ /:i 4/ { $paper = "A4"; }
+                if $v ~~ /:i l/    { $paper = "Letter"; }
+                elsif $v ~~ /:i 4/ { $paper = "A4";     }
                 else { say "WARNING: Unknown media selection '$_'"; }
             }
         }
@@ -1409,11 +1330,11 @@ sub make-font-sample-doc(
     # define margins, etc.
     my $lmarginw = 72; my $rmarginw = 72;
     my $tmarginh = 72; my $bmarginh = 72;
-    my $pwidth  = $pdf.media-box[2];
-    my $pheight = $pdf.media-box[3];
+    my $pwidth   = $pdf.media-box[2];
+    my $pheight  = $pdf.media-box[3];
     # content area
-    my $cwidth  = $pwidth  - $lmarginw - $rmarginw;
-    my $cheight = $pheight - $tmarginh - $bmarginh;
+    my $cwidth   = $pwidth  - $lmarginw - $rmarginw;
+    my $cheight  = $pheight - $tmarginh - $bmarginh;
 
     my ($ulx, $llx);
     $ulx = $llx = $lmarginw;
@@ -1439,13 +1360,13 @@ sub make-font-sample-doc(
     }
 
     class Section {
-        has $.title;
-        has $.number; # 1...Nsections;
+        has Str $.title;
+        has UInt$.number; # 1...Nsections;
         # hexadecimal repr, number depends on
         # width of glyph-box and page content width
-        has @.glyph-rows;
+        has Glyph-Row @.glyph-rows;
 
-        method push($glyph-row) {
+        method push(Glyph-Row $glyph-row) {
             self.glyph-rows.push($glyph-row);
         }
     }
@@ -1487,7 +1408,9 @@ sub make-font-sample-doc(
         }
         =end comment
 
-        my HexStrRange @gstrs = %uni{$ukey}.words;
+        # this step converts all to individual HexStr objects
+        my HexStr @gstrs = HexStrRangeWords2HexStrs %uni{$ukey}.words;
+
         my $nchars = @gstrs.elems;
         $total-glyphs += $nchars;
         say "DEBUG: \@s has $nchars single glyph strings" if 0 and $debug;
@@ -1557,7 +1480,7 @@ sub make-font-sample-doc(
     for @sections -> $section {
         my $text = $section.title;
         # check if enough room to get a couple of glyph rows following
-        if $y < $lly + $fo.height + 2 * $glyph-box-height {
+        if $y < ($lly + $fo.height + 2 * $glyph-box-height) {
             $pdf.add-page;
             $x = $ulx;
             $y = $uly;
@@ -1580,7 +1503,7 @@ sub make-font-sample-doc(
             }
             say() if $debug;
             # check for enough vertical space
-            if $y < $lly + $glyph-box-height {
+            if $y < ($lly + $glyph-box-height) {
                 $pdf.add-page;
                 $x = $ulx;
                 $y = $uly;
@@ -1592,11 +1515,11 @@ sub make-font-sample-doc(
                 my $hex = dec2hex $dec;
                 # draw one box
                 @bbox = make-glyph-box
-                $x, $y, # upper-left corner of the glyph box
-                :$fo,       # the loaded font being sampled
-                :$fo2,      # the loaded mono font used for the hex code
-                :$hex,      # char to be shown
-                :%opts, :$debug, :$page;
+                    $x, $y, # upper-left corner of the glyph box
+                    :$fo,       # the loaded font being sampled
+                    :$fo2,      # the loaded mono font used for the hex code
+                    :$hex,      # char to be shown
+                    :%opts, :$debug, :$page;
                 # mv right for the next one
                 $x += $glyph-box-width;
             }
@@ -1624,6 +1547,7 @@ sub print-text-box(
     :$height,
     ) is export {
 
+    # TODO fill in
     # A text-box is resusable with new text only. All other
     # attributes are rw but font and font-size are fixed.
 
@@ -1632,6 +1556,7 @@ sub print-text-box(
 sub print-text-line(
     ) is export {
 
+    # TODO fill in 
     =begin comment
     $page.graphics: {
         my $gb = "GBUMC";
@@ -1672,15 +1597,6 @@ sub do-build(
     }
 }
 
-=begin comment
-sub create-font-list(
-    :$debug,
-    ) is export {
-    my $f = $font-list;
-    say "DEBUG: entering create-font-list" if $debug;
-}
-=end comment
-
 sub check-font-list(
     :$debug,
     ) is export {
@@ -1689,7 +1605,6 @@ sub check-font-list(
     for $f.IO.lines -> $line is copy {
         $line = strip-comment $line;
     }
-
 
     =begin comment
     my $flist = "font-files.list";
@@ -1829,7 +1744,6 @@ sub make-glyph-box(
     #   @hex-bbox       - the box for the hex code being shown
 
     my $embellish = %opts<b>:exists ?? True !! False;
-
 
     # border coords ($ulx, $uly already defined);
     # which is the @glyph-box-bbox
@@ -2093,24 +2007,6 @@ sub create-ignored-dec-codepoints-list(
         0x3000, # IDEOGRAPHIC SPACE
         0xFEFF, # ZERO WIDTH NO-BREAK SPACE
     ];
-
-    # see t/7-ignored-hex-codepoint.t
-    =begin comment
-    for @hex-ignored.kv -> $i, $hexin is copy {
-        # due to the format, $hexin is now a decimal number,
-        # so convert it back to a hex string
-        my $dec-input = $hexin;
-        my $hexout = dec2hex $dec-input;
-        # need to pad
-        my $nc = $hexout.chars;
-        while $hexout.chars < 4 {
-            $hexout = '0' ~ $hexout;
-        }
-
-        is $hexout, @hex[$i];
-        say "\$dec-input: '$dec-input', hex result: '$hexout'" if $debug;
-    =end comment
-
 
     for @ignored-glyphs -> UInt $dec {
         @ignored-dec-codepoints.push: $dec;
