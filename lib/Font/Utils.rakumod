@@ -11,7 +11,8 @@ use PDF::Lite;
 use PDF::Font::Loader :load-font, :find-font;
 
 use Font::Utils::Misc;
-use Font::Utils::FaceFreeType;;
+use Font::Utils::FaceFreeType;
+use Font::Utils::Subs;
 
 our %loaded-fonts is export;
 our $HOME is export = 0;
@@ -75,10 +76,10 @@ use Compress::PDF;
 
 use Font::Utils::FaceFreeType;
 
+=begin comment
 #=========================================================
 # important subset defs (see them tested in t/9-hex-types.t)
 #=========================================================
-
 # A single token: no whitespace allowed.  Ultimately, all HexStrRange
 # objects will be converted to a list of HexStr objects.
 subset HexStr of Str is export where { $_ ~~
@@ -86,14 +87,12 @@ subset HexStr of Str is export where { $_ ~~
         <[0..9a..fA..F]>+
     $/
 }
-
 # A single token: no whitespace allowed.
 subset HexStrRange of Str is export where { $_ ~~
     /^
         <[0..9a..fA..F]>+ '-' <[0..9a..fA..F]>+
     $/
 }
-
 # One or more tokens in a string, demarked by whitespace.  The string
 # will be converted to individual HexStrRange and HexStr tokens with
 # the .words method.  Then the entire list will be converted to HexStr
@@ -113,6 +112,8 @@ subset HexStrRangeWords of Str is export where { $_ ~~
         \h*  # optional trailing whitespace
     $/
 }
+#=========================================================
+=end comment
 
 # |== create-ignored-dec-codepoints-list
 sub create-ignored-dec-codepoints-list(
@@ -364,8 +365,6 @@ sub create-user-fonts-hash(
         %user-fonts{$key}<path>     = $path;
     }
 }
-
-
 #=========================================================
 
 
@@ -456,7 +455,66 @@ my $Rshow    = 0;
 my $Rsample  = 0;
 my $debug    = 0;
 
-=finish
+
+sub do-build(
+    :$debug,
+    :$delete,
+    ) is export {
+    say "DEBUG: in sub do-build" if $debug;
+    my $f = $user-font-list;
+
+    if $delete and $f.IO.r {
+        say "DEBUG: unlinking existing font-list" if $debug;
+        unlink $f;
+    }
+
+    if $f.IO.r {
+        # check it
+        say "DEBUG: calling check-font-list" if $debug;
+        check-font-list :$debug;
+    }
+    else {
+        # create it
+
+        say "DEBUG: calling create-user-font-list-file" if $debug;
+        create-user-font-list-file :$debug;
+    }
+}
+
+
+sub check-font-list(
+    :$debug,
+    ) is export {
+    say "DEBUG: entering check-font-list" if $debug;
+    my $f = $user-font-list;
+    for $f.IO.lines -> $line is copy {
+        $line = strip-comment $line;
+    }
+
+    =begin comment
+    my $flist = "font-files.list";
+    if $fdir.IO.d {
+        # warn and check it
+        my $f = "$fdir/$flist";
+        my (%k, $k, $b, $p);
+        my $errs = 0;
+        my $einfo = "";
+        for $f.IO.lines -> $line is copy {
+            # skip blank lines and comments
+            $line = strip-comment $line;
+            next unless $f ~~ /\S/;
+            my @w = $line.words;
+            if not @w.elems == 3 {
+            }
+            $k = @w.shift;
+            $b = @w.shift;
+            $p = @w.shift;
+        }
+    }
+    =end comment
+
+}
+
 sub use-args(@args is copy) is export {
     my $mode = @args.shift;
 
@@ -695,7 +753,6 @@ sub use-args(@args is copy) is export {
 
 }
 
-
 sub get-user-font-list(
     :$all,
     :$debug,
@@ -716,22 +773,28 @@ sub get-user-font-list(
     @lines
 }
 
-sub get-font-info(
-    $path,
-    :$debug
-    --> FaceFreeType
+sub load-font-at-key(
+    $key,
+    :$debug,
+    --> PDF::Content::FontObj
     ) is export {
-
-    my $file;
-    if $path and $path.IO.e {
-        $file = $path; #.Str; # David's sub REQUIRES a Str for the $filename
+    # Given a key, first see if it has been loaded, if so, return a
+    # reference to that object.
+    if %loaded-fonts{$key}:exists {
+        return %loaded-fonts{$key};
     }
-    else {
-        $file = %user-fonts{$path};
+    # not loaded, get the file path from the user's font list
+    # the hash may not be populated yet
+    if not %user-fonts.elems {
+        #die "Tom, fix this";
+        # read the user's font list
+        create-user-fonts-hash $user-font-list, :$debug;
     }
 
-    my $o = FaceFreeType.new: :$file;
-    $o;
+    my $file = %user-fonts{$key}<path>;
+    my $font = load-font :$file;
+    %loaded-fonts{$key} = $font;
+    $font;
 }
 
 sub show-font-info(
@@ -748,7 +811,7 @@ sub show-font-info(
     my $font-size = 12;
 
     # get a sister FreeTypeFace to gradually take over
-    my $o = FaceFreeType.new: :$file, :$font, :$font-size;;
+    my $o = FaceFreeType.new: :$file, :$font, :$font-size;
 
     my $face = Font::FreeType.new.face($file);
 
@@ -825,22 +888,39 @@ sub show-font-info(
     say "  Stringwidth of '$tstr' at font size $sz: $sw points";
 }
 
-sub dec2hex(
-    $dec,
-    :$debug
-    --> HexStr
+sub stringwidth(
+    Str $s,
+    :$font-size = 12,
+    :$face!,
+    :$kern,
+    :$debug,
     ) is export {
-    $dec.base: 16;
+
+    # from sub stringwidth demoed in Font::FreeType (but without kern)
+    # note PDF::Font::Loader does have a :kern capability with 'text-box'
+    #method stringwidth($s, :$font-size = 12, :$kern) {
+
+    my $units-per-EM = $face.units-per-EM;
+    my $unscaled = sum $face.for-glyphs($s, {.metrics.hori-advance });
+    return $unscaled * $font-size / $units-per-EM;
 }
 
-sub hex2dec(
-    HexStr $hex,
-    :$debug,
-    --> UInt
+sub get-font-info(
+    $path,
+    :$debug
+    --> FaceFreeType
     ) is export {
-    # converts an input hex string
-    # to a decimal number
-    parse-base $hex, 16;
+
+    my $file;
+    if $path and $path.IO.e {
+        $file = $path; #.Str; # David's sub REQUIRES a Str for the $filename
+    }
+    else {
+        $file = %user-fonts{$path};
+    }
+
+    my $o = FaceFreeType.new: :$file;
+    $o;
 }
 
 sub X(
@@ -1108,15 +1188,15 @@ sub write-line(
 
 sub HexStrRangeWords2HexStrs(
     HexStrRangeWords @words,
-    :$debug
+    :$debug,
      --> List
     ) is export {
     # Given a list of space-separated hexadecimal code points, convert
     # them to a string representation.
     my @c;
 
-    for @words -> $w is copy {{
-        if $w ~~ /:i (<[0..9A..Fa..f]>+) '-' (<[0..9A..Fa..f]>+) / {
+    for @words -> $w is copy {
+        if $w ~~ /:i <[0..9A..Fa..f]>+ '-' <[0..9A..Fa..f]>+ / {
             my $a = ~$0;
             my $b = ~$1;
             # it's a range, careful, have to convert the range to decimal
@@ -1244,7 +1324,6 @@ sub draw-rectangle-clip(
     }
 
 } # sub draw-rectangle-clip
-
 
 sub find-local-font-file(
     :$debug,
@@ -1505,7 +1584,7 @@ sub make-font-sample-doc(
         =begin comment
         while @s -> $hex {
             # fill a string with max glyphs for the content width
-            my $s = "";;
+            my $s = "";
         }
         =end comment
 
@@ -1601,155 +1680,13 @@ sub make-font-sample-doc(
     say "See output file: '$ofil'";
 }
 
-sub print-text-box(
-    # text-box
-    $x is copy, $y is copy,
-    :$text!,
-    :$page!,
-    # defaults
-    :$font-size = 12,
-    :$fnt = "t", # key to %fonts, value is the loaded font
-    # optional constraints
-    :$width,
-    :$height,
-    ) is export {
-
-    # TODO fill in
-    # A text-box is resusable with new text only. All other
-    # attributes are rw but font and font-size are fixed.
-
-} # sub print-text-box
-
-sub print-text-line(
-    ) is export {
-
-    # TODO fill in
-    =begin comment
-    $page.graphics: {
-        my $gb = "GBUMC";
-        my $tx = $cx;
-        my $ty = $cy + ($height * 0.5) - $line1Y;
-        .transform: :translate($tx, $ty); # where $x/$y is the desired reference point
-        .FillColor = color White; #rgb(0, 0, 0); # color Black
-        .font = %fonts<hb>, #.core-font('HelveticaBold'),
-                 $line1size; # the size
-        .print: $gb, :align<center>, :valign<center>;
-    }
-    =end comment
-
-} # print-text-line
-
-sub do-build(
-    :$debug,
-    :$delete,
-    ) is export {
-    say "DEBUG: in sub do-build" if $debug;
-    my $f = $user-font-list;
-
-    if $delete and $f.IO.r {
-        say "DEBUG: unlinking existing font-list" if $debug;
-        unlink $f;
-    }
-
-    if $f.IO.r {
-        # check it
-        say "DEBUG: calling check-font-list" if $debug;
-        check-font-list :$debug;
-    }
-    else {
-        # create it
-
-        say "DEBUG: calling create-user-font-list-file" if $debug;
-        create-user-font-list-file :$debug;
-    }
-}
-
-sub check-font-list(
-    :$debug,
-    ) is export {
-    say "DEBUG: entering check-font-list" if $debug;
-    my $f = $user-font-list;
-    for $f.IO.lines -> $line is copy {
-        $line = strip-comment $line;
-    }
-
-    =begin comment
-    my $flist = "font-files.list";
-    if $fdir.IO.d {
-        # warn and check it
-        my $f = "$fdir/$flist";
-        my (%k, $k, $b, $p);
-        my $errs = 0;
-        my $einfo = "";
-        for $f.IO.lines -> $line is copy {
-            # skip blank lines and comments
-            $line = strip-comment $line;
-            next unless $f ~~ /\S/;
-            my @w = $line.words;
-            if not @w.elems == 3 {
-            }
-            $k = @w.shift;
-            $b = @w.shift;
-            $p = @w.shift;
-        }
-    }
-    =end comment
-
-}
-
-
-sub load-font-at-key(
-    $key,
-    :$debug,
-    --> PDF::Content::FontObj
-    ) is export {
-    # Given a key, first see if it has been loaded, if so, return a
-    # reference to that object.
-    if %loaded-fonts{$key}:exists {
-        return %loaded-fonts{$key};
-    }
-    # not loaded, get the file path from the user's font list
-    # the hash may not be populated yet
-    if not %user-fonts.elems {
-        #die "Tom, fix this";
-        # read the user's font list
-        create-user-fonts-hash $user-font-list, :$debug;
-    }
-
-    my $file = %user-fonts{$key}<path>;
-    my $font = load-font :$file;
-    %loaded-fonts{$key} = $font;
-    $font;
-}
-
-sub is-font-file(
-    $file,
+sub is-ignored(
+    HexStr $hex,
     :$debug,
     --> Bool
-    ) is export {
-    # just a name check for now
-    my $res = False;
-    if $file ~~ /:i '.' [otf|ttf|pfb] $/ {
-        $res = True;
-    }
-    $res
-}
-
-sub stringwidth(
-    Str $s,
-    :$font-size = 12,
-    :$face!,
-    :$kern,
-    :$debug,
-    ) is export {
-
-    # from sub stringwidth demoed in Font::FreeType (but without kern)
-    # note PDF::Font::Loader does have a :kern capability with 'text-box'
-    #method stringwidth($s, :$font-size = 12, :$kern) {
-
-    my $units-per-EM = $face.units-per-EM;
-    my $unscaled = sum $face.for-glyphs($s, {.metrics.hori-advance });
-    return $unscaled * $font-size / $units-per-EM;
+) is export {
+    my $dec = hex2dec $hex;
+    $dec (<) @ignored-dec-codepoints
 }
 
 sub make-glyph-box(
@@ -1823,7 +1760,8 @@ sub make-glyph-box(
         $s = '0' ~ $s;
     }
 
-    my Str $glyph = hex2string $hex;
+    #my Str $glyph = hex2string $hex;
+    my Str $glyph = (hex2dec($hex)).chr;
 
     # render as $page.text
     my @glyph-bbox;
@@ -1918,6 +1856,46 @@ sub make-glyph-box(
     $llx, $lly, $urx, $ury;
 }
 
+#=finish
+
+sub print-text-box(
+    # text-box
+    $x is copy, $y is copy,
+    :$text!,
+    :$page!,
+    # defaults
+    :$font-size = 12,
+    :$fnt = "t", # key to %fonts, value is the loaded font
+    # optional constraints
+    :$width,
+    :$height,
+    ) is export {
+
+    # TODO fill in
+    # A text-box is resusable with new text only. All other
+    # attributes are rw but font and font-size are fixed.
+
+} # sub print-text-box
+
+sub print-text-line(
+    ) is export {
+
+    # TODO fill in
+    =begin comment
+    $page.graphics: {
+        my $gb = "GBUMC";
+        my $tx = $cx;
+        my $ty = $cy + ($height * 0.5) - $line1Y;
+        .transform: :translate($tx, $ty); # where $x/$y is the desired reference point
+        .FillColor = color White; #rgb(0, 0, 0); # color Black
+        .font = %fonts<hb>, #.core-font('HelveticaBold'),
+                 $line1size; # the size
+        .print: $gb, :align<center>, :valign<center>;
+    }
+    =end comment
+
+} # print-text-line
+
 sub draw-box-clip(
     # starting position, default is
     # upper left corner
@@ -2008,15 +1986,6 @@ sub rlineto(
     my $xdelta = $x;
     my $ydelta = $y;
     $g.LineTo: $xdelta, $ydelta;
-}
-
-sub is-ignored(
-    HexStr $hex,
-    :$debug,
-    --> Bool
-) is export {
-    my $dec = hex2dec $hex;
-    $dec (<) @ignored-dec-codepoints
 }
 
 

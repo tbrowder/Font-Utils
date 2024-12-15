@@ -1,9 +1,10 @@
 use Test;
 
-my @modules = < 
+my @modules = <
     Font::Utils
     Font::Utils::FaceFreeType
     Font::Utils::Misc
+    Font::Utils::Subs
 >;
 
 plan @modules.elems;
@@ -11,4 +12,3 @@ plan @modules.elems;
 for @modules {
     use-ok $_, "Module $_ can be used okay";
 }
-

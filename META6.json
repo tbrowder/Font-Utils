@@ -31,7 +31,8 @@
     "Font::Utils": "lib/Font/Utils.rakumod",
     "Font::Utils::FaceFreeType": "lib/Font/Utils/FaceFreeType.rakumod",
     "Font::Utils::Misc": "lib/Font/Utils/Misc.rakumod",
-    "Font::Utils::NameTags": "lib/Font/Utils/NameTags.rakumod"
+    "Font::Utils::NameTags": "lib/Font/Utils/NameTags.rakumod",
+    "Font::Utils::Subs": "lib/Font/Utils/Subs.rakumod"
   },
   "resources": [
   ],

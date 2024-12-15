@@ -1,5 +1,43 @@
 unit module Font::Utils::Misc;
 
+#=========================================================
+# important subset defs (see them tested in t/9-hex-types.t)
+#=========================================================
+# A single token: no whitespace allowed.  Ultimately, all HexStrRange
+# objects will be converted to a list of HexStr objects.
+subset HexStr of Str is export where { $_ ~~
+    /^
+        <[0..9a..fA..F]>+
+    $/
+}
+# A single token: no whitespace allowed.
+subset HexStrRange of Str is export where { $_ ~~
+    /^
+        <[0..9a..fA..F]>+ '-' <[0..9a..fA..F]>+
+    $/
+}
+# One or more tokens in a string, demarked by whitespace.  The string
+# will be converted to individual HexStrRange and HexStr tokens with
+# the .words method.  Then the entire list will be converted to HexStr
+# tokens.
+subset HexStrRangeWords of Str is export where { $_ ~~
+    /^
+        \h*  # optional leading whitespace
+             # interleaving HexStrRange and HexStr types
+             # first instance is required
+             [ [<[0..9a..fA..F]>+ '-' <[0..9a..fA..F]>+] | [<[0..9a..fA..F]>+] ]
+
+             # following instances are optional
+             [
+               \h+ [ [<[0..9a..fA..F]>+ '-' <[0..9a..fA..F]>+] | [<[0..9a..fA..F]>+] ]
+             ]?
+
+        \h*  # optional trailing whitespace
+    $/
+}
+#=========================================================
+
+
 # constants for a glyph box per the Unicode code point charts
 # at <https://unicode.org>
 
