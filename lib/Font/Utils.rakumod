@@ -365,7 +365,6 @@ sub create-user-fonts-hash(
     }
 }
 
-=finish
 
 #=========================================================
 
@@ -457,6 +456,7 @@ my $Rshow    = 0;
 my $Rsample  = 0;
 my $debug    = 0;
 
+=finish
 sub use-args(@args is copy) is export {
     my $mode = @args.shift;
 
@@ -694,6 +694,7 @@ sub use-args(@args is copy) is export {
     } # end of $Rlist
 
 }
+
 
 sub get-user-font-list(
     :$all,
