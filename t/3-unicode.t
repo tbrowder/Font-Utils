@@ -8,43 +8,42 @@ my $debug = 0;
 my (@s, $s, @w);
 
 @s = %uni<L-sym>.words;
-@w = HexStrRangeWords2HexStrs @s;
+@w = HexStrs2GlyphStrs @s;
 $s = HexStr2Char @w.head;
 is $s.comb.head, '!';
 
 @s = %uni<L-chr>.words;
-@w = HexStrRangeWords2HexStrs @s;
+@w = HexStrs2GlyphStrs @s;
 $s = HexStr2Char @w.head;
 is $s.comb.head, '0';
 
 # test them all
 @s = %uni<L-Sup>.words;
-@w = HexStrRangeWords2HexStrs @s;
-$s = HexStr2Char @w.head;
+@w = HexStrs2GlyphStrs @s;
 
 @s = %uni<L-Ext-A>.words;
-@w = HexStrRangeWords2HexStrs @s;
+@w = HexStrs2GlyphStrs @s;
 
 @s = %uni<L-Ext-B>.words;
-@w = HexStrRangeWords2HexStrs @s;
+@w = HexStrs2GlyphStrs @s;
 
 @s = %uni<L-Ext-C>.words;
-@w = HexStrRangeWords2HexStrs @s;
+@w = HexStrs2GlyphStrs @s;
 
 @s = %uni<L-Ext-D>.words;
-@w = HexStrRangeWords2HexStrs @s;
+@w = HexStrs2GlyphStrs @s;
 
 @s = %uni<L-Ext-E>.words;
-@w = HexStrRangeWords2HexStrs @s;
+@w = HexStrs2GlyphStrs @s;
 
 @s = %uni<L-Ext-F>.words;
-@w = HexStrRangeWords2HexStrs @s;
+@w = HexStrs2GlyphStrs @s;
 
 @s = %uni<L-Additional>.words;
-@w = HexStrRangeWords2HexStrs @s;
+@w = HexStrs2GlyphStrs @s;
 
 @s = %uni<L-Ligatures>.words;
-@w = HexStrRangeWords2HexStrs @s;
+@w = HexStrs2GlyphStrs @s;
 
 #==========================
 # glyph '1'

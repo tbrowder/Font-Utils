@@ -44,10 +44,10 @@ for @s.kv -> $i, $v {
 say "sym ranges in decimal: $sr";
 =end comment
 
-@gchars = HexStrRangeWords2HexStrs @words;
+@gchars = HexStrs2GlyphStrs @words;
 say @gchars;
 @words = "30-39 41-5a 61-7a".words;
-@gchars = HexStrRangeWords2HexStrs @words;
+@gchars = HexStrs2GlyphStrs @words;
 say @gchars;
 
 done-testing;

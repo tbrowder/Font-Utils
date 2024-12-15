@@ -1197,7 +1197,7 @@ sub DecStrRangeWords2HexStrs(
 }
 =end comment
 
-sub HexStrRangeWords2HexStrs(
+sub HexStrs2GlyphStrs(
     @words,
     :$debug,
     --> List
@@ -1566,7 +1566,7 @@ sub make-font-sample-doc(
         =end comment
 
         # this step converts all to individual HexStr objects
-        my HexStr @gstrs = HexStrRangeWords2HexStrs %uni{$ukey}.words;
+        my HexStr @gstrs = HexStrs2GlyphStrs %uni{$ukey}.words;
 
         my $nchars = @gstrs.elems;
         $total-glyphs += $nchars;

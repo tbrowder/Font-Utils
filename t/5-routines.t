@@ -18,7 +18,7 @@ is 1, 1;
 my (@w, @s, @c, @g, $s, $c, $cn, $sn, @lines);
 
 @w = %uni<L-chr>.words;
-@c = HexStrRangeWords2HexStrs @w;
+@c = HexStrs2GlyphStrs @w;
 $c = HexStr2Char @c.head;
 is $c, '0';
 
@@ -28,7 +28,7 @@ my $o = Font::Utils::FaceFreeType.new: :$font, :font-size(12);
 @lines = $o.wrap-string($c, :width(6.5*72));
 
 @w = %uni<L-Sup>.words;
-@c = HexStrRangeWords2HexStrs @w;
+@c = HexStrs2GlyphStrs @w;
 $c = HexStr2Char @c.head;
 
 say "\$c: '$c'";
