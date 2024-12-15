@@ -114,6 +114,258 @@ subset HexStrRangeWords of Str is export where { $_ ~~
     $/
 }
 
+# |== create-ignored-dec-codepoints-list
+sub create-ignored-dec-codepoints-list(
+    :$debug,
+    ) is export {
+
+    # our @ignored-dec-codepoints is export; # hex code point => ignore
+
+    # the only space we want to show: 0x0020, # SPACE
+    constant @ignored-glyphs = [
+        # Unicode code points for unwanted glyphs to show in charts
+        0x0009, # CHARACTER TABULATION
+        0x000A, # LINE FEED (LF)              vertical
+        0x000B, # LINE TABULATION             vertical
+        0x000C, # FORM FEED (FF)              vertical
+        0x000D, # CARRIAGE RETURN (CR)        vertical
+        0x00A0, # NO-BREAK SPACE
+        0x1680, # OGHAM SPACE MARK
+        0x180E, # MONGOLIAN VOWEL SEPARATOR
+        0x2000, # EN QUAD <= normalized to 0x2002
+        0x2001, # EM QUAD <= normalized to 0x2003
+        0x2002, # EN SPACE
+        0x2003, # EM SPACE
+        0x2004, # THREE-PER-EM SPACE
+        0x2005, # FOUR-PER-EM SPACE
+        0x2006, # SIX-PER-EM SPACE
+        0x2007, # FIGURE SPACE <= unicode considers this non-breaking
+        0x2008, # PUNCTUATION SPACE
+        0x2009, # THIN SPACE
+        0x200A, # HAIR SPACE                  <= PROBLEM
+        0x2028, # LINE SEPARATOR              vertical
+        0x2029, # PARAGRAPH SEPARATOR         vertical
+        0x202F, # NARROW NO-BREAK SPACE
+        0x205F, # MEDIUM MATHEMATICAL SPACE
+        0x2060, # WORD JOINER
+        0x3000, # IDEOGRAPHIC SPACE
+        0xFEFF, # ZERO WIDTH NO-BREAK SPACE
+    ];
+
+    for @ignored-glyphs -> UInt $dec {
+        @ignored-dec-codepoints.push: $dec;
+    }
+    unless @ignored-dec-codepoints.elems == @ignored-glyphs.elems {
+        die "FATAL: \@ignored-dec-codepoints.elems !== @ignored-glyphs.elems";
+    }
+}
+
+# our $user-font-list is export; # <== create-user-font-list-file
+# our %user-fonts     is export; # <== create-user-fonts-hash $user-font-list
+sub create-user-font-list-file(
+    :$debug,
+    ) is export {
+
+    use paths;
+
+    my @dirs  = </usr/share/fonts /Users ~/Library/Fonts>;
+    my ($bname, $dname, $typ);
+    # font hashes: type => <basename> = $path:
+    my (%otf, %ttf, %pfb);
+
+    for @dirs -> $dir {
+        for paths($dir) -> $path {
+
+            # ignore some
+            next if $path ~~ /\h/; # no path with spaces
+            next if $path ~~ /Fust/; # way too long a name
+
+            if $path ~~ /:i (otf|ttf|pfb) $/ {
+                $typ = ~$0;
+                $bname = $path.IO.basename;
+                #my $nc = $bname.chars;
+                #$nbc = $nc if $nc > $nbc;
+
+                if $typ eq 'otf' {
+                    %otf{$bname} = $path;
+                }
+                elsif $typ eq 'ttf' {
+                    %ttf{$bname} = $path;
+                }
+                elsif $typ eq 'pfb' {
+                    %pfb{$bname} = $path;
+                }
+                say "Font file $typ: $path" if $debug;
+            }
+        }
+    }
+
+    # now put them in directory $HOME/.Font-Utils
+    my $f = $user-font-list;
+
+    # first put them in a list before getting sizes
+
+    # prioritize freefonts, garamond, and urw-base35
+    # and the others in my FF list
+    # also put list from ff docs into docs here
+    my @order = <
+        FreeSerif.otf
+        FreeSerifBold.otf
+        FreeSerifItalic.otf
+        FreeSerifBoldItalic.otf
+
+        FreeSans.otf
+        FreeSansBold.otf
+        FreeSansOblique.otf
+        FreeSansBoldOblique.otf
+
+        FreeMono.otf
+        FreeMonoBold.otf
+        FreeMonoOblique.otf
+        FreeMonoBoldOblique.otf
+
+        EBGaramond08-Italic.otf
+        EBGaramond08-Regular.otf
+        EBGaramond12-AllSC.otf
+        EBGaramond12-Bold.otf
+        EBGaramond12-Italic.otf
+        EBGaramond12-Regular.otf
+        EBGaramondSC08-Regular.otf
+        EBGaramondSC12-Regular.otf
+
+        EBGaramond-Initials.otf
+        EBGaramond-InitialsF1.otf
+        EBGaramond-InitialsF2.otf
+
+        Cantarell-Regular.otf
+        Cantarell-Bold.otf
+        Cantarell-ExtraBold.otf
+        Cantarell-Light.otf
+        Cantarell-Thin.otf
+
+        C059-BdIta.otf
+        C059-Bold.otf
+        C059-Italic.otf
+        C059-Roman.otf
+        D050000L.otf
+        NimbusMonoPS-Regular.otf
+        NimbusMonoPS-Bold.otf
+        NimbusMonoPS-Italic.otf
+        NimbusMonoPS-BoldItalic.otf
+        NimbusRoman-Regular.otf
+        NimbusRoman-Bold.otf
+        NimbusRoman-Italic.otf
+        NimbusRoman-BoldItalic.otf
+        NimbusSans-Regular.otf
+        NimbusSans-Bold.otf
+        NimbusSans-Italic.otf
+        NimbusSans-BoldItalic.otf
+        NimbusSansNarrow-Regular.otf
+        NimbusSansNarrow-Bold.otf
+        NimbusSansNarrow-Oblique.otf
+        NimbusSansNarrow-BoldOblique.otf
+        P052-Roman.otf
+        P052-Bold.otf
+        P052-Italic.otf
+        P052-BoldItalic.otf
+        StandardSymbolsPS.otf
+        URWBookman-Demi.otf
+        URWBookman-DemiItalic.otf
+        URWBookman-Light.otf
+        URWBookman-LightItalic.otf
+        URWGothic-Book.otf
+        URWGothic-BookOblique.otf
+        URWGothic-Demi.otf
+        URWGothic-DemiOblique.otf
+        Z003-MediumItalic.otf
+
+    >;
+
+    #note "DEBUG: my font list has {@order.elems} files (early exit)"; exit;
+
+    my @full-font-list;
+
+    for @order {
+        if %otf{$_}:exists {
+            my $b = $_;
+            my $p = %otf{$b};
+            @full-font-list.push: "$b $p";
+
+            # then delete from the otf collection
+            %otf{$_}:delete;
+        }
+    }
+
+    for %otf.keys.sort {
+        my $b = $_;
+        my $p = %otf{$b};
+        @full-font-list.push: "$b $p";
+    }
+
+    for %ttf.keys.sort {
+        my $b = $_;
+        my $p = %ttf{$b};
+        @full-font-list.push: "$b $p";
+    }
+
+    for %pfb.keys.sort {
+        my $b = $_;
+        my $p = %pfb{$b};
+        @full-font-list.push: "$b $p";
+    }
+
+    # NOW collect basename lengths
+    my $nff = 0; # number of fonts found
+    my @fonts;
+    my $nbc = 0;
+    my $nkc = $nfonts.Str.chars;
+    for @full-font-list {
+        ++$nff;
+        last if $nff > $nfonts;
+
+        my $b = $_.words.head;
+        my $nc = $b.chars;
+        $nbc = $nc if $nc > $nbc;
+        @fonts.push: $_;
+    }
+
+    # Finally, create the pretty file
+    # key basename path
+    my $fh = open $user-font-list, :w;
+    $fh.say: "# key  basename  path";
+
+    my $nkey = 0;
+    for @fonts {
+        ++$nkey;
+        my $b = $_.words.head;
+        my $p = $_.words.tail;
+        my $knam = sprintf '%*d', $nkc, $nkey;
+        my $bnam = sprintf '%-*s', $nbc, $b;
+        $fh.say: "$knam $bnam $p";
+    }
+    $fh.close;
+
+}
+# our $user-font-list is export; # <== create-user-font-list-file
+# our %user-fonts     is export; # <== create-user-fonts-hash $user-font-list
+sub create-user-fonts-hash(
+    $font-file,
+    :$debug,
+    ) is export {
+    # reads user's font list and fills %user-fonts
+    for $font-file.IO.lines -> $line is copy {
+        $line = strip-comment $line;
+        next unless $line ~~ /\S/;
+        my @w    = $line.words;
+        my $key  = @w.shift;
+        my $bnam = @w.shift;
+        my $path = @w.shift;
+        %user-fonts{$key}<basename> = $bnam;
+        %user-fonts{$key}<path>     = $path;
+    }
+}
+
+=finish
 
 #=========================================================
 
@@ -992,192 +1244,6 @@ sub draw-rectangle-clip(
 
 } # sub draw-rectangle-clip
 
-# our $user-font-list is export; # <== create-user-font-list-file
-# our %user-fonts     is export; # <== create-user-fonts-hash $user-font-list
-sub create-user-font-list-file(
-    :$debug,
-    ) is export {
-
-    use paths;
-
-    my @dirs  = </usr/share/fonts /Users ~/Library/Fonts>;
-    my ($bname, $dname, $typ);
-    # font hashes: type => <basename> = $path:
-    my (%otf, %ttf, %pfb);
-
-    for @dirs -> $dir {
-        for paths($dir) -> $path {
-
-            # ignore some
-            next if $path ~~ /\h/; # no path with spaces
-            next if $path ~~ /Fust/; # way too long a name
-
-            if $path ~~ /:i (otf|ttf|pfb) $/ {
-                $typ = ~$0;
-                $bname = $path.IO.basename;
-                #my $nc = $bname.chars;
-                #$nbc = $nc if $nc > $nbc;
-
-                if $typ eq 'otf' {
-                    %otf{$bname} = $path;
-                }
-                elsif $typ eq 'ttf' {
-                    %ttf{$bname} = $path;
-                }
-                elsif $typ eq 'pfb' {
-                    %pfb{$bname} = $path;
-                }
-                say "Font file $typ: $path" if $debug;
-            }
-        }
-    }
-
-    # now put them in directory $HOME/.Font-Utils
-    my $f = $user-font-list;
-
-    # first put them in a list before getting sizes
-
-    # prioritize freefonts, garamond, and urw-base35
-    # and the others in my FF list
-    # also put list from ff docs into docs here
-    my @order = <
-        FreeSerif.otf
-        FreeSerifBold.otf
-        FreeSerifItalic.otf
-        FreeSerifBoldItalic.otf
-
-        FreeSans.otf
-        FreeSansBold.otf
-        FreeSansOblique.otf
-        FreeSansBoldOblique.otf
-
-        FreeMono.otf
-        FreeMonoBold.otf
-        FreeMonoOblique.otf
-        FreeMonoBoldOblique.otf
-
-        EBGaramond08-Italic.otf
-        EBGaramond08-Regular.otf
-        EBGaramond12-AllSC.otf
-        EBGaramond12-Bold.otf
-        EBGaramond12-Italic.otf
-        EBGaramond12-Regular.otf
-        EBGaramondSC08-Regular.otf
-        EBGaramondSC12-Regular.otf
-
-        EBGaramond-Initials.otf
-        EBGaramond-InitialsF1.otf
-        EBGaramond-InitialsF2.otf
-
-        Cantarell-Regular.otf
-        Cantarell-Bold.otf
-        Cantarell-ExtraBold.otf
-        Cantarell-Light.otf
-        Cantarell-Thin.otf
-
-        C059-BdIta.otf
-        C059-Bold.otf
-        C059-Italic.otf
-        C059-Roman.otf
-        D050000L.otf
-        NimbusMonoPS-Regular.otf
-        NimbusMonoPS-Bold.otf
-        NimbusMonoPS-Italic.otf
-        NimbusMonoPS-BoldItalic.otf
-        NimbusRoman-Regular.otf
-        NimbusRoman-Bold.otf
-        NimbusRoman-Italic.otf
-        NimbusRoman-BoldItalic.otf
-        NimbusSans-Regular.otf
-        NimbusSans-Bold.otf
-        NimbusSans-Italic.otf
-        NimbusSans-BoldItalic.otf
-        NimbusSansNarrow-Regular.otf
-        NimbusSansNarrow-Bold.otf
-        NimbusSansNarrow-Oblique.otf
-        NimbusSansNarrow-BoldOblique.otf
-        P052-Roman.otf
-        P052-Bold.otf
-        P052-Italic.otf
-        P052-BoldItalic.otf
-        StandardSymbolsPS.otf
-        URWBookman-Demi.otf
-        URWBookman-DemiItalic.otf
-        URWBookman-Light.otf
-        URWBookman-LightItalic.otf
-        URWGothic-Book.otf
-        URWGothic-BookOblique.otf
-        URWGothic-Demi.otf
-        URWGothic-DemiOblique.otf
-        Z003-MediumItalic.otf
-
-    >;
-
-    #note "DEBUG: my font list has {@order.elems} files (early exit)"; exit;
-
-    my @full-font-list;
-
-    for @order {
-        if %otf{$_}:exists {
-            my $b = $_;
-            my $p = %otf{$b};
-            @full-font-list.push: "$b $p";
-
-            # then delete from the otf collection
-            %otf{$_}:delete;
-        }
-    }
-
-    for %otf.keys.sort {
-        my $b = $_;
-        my $p = %otf{$b};
-        @full-font-list.push: "$b $p";
-    }
-
-    for %ttf.keys.sort {
-        my $b = $_;
-        my $p = %ttf{$b};
-        @full-font-list.push: "$b $p";
-    }
-
-    for %pfb.keys.sort {
-        my $b = $_;
-        my $p = %pfb{$b};
-        @full-font-list.push: "$b $p";
-    }
-
-    # NOW collect basename lengths
-    my $nff = 0; # number of fonts found
-    my @fonts;
-    my $nbc = 0;
-    my $nkc = $nfonts.Str.chars;
-    for @full-font-list {
-        ++$nff;
-        last if $nff > $nfonts;
-
-        my $b = $_.words.head;
-        my $nc = $b.chars;
-        $nbc = $nc if $nc > $nbc;
-        @fonts.push: $_;
-    }
-
-    # Finally, create the pretty file
-    # key basename path
-    my $fh = open $user-font-list, :w;
-    $fh.say: "# key  basename  path";
-
-    my $nkey = 0;
-    for @fonts {
-        ++$nkey;
-        my $b = $_.words.head;
-        my $p = $_.words.tail;
-        my $knam = sprintf '%*d', $nkc, $nkey;
-        my $bnam = sprintf '%-*s', $nbc, $b;
-        $fh.say: "$knam $bnam $p";
-    }
-    $fh.close;
-
-}
 
 sub find-local-font-file(
     :$debug,
@@ -1556,7 +1622,7 @@ sub print-text-box(
 sub print-text-line(
     ) is export {
 
-    # TODO fill in 
+    # TODO fill in
     =begin comment
     $page.graphics: {
         my $gb = "GBUMC";
@@ -1630,24 +1696,6 @@ sub check-font-list(
 
 }
 
-# our $user-font-list is export; # <== create-user-font-list-file
-# our %user-fonts     is export; # <== create-user-fonts-hash $user-font-list
-sub create-user-fonts-hash(
-    $font-file,
-    :$debug,
-    ) is export {
-    # reads user's font list and fills %user-fonts
-    for $font-file.IO.lines -> $line is copy {
-        $line = strip-comment $line;
-        next unless $line ~~ /\S/;
-        my @w    = $line.words;
-        my $key  = @w.shift;
-        my $bnam = @w.shift;
-        my $path = @w.shift;
-        %user-fonts{$key}<basename> = $bnam;
-        %user-fonts{$key}<path>     = $path;
-    }
-}
 
 sub load-font-at-key(
     $key,
@@ -1970,51 +2018,6 @@ sub is-ignored(
     $dec (<) @ignored-dec-codepoints
 }
 
-# |== create-ignored-dec-codepoints-list
-sub create-ignored-dec-codepoints-list(
-    :$debug,
-    ) is export {
-
-    # our @ignored-dec-codepoints is export; # hex code point => ignore
-
-    # the only space we want to show: 0x0020, # SPACE
-    constant @ignored-glyphs = [
-        # Unicode code points for unwanted glyphs to show in charts
-        0x0009, # CHARACTER TABULATION
-        0x000A, # LINE FEED (LF)              vertical
-        0x000B, # LINE TABULATION             vertical
-        0x000C, # FORM FEED (FF)              vertical
-        0x000D, # CARRIAGE RETURN (CR)        vertical
-        0x00A0, # NO-BREAK SPACE
-        0x1680, # OGHAM SPACE MARK
-        0x180E, # MONGOLIAN VOWEL SEPARATOR
-        0x2000, # EN QUAD <= normalized to 0x2002
-        0x2001, # EM QUAD <= normalized to 0x2003
-        0x2002, # EN SPACE
-        0x2003, # EM SPACE
-        0x2004, # THREE-PER-EM SPACE
-        0x2005, # FOUR-PER-EM SPACE
-        0x2006, # SIX-PER-EM SPACE
-        0x2007, # FIGURE SPACE <= unicode considers this non-breaking
-        0x2008, # PUNCTUATION SPACE
-        0x2009, # THIN SPACE
-        0x200A, # HAIR SPACE                  <= PROBLEM
-        0x2028, # LINE SEPARATOR              vertical
-        0x2029, # PARAGRAPH SEPARATOR         vertical
-        0x202F, # NARROW NO-BREAK SPACE
-        0x205F, # MEDIUM MATHEMATICAL SPACE
-        0x2060, # WORD JOINER
-        0x3000, # IDEOGRAPHIC SPACE
-        0xFEFF, # ZERO WIDTH NO-BREAK SPACE
-    ];
-
-    for @ignored-glyphs -> UInt $dec {
-        @ignored-dec-codepoints.push: $dec;
-    }
-    unless @ignored-dec-codepoints.elems == @ignored-glyphs.elems {
-        die "FATAL: \@ignored-dec-codepoints.elems !== @ignored-glyphs.elems";
-    }
-}
 
 =begin comment
 sub font-bbox(
