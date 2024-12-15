@@ -3,6 +3,11 @@ unit module Font::Utils::Misc;
 #=========================================================
 # important subset defs (see them tested in t/9-hex-types.t)
 #=========================================================
+subset GlyphStr of Str is export where {
+    $_.comb == 1
+}
+
+#===== Hexadecimal string input
 # A single token: no whitespace allowed.  Ultimately, all HexStrRange
 # objects will be converted to a list of HexStr objects.
 subset HexStr of Str is export where { $_ ~~
@@ -16,6 +21,8 @@ subset HexStrRange of Str is export where { $_ ~~
         <[0..9a..fA..F]>+ '-' <[0..9a..fA..F]>+
     $/
 }
+
+=begin comment
 # One or more tokens in a string, demarked by whitespace.  The string
 # will be converted to individual HexStrRange and HexStr tokens with
 # the .words method.  Then the entire list will be converted to HexStr
@@ -34,7 +41,10 @@ subset HexStrRangeWords of Str is export where { $_ ~~
 
         \h*  # optional trailing whitespace
     $/
-}
+=end comment
+
+#===== decimal string input
+# Maybe much later
 #=========================================================
 
 

@@ -1186,17 +1186,28 @@ sub write-line(
     }
 } # sub write-line
 
-sub HexStrRangeWords2HexStrs(
-    HexStrRangeWords @words,
+=begin comment
+sub DecStrRangeWords2HexStrs(
+    DecStrRangeWords @words,
     :$debug,
      --> List
+) is export {
+    # Given a list of decimal or decimal-range code points, convert
+    # them to a list of GlypStr strings.
+}
+=end comment
+
+sub HexStrRangeWords2HexStrs(
+    @words,
+    :$debug,
+    --> List
     ) is export {
-    # Given a list of space-separated hexadecimal code points, convert
-    # them to a string representation.
+    # Given a list of hexadecimal or hexadecimal-range code points,
+    # convert them to a list of GlypStr strings.
     my @c;
 
     for @words -> $w is copy {
-        if $w ~~ /:i <[0..9A..Fa..f]>+ '-' <[0..9A..Fa..f]>+ / {
+        if $w ~~ /:i (<[0..9A..Fa..f]>+) '-' (<[0..9A..Fa..f]>+) / {
             my $a = ~$0;
             my $b = ~$1;
             # it's a range, careful, have to convert the range to decimal
@@ -1214,7 +1225,7 @@ sub HexStrRangeWords2HexStrs(
             }
         }
         else {
-            @c.push: $_;
+            @c.push: $w;
         }
     }
 
@@ -1760,8 +1771,8 @@ sub make-glyph-box(
         $s = '0' ~ $s;
     }
 
-    #my Str $glyph = hex2string $hex;
-    my Str $glyph = (hex2dec($hex)).chr;
+    my Str $glyph = hex2string $hex;
+    #my Str $glyph = (hex2dec($hex)).chr;
 
     # render as $page.text
     my @glyph-bbox;

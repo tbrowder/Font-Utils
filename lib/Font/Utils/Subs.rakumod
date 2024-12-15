@@ -2,6 +2,32 @@ unit module Font::Utils::Subs;
 
 use Font::Utils::Misc;
 
+sub HexStr2Char(
+    HexStr $hstr,
+    :$debug
+    --> Str
+) is export {
+    my $dec = hex2dec $hstr;
+    $dec.chr;
+}
+
+sub dec2string(
+    UInt $dec,
+    :$debug,
+    --> Str
+) is export {
+    $dec.chr;
+}
+
+sub hex2string(
+    HexStr $hstr,
+    :$debug
+    --> Str
+) is export {
+    my $dec = hex2dec $hstr;
+    $dec.chr;
+}
+
 sub is-font-file(
     $file,
     :$debug,

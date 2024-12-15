@@ -8,29 +8,38 @@ use PDF::Lite;
 use Font::Utils;
 use Font::Utils::FaceFreeType;
 use Font::Utils::Misc;
+use Font::Utils::Subs;
 
 my $debug = 0;
 
 is 1, 1;
 
 # wrap-string
-my (@s, @c, $s, $c, $cn, $sn, @lines);
+my (@w, @s, @c, @g, $s, $c, $cn, $sn, @lines);
 
-@c = %uni<L-chr>.words;
-$c = hex2string @c;
-say "\$c: '$c'";
-is $c.comb.head, '0';
-$cn = $c.chars;
+@w = %uni<L-chr>.words;
+@c = HexStrRangeWords2HexStrs @w;
+$c = HexStr2Char @c.head;
+is $c, '0';
 
 my $file = %user-fonts<1><path>;
 my $font = load-font :$file;
 my $o = Font::Utils::FaceFreeType.new: :$font, :font-size(12);
 @lines = $o.wrap-string($c, :width(6.5*72));
 
-@s = %uni<L-Sup>.words;
-$s = hex2string @s;
-say "\$s: '$s'";
-$sn = $s.chars;
+@w = %uni<L-Sup>.words;
+@c = HexStrRangeWords2HexStrs @w;
+$c = HexStr2Char @c.head;
+
+say "\$c: '$c'";
+$sn = $c.chars;
+
+for @c {
+    my $g = HexStr2Char($_);
+    @g.push: $g;
+}
+
+$s = @g.join(" ");
 @lines = $o.wrap-string($s, :width(6.5*72));
 
 done-testing;

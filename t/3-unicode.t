@@ -2,45 +2,49 @@ use Test;
 
 use Font::Utils;
 use Font::Utils::Misc;
+use Font::Utils::Subs;
 
 my $debug = 0;
-my (@s, $s);
+my (@s, $s, @w);
 
 @s = %uni<L-sym>.words;
-$s = hex2string @s;
+@w = HexStrRangeWords2HexStrs @s;
+$s = HexStr2Char @w.head;
 is $s.comb.head, '!';
 
 @s = %uni<L-chr>.words;
-$s = hex2string @s;
+@w = HexStrRangeWords2HexStrs @s;
+$s = HexStr2Char @w.head;
 is $s.comb.head, '0';
 
-@s = %uni<L-Sup>.words;
-$s = hex2string @s;
-
 # test them all
+@s = %uni<L-Sup>.words;
+@w = HexStrRangeWords2HexStrs @s;
+$s = HexStr2Char @w.head;
+
 @s = %uni<L-Ext-A>.words;
-$s = hex2string @s;
+@w = HexStrRangeWords2HexStrs @s;
 
 @s = %uni<L-Ext-B>.words;
-$s = hex2string @s;
+@w = HexStrRangeWords2HexStrs @s;
 
 @s = %uni<L-Ext-C>.words;
-$s = hex2string @s;
+@w = HexStrRangeWords2HexStrs @s;
 
 @s = %uni<L-Ext-D>.words;
-$s = hex2string @s;
+@w = HexStrRangeWords2HexStrs @s;
 
 @s = %uni<L-Ext-E>.words;
-$s = hex2string @s;
+@w = HexStrRangeWords2HexStrs @s;
 
 @s = %uni<L-Ext-F>.words;
-$s = hex2string @s;
+@w = HexStrRangeWords2HexStrs @s;
 
 @s = %uni<L-Additional>.words;
-$s = hex2string @s;
+@w = HexStrRangeWords2HexStrs @s;
 
 @s = %uni<L-Ligatures>.words;
-$s = hex2string @s;
+@w = HexStrRangeWords2HexStrs @s;
 
 #==========================
 # glyph '1'

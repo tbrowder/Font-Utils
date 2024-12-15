@@ -1,9 +1,11 @@
 use Test;
 
 use Font::Utils;
+use Font::Utils::Subs;
+use Font::Utils::Misc;
 
 my $debug = 0;
-my ($s1, $s2, $c1, $c2, @symbols, @chars);
+my ($s1, $s2, $c1, $c2, @gchars, @words);
 
 =begin comment
 for 1..2000 {
@@ -16,18 +18,21 @@ for 1..2000 {
 exit;
 =end comment
 
+=begin comment
+#=== DO NOT USE DECIMAL STRING INPUTS FOR NOW
 # use decimals first
-#sym ranges in decimal: 33 47 58 64 91 96 123 126 
-@symbols = "33-47 58-64 91-96 123-126";
-$s1 = dec2string @symbols;
-# char ranges in decimal: 48 57 65 90 97 122 
+#sym ranges in decimal: 33 47 58 64 91 96 123 126
+$s1 = "33-47 58-64 91-96 123-126";
+@chars $s1 = dec2string @symbols;
+# char ranges in decimal: 48 57 65 90 97 122
 @chars = "48-57 65-90 97-122";
 $c1 = dec2string @chars;
 say "symbols: '$s1'" if $debug;
 say "chars:   '$c1'" if $debug;
+=end comment
 
 # then use hex
-@symbols = "21-2f 3a-40 5b-60 7b-7e";
+@words = "21-2f 3a-40 5b-60 7b-7e".words;
 
 =begin comment
 my @s = "21 2f 3a 40 5b 60 7b 7e";
@@ -39,9 +44,15 @@ for @s.kv -> $i, $v {
 say "sym ranges in decimal: $sr";
 =end comment
 
-$s2 = hex2string @symbols;
-say $s2;
-@chars = "30-39 41-5a 61-7a";
+@gchars = HexStrRangeWords2HexStrs @words;
+say @gchars;
+@words = "30-39 41-5a 61-7a".words;
+@gchars = HexStrRangeWords2HexStrs @words;
+say @gchars;
+
+done-testing;
+
+=finish
 
 =begin comment
 my @c = "30 39 41 5a 61 7a";

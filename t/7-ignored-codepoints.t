@@ -2,6 +2,7 @@ use Test;
 
 use Font::Utils;
 use Font::Utils::Misc;
+use Font::Utils::Subs;
 
 my $debug = 0;
 my (@s, $s);
