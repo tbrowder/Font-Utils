@@ -6,18 +6,43 @@ use PDF::Font::Loader :load-font;
 use PDF::Lite;
 use PDF::Content::Text::Box;
 
-use Compress::PDF;
-use Font::Utils;
-use Font::Utils::FaceFreeType;
-use Font::Utils::Misc;
-
 my $debug = 1;
-
-my $file  = "/usr/share/fonts/opentype/freefont/FreeSerif.otf";
-my $file2 = "/usr/share/fonts/opentype/freefont/FreeSans.otf";
 
 my PDF::Lite $pdf .= new;
 my $page = $pdf.add-page;
+
+my $g = $page.gfx;
+$g.Save;
+$g.transform: :translate(0, 10);
+$g.transform: :translate[0, 10];
+$g.MoveTo: 100, 100;
+$g.LineTo: 100, 200;
+$g.ClosePath;
+$g.Stroke;
+$g.Restore;
+
+$page.graphics: {
+.Save;
+.transform: :translate[0, 10];
+.MoveTo: 100, 100;
+.LineTo: 200, 100;
+.ClosePath;
+.Stroke;
+.Restore;
+}
+
+
+my $ofil = "gfx.pdf";
+$pdf.save-as: $ofil;
+say "See file '$ofil'";
+
+
+is 1, 1;
+
+done-testing;
+
+=finish
+
 
 my ($fo, $fo2, $tb, $tb2, $font, $text, $font-size);
 my ($font2, $font-size2, @bbox);
@@ -36,10 +61,10 @@ isa-ok $fo2, Font::Utils::FaceFreeType;
 
 # create a sample glyph page
 my %opts;
-%opts<ng> = 20; # show max of 20 glyphs per section
-%opts<ns> = 3;  # show only 3 sections
-%opts<sn> = 4;  # show only section 4
-%opts<of> = "myspec.pdF";  # define output file name
+%opts<ng> = 20; # show max of X glyphs per section
+%opts<ns> = 2;  # show only X sections
+%opts<sn> = 0;  # show only section X
+%opts<of> = "MyTest.pdF";  # define output file name
 make-font-sample-doc $file, :%opts, :$debug;
 
 done-testing;

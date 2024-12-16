@@ -434,13 +434,15 @@ sub help() is export {
       b=X     - Any entry will result in showing the glyph's baseline,
                   the glyph's origin, its horizontal-advance, and the
                   previous line's baseline
-      ng=X    - Show the first X glyphs
+      ng=X    - Show max of X glyphs per section
+      ns=X    - Show first X sections
+      sn=X    - Show only section X
+      of=X    - Set \$ofil to X
 
     HERE
     =begin comment
     # NYI
       o=L     - Landscape orientation
-      of=X    - Where X is the name of the output file
       d=X     - Where X is a code selecting what additional information
                   will be displayed on the box
                   reference
@@ -454,7 +456,6 @@ my $Rlist    = 0;
 my $Rshow    = 0;
 my $Rsample  = 0;
 my $debug    = 0;
-
 
 sub do-build(
     :$debug,
@@ -1449,9 +1450,9 @@ sub make-font-sample-doc(
         for %opts.kv -> $k, $v {
             if $k eq "s"     { $font-size  = $v; }
             elsif $k eq "of" { $ofil       = $v; }
-            elsif $k eq "ng" { $ng-to-show = $v; }
-            elsif $k eq "ns" { $ns-to-show = $v; }
-            elsif $k eq "sn" { $sn-to-show = $v; }
+            elsif $k eq "ng" { $ng-to-show = $v.UInt; }
+            elsif $k eq "ns" { $ns-to-show = $v.UInt; }
+            elsif $k eq "sn" { $sn-to-show = $v.UInt; }
             elsif $k eq "b" {
                 $embellish = True;
                 # Results in showing the glyph's baseline, the glyph's origin,
@@ -1613,8 +1614,11 @@ sub make-font-sample-doc(
     #==== create the document ================
     my ($page, $g, @bbox);
     #==== Make a cover with a TOC.
+    if 0 {
+    say "DEBUG: no TOC yet";
     my $dpage = $pdf.add-page;
     my $dg    = $dpage.gfx;
+    }
 
     #==== create the font glyph pages
     my $page-num = 0;
@@ -1666,10 +1670,10 @@ sub make-font-sample-doc(
                 $y = $uly;
             }
             # add a glyph box row
-            for @g -> $char-str {
+            for @g -> HexStr $hex {
                 # convert to $hex number str
-                my $dec = $char-str.ord;
-                my $hex = dec2hex $dec;
+                #my $dec = $hs.ord;
+                #my $hex = dec2hex $dec;
                 # draw one box
                 @bbox = make-glyph-box
                     $x, $y, # upper-left corner of the glyph box
@@ -1774,6 +1778,11 @@ sub make-glyph-box(
     my Str $glyph = hex2string $hex;
     #my Str $glyph = (hex2dec($hex)).chr;
 
+    # the gfx block
+    my $g = $page.gfx;
+    $g.Save;
+    #$g.Transform: :translate[$ulx, $uly];
+
     # render as $page.text
     my @glyph-bbox;
     my @hex-bbox;
@@ -1792,10 +1801,6 @@ sub make-glyph-box(
     }
     say "\@glyph-bbox = '{@glyph-bbox.gist}'" if $debug;
     say "\@hex-bbox   = '{@hex-bbox.gist}'" if $debug;
-
-    # border it
-    my $g = $page.gfx;
-    $g.Save;
 
     # the border
     $g.SetLineWidth: 1;
