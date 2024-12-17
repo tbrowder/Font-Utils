@@ -1200,6 +1200,7 @@ sub DecStrRangeWords2HexStrs(
 
 sub HexStrs2GlyphStrs(
     @words,
+    :$ng-to-show,
     :$debug,
     --> List
     ) is export {
@@ -1207,7 +1208,8 @@ sub HexStrs2GlyphStrs(
     # convert them to a list of GlypStr strings.
     my @c;
 
-    for @words -> $w is copy {
+    my $ng = 0;
+    WORD: for @words -> $w is copy {
         if $w ~~ /:i (<[0..9A..Fa..f]>+) '-' (<[0..9A..Fa..f]>+) / {
             my $a = ~$0;
             my $b = ~$1;
@@ -1218,6 +1220,8 @@ sub HexStrs2GlyphStrs(
             note "DEBUG: range hex: '$a' .. '$b'" if $debug;
             note "DEBUG: range dec: '$aa' .. '$bb'" if $debug;
             for $aa..$bb {
+                ++$ng;
+                last WORD unless $ng <= $ng-to-show;
                 say "char decimal value '$_'" if 0 or $debug;
                 # get its hex str
                 my HexStr $c = dec2hex $_;
@@ -1226,6 +1230,8 @@ sub HexStrs2GlyphStrs(
             }
         }
         else {
+            ++$ng;
+            last WORD unless $ng <= $ng-to-show;
             @c.push: $w;
         }
     }
@@ -1544,10 +1550,12 @@ sub make-font-sample-doc(
         ++$ns;
         # decisions to be made
         if $sn-to-show {
-            next SECTION unless $ns == $ns-to-show;
+            # show ONLY a selected section
+            next SECTION unless $ns == $sn-to-show;
         }
         elsif $ns-to-show {
-            last SECTION unless $ns < $ns-to-show;
+            # show ONLY N sections
+            last SECTION unless $ns <= $ns-to-show;
         }
 
         my $title = %uni-titles{$k}<title>;
@@ -1567,7 +1575,9 @@ sub make-font-sample-doc(
         =end comment
 
         # this step converts all to individual HexStr objects
-        my HexStr @gstrs = HexStrs2GlyphStrs %uni{$ukey}.words;
+        my HexStr @gstrs = HexStrs2GlyphStrs %uni{$ukey}.words, :$ng-to-show;
+
+        # reduce to ONLY the max number of glyphs to  show
 
         my $nchars = @gstrs.elems;
         $total-glyphs += $nchars;
@@ -1709,9 +1719,9 @@ sub make-glyph-box(
 
     FaceFreeType :$fo!,  # the font being sampled
     FaceFreeType :$fo2!, # the mono font used for the hex code
-    Str :$hex,           # hex char to be shown
-    :%opts,
+    HexStr :$hex!,       # hex char to be shown
     :$page!,
+    :%opts,
 
     # defaults
     :$line-width = 0,
@@ -1757,18 +1767,14 @@ sub make-glyph-box(
     $ury = $uly;
     my @glyph-box-bbox = $llx, $lly, $urx, $ury;
 
-    # Basically follow the format of the
-    # Unicode charts but with possible
-    # addition of the decimal number.
+    # Basically follow the format of the Unicode charts but with
+    # possible addition of the decimal number.
 
-    # The single glyph is a single char string
-    # from the $font object
-    # and is centered horizonatally in
-    # a constant-width box which is at least
-    # the the size of the total font bbox
+    # The single glyph is a single char string from the $font object
+    # and is centered horizonatally in a constant-width box which is
+    # at least the the size of the total font bbox
 
-    # four-digit hex number at bottom
-    # in mono font (4 chars normally)
+    # four-digit hex number at bottom in mono font (4 chars normally)
     my $s = $hex.uc; # ensure uppercase
     # fill with leading zeros...
     while $s.chars < 4 {
@@ -1781,7 +1787,7 @@ sub make-glyph-box(
     # the gfx block
     my $g = $page.gfx;
     $g.Save;
-    #$g.Transform: :translate[$ulx, $uly];
+    #$g.transform: :translate[$ulx, $uly];
 
     # render as $page.text
     my @glyph-bbox;

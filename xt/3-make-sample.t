@@ -39,7 +39,7 @@ my %opts;
 %opts<ng> = 20; # show max of X glyphs per section
 %opts<ns> = 2;  # show only X sections
 %opts<sn> = 0;  # show only section X
-%opts<of> = "MyTest.pdF";  # define output file name
+%opts<of> = "my-test.pdf";  # define output file name
 make-font-sample-doc $file, :%opts, :$debug;
 
 done-testing;
