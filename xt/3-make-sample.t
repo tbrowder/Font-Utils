@@ -36,8 +36,8 @@ isa-ok $fo2, Font::Utils::FaceFreeType;
 
 # create a sample glyph page
 my %opts;
-%opts<ng> = 20; # show max of X glyphs per section
-%opts<ns> = 2;  # show only X sections
+%opts<ng> = 15; # show max of X glyphs per section
+%opts<ns> = 0;  # show only X sections
 %opts<sn> = 0;  # show only section X
 %opts<of> = "my-test.pdf";  # define output file name
 make-font-sample-doc $file, :%opts, :$debug;

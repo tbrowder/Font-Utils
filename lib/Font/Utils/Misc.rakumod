@@ -56,12 +56,12 @@ subset HexStrRangeWords of Str is export where { $_ ~~
 #   width:  1.1 cm # width is good
 #   height: 1.4 cm
 # convert to points: cm / cm per in * 72
-constant $glyph-box-width  is export = 1.1 / 2.54 * 72; #cm2ps(1.1), # width of the complete box
-constant $glyph-box-height is export = 1.4 / 2.54 * 72; #cm2ps(1.4), # height of the complete box
+constant $glyph-box-width  is export = (1.1 / 2.54) * 72; #cm2ps(1.1), # width of the complete box
+constant $glyph-box-height is export = (1.4 / 2.54) * 72; #cm2ps(1.4), # height of the complete box
 #   glyph baseline 0.5 cm from cell bottom
 #   hex code baseline 0.1 cm from cell bottom
-constant $glyph-box-baselineY  is export = 2.54 / 0.5 * 72; #cm2ps(0.5);
-constant $glyph-box-baselineY2 is export = 2.54 / 0.1 * 72; #cm2ps(0.1);
+constant $glyph-box-baselineY  is export = (0.5 / 2.54) * 72; #cm2ps(0.5);
+constant $glyph-box-baselineY2 is export = (0.1 / 2.54) * 72; #cm2ps(0.1);
 #=end comment
 
 # List keys and titles for Unicode Latin glyphs

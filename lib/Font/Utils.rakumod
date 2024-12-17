@@ -1245,26 +1245,6 @@ sub find-local-font is export {
     $f;
 }
 
-sub in2ps($in) is export {
-    $in * 72
-}
-sub in2cm($in) is export {
-    $in * 2.54
-}
-sub cm2in($cm) is export {
-    $cm / 2.54
-}
-sub cm2ps($cm) is export {
-    cm2in($cm) * 72
-}
-
-sub deg2rad($degrees) is export {
-    $degrees * pi / 180
-}
-sub rad2deg($radians) is export {
-    $radians * 180 / pi
-}
-
 sub draw-rectangle-clip(
     :$llx!,
     :$lly!,
@@ -1424,8 +1404,8 @@ sub make-font-sample-doc(
     # defaults
     # Letter or A4
     my $paper = "Letter";
-    my Numeric $font-size = 16;
-    my Numeric $font-size2 = 8;
+    my Numeric $font-size = 18;
+    my Numeric $font-size2 = 6;
     my Bool $embellish = False;
 
     my UInt    $ng-to-show = 0; # no limit on number of glyphs
@@ -1438,7 +1418,6 @@ sub make-font-sample-doc(
         $font2 = load-font :file($file2);
     }
     else {
-        #$file = find
         $file2 = find-font :family<Helvetica>;
         $font2 = load-font :file($file2);
     }
@@ -1789,6 +1768,17 @@ sub make-glyph-box(
     $g.Save;
     #$g.transform: :translate[$ulx, $uly];
 
+    #=== border first ================================
+    # the border
+    $g.SetLineWidth: 0.5;
+    $g.MoveTo: $ulx, $uly; # top left
+    $g.LineTo: $llx, $lly; # bottom left
+    $g.LineTo: $lrx, $lry; # bottom right
+    $g.LineTo: $urx, $ury; # top right
+    $g.ClosePath;
+    $g.Stroke;
+    #=== border first ================================
+
     # render as $page.text
     my @glyph-bbox;
     my @hex-bbox;
@@ -1807,15 +1797,6 @@ sub make-glyph-box(
     }
     say "\@glyph-bbox = '{@glyph-bbox.gist}'" if $debug;
     say "\@hex-bbox   = '{@hex-bbox.gist}'" if $debug;
-
-    # the border
-    $g.SetLineWidth: 1;
-    $g.MoveTo: $ulx, $uly; # top left
-    $g.LineTo: $llx, $lly; # bottom left
-    $g.LineTo: $lrx, $lry; # bottom right
-    $g.LineTo: $urx, $ury; # top right
-    $g.ClosePath;
-    $g.Stroke;
 
     # dimensions of a Unicode glyph box:
     #   glyph baseline 0.5 cm from cell bottom
@@ -1839,6 +1820,7 @@ sub make-glyph-box(
     #       draw lines at the font height and previous baselines
 
     # stroke the baselines
+    $g.SetLineWidth: 0;
     $g.MoveTo: $llx, $lly + $glyph-box-baselineY;
     $g.LineTo: $lrx, $lly + $glyph-box-baselineY;
     $g.Stroke;
