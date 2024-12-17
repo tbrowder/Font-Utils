@@ -139,8 +139,6 @@ $page.text: {
 }
 say "\@bbox = '{@bbox.gist}'";
 
-
-
 my $ofil = "xt1test-box.pdf";
 $pdf.save-as: $ofil;
 compress $ofil, :dpi(300), :quiet, :force;

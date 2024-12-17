@@ -8,7 +8,13 @@ my $debug = 0;
 my (@s, $s, @w);
 
 @s = %uni<L-sym>.words;
+if $debug {
+    say "DEBUG: \@s = {@s.gist}";
+}
 @w = HexStrs2GlyphStrs @s;
+if $debug {
+    say "DEBUG: \@w = {@w.gist}";
+}
 $s = HexStr2Char @w.head;
 is $s.comb.head, '!';
 

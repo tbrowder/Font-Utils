@@ -7,6 +7,9 @@ sub HexStr2Char(
     :$debug
     --> Str
 ) is export {
+    unless $hstr.defined and $hstr {
+        die "FATAL: Input HexStr is empty: '$hstr'";
+    }
     my $dec = hex2dec $hstr;
     $dec.chr;
 }

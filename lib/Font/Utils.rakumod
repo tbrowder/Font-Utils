@@ -1219,20 +1219,29 @@ sub HexStrs2GlyphStrs(
             my $bb = parse-base "$b", 16;
             note "DEBUG: range hex: '$a' .. '$b'" if $debug;
             note "DEBUG: range dec: '$aa' .. '$bb'" if $debug;
+            my @tchars;
             for $aa..$bb {
-                ++$ng;
-                last WORD unless $ng <= $ng-to-show;
-                say "char decimal value '$_'" if 0 or $debug;
+                say "DEBUG: char decimal value '$_'" if 1 or $debug;
                 # get its hex str
                 my HexStr $c = dec2hex $_;
-                say "   its hex value: '$c'" if 0 or $debug;
-                @c.push: $c;
+                say "DEBUG   its hex value: '$c'" if 1 or $debug;
+                @tchars.push: $c;
             }
+            # now count the chars
+            for @tchars {
+                ++$ng;
+                @c.push: $_;
+                last WORD unless $ng < $ng-to-show;
+            }
+            
+        }
+        elsif $w ~~ HexStr {
+            ++$ng;
+            @c.push: $w;
+            last WORD unless $ng < $ng-to-show;
         }
         else {
-            ++$ng;
-            last WORD unless $ng <= $ng-to-show;
-            @c.push: $w;
+            die "FATAL: word '$w' is not a HexStr";
         }
     }
 
@@ -1426,7 +1435,7 @@ sub make-font-sample-doc(
 
     if %opts and %opts.elems {
         # m=A4 - A4 media (default: Letter)
-        # s=X  - font size (default: 16)
+        # s=X  - font size (default: 18)
         # b=X  - add baseline and other data to the glyph box ($embellish)
         # ng=X - show max of X glyphs per section
         # ns=X - show first X sections
@@ -1485,6 +1494,14 @@ sub make-font-sample-doc(
     my $uly = $pheight - $tmarginh - $fo.ascender;
     my $lly = $bmarginh + $fo.descender;
     say "DEBUG: \$ulx, \$uly = '$ulx', '$uly'" if 1 or $debug;
+
+    # vertical space constants for starting a new section on a page
+    #   or a single glyph row
+    my $section-title-vspace = $font-size; # same as its font size .height
+    # space for a section title plus two glyph rows
+    my $widow-min-vspace  = $lly + 3*$section-title-vspace + $glyph-box-height; 
+    my $orphan-min-vspace = $lly + $glyph-box-height;
+
 
     # Plan is to print all the Latin glyphs on as many pages
     # as necessary. Demark each set with its formal name.
@@ -1554,15 +1571,14 @@ sub make-font-sample-doc(
         =end comment
 
         # this step converts all to individual HexStr objects
+        # and reduces the set to ONLY the max number of glyphs to  show
         my HexStr @gstrs = HexStrs2GlyphStrs %uni{$ukey}.words, :$ng-to-show;
-
-        # reduce to ONLY the max number of glyphs to  show
 
         my $nchars = @gstrs.elems;
         $total-glyphs += $nchars;
         say "DEBUG: \@s has $nchars single glyph strings" if 0 and $debug;
 
-        # TODO break @gstrs into $maxng length chunks
+        # break @gstrs into $maxng length chunks
         my $glyph-row;
         while @gstrs.elems > $maxng {
             # get a chunk of length $maxng length
@@ -1581,13 +1597,6 @@ sub make-font-sample-doc(
             # and finished with this row
             @sections.tail.push: $glyph-row;
         }
-
-        =begin comment
-        while @s -> $hex {
-            # fill a string with max glyphs for the content width
-            my $s = "";
-        }
-        =end comment
 
         if 0 and $debug {
             for @gstrs -> $hex {
@@ -1624,7 +1633,6 @@ sub make-font-sample-doc(
     # We also note the page number for each title
     #   entry for the TOC.
 
-    #my ($ulx, $llx);
     my ($x, $y) = $ulx, $uly;
     my ($boxH);
     for @sections -> $section {
@@ -1635,6 +1643,7 @@ sub make-font-sample-doc(
             $x = $ulx;
             $y = $uly;
         }
+        # write the section title
         $page.text: {
             .font = $fo.font, $fo.font-size;
             .text-position = $x, $y;
@@ -1646,14 +1655,15 @@ sub make-font-sample-doc(
         say "DEBUG: \$y = '$y'" if 1 or $debug;
 
         # now iterate over this section's glyph-rows
-        for $section.glyph-rows -> $glyph-row {
+        ROW: for $section.glyph-rows -> $glyph-row {
             my @g = $glyph-row.glyphs;
             for @g -> $g {
                 print " $g" if $debug;
             }
             say() if $debug;
-            # check for enough vertical space
-            if $y < ($lly + $glyph-box-height) {
+            # check for enough vertical space for the row
+            #if $y < ($lly + $glyph-box-height) { # <= orphan-min-vspace
+            if $y < $orphan-min-vspace  {
                 $pdf.add-page;
                 $x = $ulx;
                 $y = $uly;
@@ -1677,6 +1687,7 @@ sub make-font-sample-doc(
             $x = $ulx;
             $y -= $boxH;
         }
+        $y -= 0.25 * 72;
     }
 
     $pdf.save-as: $ofil;
