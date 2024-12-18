@@ -1210,41 +1210,52 @@ sub HexStrs2GlyphStrs(
 
     my $ng = 0;
     WORD: for @words -> $w is copy {
-        if $w ~~ /:i (<[0..9A..Fa..f]>+) '-' (<[0..9A..Fa..f]>+) / {
+        $w = $w.Str;
+        say "DEBUG: input hex range word: '$w'" if $w ~~ /'-'/;
+        say "DEBUG: input hex range word: '$w'" if 1 or $debug;
+        if $w ~~ /^:i (<[0..9A..Fa..f]>+) '-' (<[0..9A..Fa..f]>+) $/ {
             my $a = ~$0;
             my $b = ~$1;
             # it's a range, careful, have to convert the range to decimal
             # convert from hex to decimal
             my $aa = parse-base "$a", 16;
             my $bb = parse-base "$b", 16;
-            note "DEBUG: range hex: '$a' .. '$b'" if $debug;
-            note "DEBUG: range dec: '$aa' .. '$bb'" if $debug;
-            my @tchars;
-            for $aa..$bb {
-                say "DEBUG: char decimal value '$_'" if 1 or $debug;
+            say "DEBUG: range hex: '$a' .. '$b'" if 1 or $debug;
+            say "DEBUG: range dec: '$aa' .. '$bb'" if 1 or $debug;
+            my @tchars = [];
+            for $aa..$bb -> $d {
                 # get its hex str
-                my HexStr $c = dec2hex $_;
-                say "DEBUG   its hex value: '$c'" if 1 or $debug;
+                #my HexStr $c = dec2hex $d;
+                my $c = dec2hex $d;
+                say "DEBUG: char decimal value '$d', hex value '$c'" if 1 or $debug;
                 @tchars.push: $c;
             }
             # now count the chars
-            for @tchars {
+            for @tchars -> $c {
                 ++$ng;
-                @c.push: $_;
-                last WORD unless $ng < $ng-to-show;
+                say "DEBUG: its hex value: '$c'" if 1 or $debug;
+                @c.push: $c;
+                #last WORD unless $ng < $ng-to-show;
             }
             
         }
         elsif $w ~~ HexStr {
             ++$ng;
+            say "DEBUG: its hex value: '$w'" if 1 or $debug;
             @c.push: $w;
-            last WORD unless $ng < $ng-to-show;
+            #last WORD unless $ng < $ng-to-show;
         }
         else {
+            say "DEBUG:   its hex value: '$w'" if 1 or $debug;
             die "FATAL: word '$w' is not a HexStr";
         }
     }
 
+    =begin comment
+    if @c.elems > $ng-to-show {
+        @c = @c[0..^$ng-to-show];
+    }
+    =end comment
     @c
 }
 
@@ -1403,8 +1414,7 @@ sub make-font-sample-doc(
     :$debug,
     ) is export {
 
-    # create lines of glyph boxes
-    # out of a wrapped string of
+    # create lines of glyph boxes # out of a wrapped string of
     # chars
 
     say "DEBUG: in make-font-sample-page..." if $debug;
@@ -1573,6 +1583,9 @@ sub make-font-sample-doc(
         # this step converts all to individual HexStr objects
         # and reduces the set to ONLY the max number of glyphs to  show
         my HexStr @gstrs = HexStrs2GlyphStrs %uni{$ukey}.words, :$ng-to-show;
+        if $ng-to-show and @gstrs.elems > $ng-to-show {
+            @gstrs = @gstrs[0..^$ng-to-show];
+        }
 
         my $nchars = @gstrs.elems;
         $total-glyphs += $nchars;
