@@ -11,7 +11,7 @@ use Font::Utils;
 use Font::Utils::FaceFreeType;
 use Font::Utils::Misc;
 
-my $debug = 1;
+my $debug = 0;
 
 my $file  = "/usr/share/fonts/opentype/freefont/FreeSerif.otf";
 my $file2 = "/usr/share/fonts/opentype/freefont/FreeSans.otf";

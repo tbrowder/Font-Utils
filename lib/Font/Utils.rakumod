@@ -1212,7 +1212,7 @@ sub HexStrs2GlyphStrs(
     WORD: for @words -> $w is copy {
         $w = $w.Str;
         say "DEBUG: input hex range word: '$w'" if $w ~~ /'-'/;
-        say "DEBUG: input hex range word: '$w'" if 1 or $debug;
+        say "DEBUG: input hex range word: '$w'" if $debug;
         if $w ~~ /^:i (<[0..9A..Fa..f]>+) '-' (<[0..9A..Fa..f]>+) $/ {
             my $a = ~$0;
             my $b = ~$1;
@@ -1220,20 +1220,20 @@ sub HexStrs2GlyphStrs(
             # convert from hex to decimal
             my $aa = parse-base "$a", 16;
             my $bb = parse-base "$b", 16;
-            say "DEBUG: range hex: '$a' .. '$b'" if 1 or $debug;
-            say "DEBUG: range dec: '$aa' .. '$bb'" if 1 or $debug;
+            say "DEBUG: range hex: '$a' .. '$b'" if $debug;
+            say "DEBUG: range dec: '$aa' .. '$bb'" if $debug;
             my @tchars = [];
             for $aa..$bb -> $d {
                 # get its hex str
                 #my HexStr $c = dec2hex $d;
                 my $c = dec2hex $d;
-                say "DEBUG: char decimal value '$d', hex value '$c'" if 1 or $debug;
+                say "DEBUG: char decimal value '$d', hex value '$c'" if $debug;
                 @tchars.push: $c;
             }
             # now count the chars
             for @tchars -> $c {
                 ++$ng;
-                say "DEBUG: its hex value: '$c'" if 1 or $debug;
+                say "DEBUG: its hex value: '$c'" if $debug;
                 @c.push: $c;
                 #last WORD unless $ng < $ng-to-show;
             }
@@ -1241,12 +1241,12 @@ sub HexStrs2GlyphStrs(
         }
         elsif $w ~~ HexStr {
             ++$ng;
-            say "DEBUG: its hex value: '$w'" if 1 or $debug;
+            say "DEBUG: its hex value: '$w'" if $debug;
             @c.push: $w;
             #last WORD unless $ng < $ng-to-show;
         }
         else {
-            say "DEBUG:   its hex value: '$w'" if 1 or $debug;
+            say "DEBUG:   its hex value: '$w'" if $debug;
             die "FATAL: word '$w' is not a HexStr";
         }
     }
@@ -1503,7 +1503,7 @@ sub make-font-sample-doc(
     # consider font heights for y coords for text
     my $uly = $pheight - $tmarginh - $fo.ascender;
     my $lly = $bmarginh + $fo.descender;
-    say "DEBUG: \$ulx, \$uly = '$ulx', '$uly'" if 1 or $debug;
+    say "DEBUG: \$ulx, \$uly = '$ulx', '$uly'" if $debug;
 
     # vertical space constants for starting a new section on a page
     #   or a single glyph row
@@ -1569,7 +1569,7 @@ sub make-font-sample-doc(
         @sections.push: $section;
 
         my $ukey  = %uni-titles{$k}<key>;
-        say "DEBUG: ukey = '$ukey'" if 0 and $debug;
+        say "DEBUG: ukey = '$ukey'" if $debug;
 
         =begin comment
         # one line of text introducing a new group of glyphs
@@ -1589,7 +1589,7 @@ sub make-font-sample-doc(
 
         my $nchars = @gstrs.elems;
         $total-glyphs += $nchars;
-        say "DEBUG: \@s has $nchars single glyph strings" if 0 and $debug;
+        say "DEBUG: \@s has $nchars single glyph strings" if $debug;
 
         # break @gstrs into $maxng length chunks
         my $glyph-row;
@@ -1611,7 +1611,7 @@ sub make-font-sample-doc(
             @sections.tail.push: $glyph-row;
         }
 
-        if 0 and $debug {
+        if $debug {
             for @gstrs -> $hex {
                 say "    seeing hex code range '$hex'";
             }
@@ -1664,8 +1664,8 @@ sub make-font-sample-doc(
         }
         $boxH = @bbox[3] - @bbox[1];
         $y -= $boxH;
-        say "DEBUG: title: '$text'" if 1 or $debug;
-        say "DEBUG: \$y = '$y'" if 1 or $debug;
+        say "DEBUG: title: '$text'" if $debug;
+        say "DEBUG: \$y = '$y'" if $debug;
 
         # now iterate over this section's glyph-rows
         ROW: for $section.glyph-rows -> $glyph-row {

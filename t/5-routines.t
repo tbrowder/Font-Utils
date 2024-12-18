@@ -10,7 +10,7 @@ use Font::Utils::FaceFreeType;
 use Font::Utils::Misc;
 use Font::Utils::Subs;
 
-my $debug = 1;
+my $debug = 0;
 
 is 1, 1;
 

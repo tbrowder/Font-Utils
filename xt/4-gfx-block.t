@@ -6,7 +6,7 @@ use PDF::Font::Loader :load-font;
 use PDF::Lite;
 use PDF::Content::Text::Box;
 
-my $debug = 1;
+my $debug = 0;
 
 my PDF::Lite $pdf .= new;
 my $page = $pdf.add-page;
