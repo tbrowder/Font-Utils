@@ -23,6 +23,8 @@ has $.face;
 has Font::FreeType::SizeMetrics $.sm;  # size-metrics object
 has $.rawname;
 has $.basename;
+has @.ignored;
+has @.vignored;
 
 submethod TWEAK {
     $!face = $!font.face; # Font::FreeType.new.face: $!file.Str;
@@ -30,6 +32,48 @@ submethod TWEAK {
     $!sm = $!face.scaled-metrics;
     $!file = $!font.file;
     $!basename = $!file.IO.basename;
+
+    # create its own list of zero-width code-points to ignore when 
+    #   creating sample pages
+    for $!face.cmap {
+        say ".cmap: {$_.gist}";
+        my $glyph-index = .key;
+        my $char        = .value.chr;
+        my $width  = 0;
+        my $height = 0;
+        $!face.for-glyphs: $char, -> $g {
+            $width  = $g.width;
+            $height = $g.height;
+        }
+        my $prop        = $char.uniprop;
+        my $name        = $char.uniname;
+        my $ord         = $char.ord;
+        my $hex         = $ord.base(16);
+        if $width == 0 {
+            @!ignored.push: $hex;
+        }
+        if $height == 0 {
+            @!vignored.push: $hex;
+        }
+
+        =begin comment
+        say "glyph index: $glyph-index";
+        say "       char: $char";
+        say "    decimal: $ord";
+        say "        hex: $hex";
+        say "      width: $width";
+        say "    uniname: $name";
+        say "    uniprop: $prop";
+        if $width == 0 {
+            note "WARNING: glyph '$hex' == 0";
+        }
+        =end comment
+
+        #say $prop;
+        #%control-chars{$prop}.push($char.uniname)
+        #    if Control-Chars($char.uniprop);
+    }
+    
 
     # create the rawname
     # basename without a suffix
@@ -155,6 +199,13 @@ method stringwidth(Str $s) {
         $w += $x;
     });
     $w
+}
+
+method is-ignored(Str $s where { $_.chars == 1}) {
+    my $dec = hex2dec $hex;
+    $dec (<) @ignored-dec-codepoints
+}
+method is-vignored(Str $s where { $_.chars == 1}) {
 }
 
 method top-bearing(Str $s) {

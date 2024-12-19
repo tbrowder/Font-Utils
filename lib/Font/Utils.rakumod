@@ -1,5 +1,7 @@
 unit module Font::Utils;
 
+use OO::Monitors;
+
 use Font::FreeType;
 use Font::FreeType::SizeMetrics;
 use Font::FreeType::Glyph;
@@ -123,6 +125,7 @@ sub create-ignored-dec-codepoints-list(
     # our @ignored-dec-codepoints is export; # hex code point => ignore
 
     # the only space we want to show: 0x0020, # SPACE
+    # NO, don't show it either
     constant @ignored-glyphs = [
         # Unicode code points for unwanted glyphs to show in charts
         0x0009, # CHARACTER TABULATION
@@ -130,6 +133,7 @@ sub create-ignored-dec-codepoints-list(
         0x000B, # LINE TABULATION             vertical
         0x000C, # FORM FEED (FF)              vertical
         0x000D, # CARRIAGE RETURN (CR)        vertical
+        0x0020, # SPACE
         0x00A0, # NO-BREAK SPACE
         0x1680, # OGHAM SPACE MARK
         0x180E, # MONGOLIAN VOWEL SEPARATOR
@@ -650,7 +654,7 @@ sub use-args(@args is copy) is export {
         my @fams;
         my $font;
         for @fils {
-            note "DEBUG: path = '$_'" if 0 or $debug;
+            say "DEBUG: path = '$_'" if 0 or $debug;
             my $file = $_.IO.absolute;
             $font = load-font :$file;
             my $o      = FaceFreeType.new: :$file, :$font-size, :$font;
@@ -1056,7 +1060,7 @@ sub make-page(
                        :font($pn-font), :font-size(10), :align<right>, :kern;
 
         if 1 {
-            note "DEBUG: \@bbox with :align\<center>: {@bbox.raku}";
+            say "DEBUG: \@bbox with :align\<center>: {@bbox.raku}";
         }
 
 #        =begin comment
@@ -1237,7 +1241,7 @@ sub HexStrs2GlyphStrs(
                 @c.push: $c;
                 #last WORD unless $ng < $ng-to-show;
             }
-            
+
         }
         elsif $w ~~ HexStr {
             ++$ng;
@@ -1365,7 +1369,7 @@ sub find-local-font-file(
         }
     }
     if not $font-file {
-        note "WARNING: No suitable font file was found."
+        say "WARNING: No suitable font file was found."
     }
     $font-file
 }
@@ -1429,7 +1433,7 @@ sub make-font-sample-doc(
 
     my UInt    $ng-to-show = 0; # no limit on number of glyphs
     my UInt    $ns-to-show = 0; # no limit on number of sections
-    my UInt    $sn-to-show = 0; # show only this section
+    my         @sn-to-show = []; # show only this section
 
     my $font = load-font :$file;
     my $font2;
@@ -1456,7 +1460,31 @@ sub make-font-sample-doc(
             elsif $k eq "of" { $ofil       = $v; }
             elsif $k eq "ng" { $ng-to-show = $v.UInt; }
             elsif $k eq "ns" { $ns-to-show = $v.UInt; }
-            elsif $k eq "sn" { $sn-to-show = $v.UInt; }
+            elsif $k eq "sn" {
+                my $w = $v.Str;
+                say "DEBUG: \$w = '$w'" if 0;
+                if $w ~~ /\h/ {
+                    # split on ' '
+                    @sn-to-show = $w.words;
+                }
+                elsif $w ~~ /','/ {
+                    # split on ','
+                    $w = $w.split(',');
+                    @sn-to-show = $w.words;
+                }
+                else {
+                    $w = $v.UInt;
+                    @sn-to-show.push: $w;
+                }
+                if 0 {
+                    say qq:to/HERE/;
+                    DEBUG: \@sn-to-show:
+                           {@sn-to-show.gist}
+                    HERE
+                    say "...and exit"; exit;
+                }
+
+            }
             elsif $k eq "b" {
                 $embellish = True;
                 # Results in showing the glyph's baseline, the glyph's origin,
@@ -1509,16 +1537,15 @@ sub make-font-sample-doc(
     #   or a single glyph row
     my $section-title-vspace = $font-size; # same as its font size .height
     # space for a section title plus two glyph rows
-    my $widow-min-vspace  = $lly + 3*$section-title-vspace + $glyph-box-height; 
+    my $widow-min-vspace  = $lly + 3*$section-title-vspace + 2*$glyph-box-height;
     my $orphan-min-vspace = $lly + $glyph-box-height;
 
-
-    # Plan is to print all the Latin glyphs on as many pages
-    # as necessary. Demark each set with its formal name.
+    # Plan is to print all the Latin glyphs on as many pages as
+    # necessary. Demark each set with its formal name.
 
     # create ALL the input data as Section objects FIRST
     #   THEN create the pages
-    class Glyph-Row {
+    monitor Glyph-Row {
         has HexStr @.glyphs;
         method push(HexStr $glyph) {
             # Reject known unwanted glyphs per Unicode.org control
@@ -1529,7 +1556,7 @@ sub make-font-sample-doc(
         }
     }
 
-    class Section {
+    monitor Section {
         has Str $.title;
         has UInt$.number; # 1...Nsections;
         # hexadecimal repr, number depends on
@@ -1555,9 +1582,16 @@ sub make-font-sample-doc(
     SECTION: for %uni-titles.keys.sort -> $k {
         ++$ns;
         # decisions to be made
-        if $sn-to-show {
-            # show ONLY a selected section
-            next SECTION unless $ns == $sn-to-show;
+        if @sn-to-show.elems {
+            # show ONLY selected sections
+            my $show = 0;
+            for @sn-to-show {
+                $show = 1 if $_ == $ns;
+            }
+            my $nsn = @sn-to-show.elems;
+            my $s = $nsn > 1 ?? 's' !! '';
+            say "DEBUG: showing section $ns of $nsn section$s";
+            next SECTION unless $show;
         }
         elsif $ns-to-show {
             # show ONLY N sections
@@ -1571,17 +1605,8 @@ sub make-font-sample-doc(
         my $ukey  = %uni-titles{$k}<key>;
         say "DEBUG: ukey = '$ukey'" if $debug;
 
-        =begin comment
-        # one line of text introducing a new group of glyphs
-        $page.text: {
-            .font = $fo.font, $fo.font-size;
-            .text-position = $x, $y;
-            @bbox = .print: $glyph, :align<center>;
-        }
-        =end comment
-
-        # this step converts all to individual HexStr objects
-        # and reduces the set to ONLY the max number of glyphs to  show
+        # this step converts all to individual HexStr objects and
+        # reduces the set to ONLY the max number of glyphs to show
         my HexStr @gstrs = HexStrs2GlyphStrs %uni{$ukey}.words, :$ng-to-show;
         if $ng-to-show and @gstrs.elems > $ng-to-show {
             @gstrs = @gstrs[0..^$ng-to-show];
@@ -1594,8 +1619,7 @@ sub make-font-sample-doc(
         # break @gstrs into $maxng length chunks
         my $glyph-row;
         while @gstrs.elems > $maxng {
-            # get a chunk of length $maxng length
-            # a row
+            # get a chunk of length $maxng length per row
             $glyph-row = Glyph-Row.new;
             for 0..^$maxng {
                 $glyph-row.push: @gstrs.shift;
@@ -1624,11 +1648,13 @@ sub make-font-sample-doc(
 
     #==== create the document ================
     my ($page, $g, @bbox);
-    #==== Make a cover with a TOC.
+    #==== TODO Make a cover with a TOC.
     if 0 {
     say "DEBUG: no TOC yet";
     my $dpage = $pdf.add-page;
     my $dg    = $dpage.gfx;
+    # blank reverse
+    my $dpage2 = $pdf.add-page;
     }
 
     #==== create the font glyph pages
@@ -1636,6 +1662,7 @@ sub make-font-sample-doc(
     my %page-nums;
 
     $page = $pdf.add-page; ++$page-num;
+    say "NEW PAGE $page-num =============";
     $g = $page.gfx;
 
     # We have to start at the baseline of the content area
@@ -1651,8 +1678,9 @@ sub make-font-sample-doc(
     for @sections -> $section {
         my $text = $section.title;
         # check if enough room to get a couple of glyph rows following
-        if $y < ($lly + $fo.height + 2 * $glyph-box-height) {
-            $pdf.add-page;
+        #if $y < ($lly + $fo.height + 2 * $glyph-box-height) {
+        if $y < $widow-min-vspace  {
+            $page = $pdf.add-page; ++$page-num;
             $x = $ulx;
             $y = $uly;
         }
@@ -1670,14 +1698,11 @@ sub make-font-sample-doc(
         # now iterate over this section's glyph-rows
         ROW: for $section.glyph-rows -> $glyph-row {
             my @g = $glyph-row.glyphs;
-            for @g -> $g {
-                print " $g" if $debug;
-            }
-            say() if $debug;
             # check for enough vertical space for the row
             #if $y < ($lly + $glyph-box-height) { # <= orphan-min-vspace
             if $y < $orphan-min-vspace  {
-                $pdf.add-page;
+                $page = $pdf.add-page; ++$page-num;
+                say "NEW PAGE $page-num =============";
                 $x = $ulx;
                 $y = $uly;
             }
@@ -1699,8 +1724,20 @@ sub make-font-sample-doc(
             $boxH = @bbox[3] - @bbox[1];
             $x = $ulx;
             $y -= $boxH;
+            if $y < $orphan-min-vspace  {
+                $page = $pdf.add-page; ++$page-num;
+                say "NEW PAGE $page-num =============";
+                $x = $ulx;
+                $y = $uly;
+            }
         }
         $y -= 0.25 * 72;
+        if $y < $widow-min-vspace  {
+                $page = $pdf.add-page; ++$page-num;
+                say "NEW PAGE $page-num =============";
+                $x = $ulx;
+                $y = $uly;
+        }
     }
 
     $pdf.save-as: $ofil;
@@ -1727,7 +1764,7 @@ sub make-glyph-box(
     :%opts,
 
     # defaults
-    :$line-width = 0,
+    :$line-width  = 0,
     :$line-width2 = 0,
 
     =begin comment
@@ -1745,7 +1782,6 @@ sub make-glyph-box(
 
     :$hori-border-space = 4,
     :$vert-border-space = 4,
-
     :$debug,
     ) is export {
 
@@ -1790,6 +1826,8 @@ sub make-glyph-box(
     # the gfx block
     my $g = $page.gfx;
     $g.Save;
+    $g.SetStrokeGray: 0;
+
     #$g.transform: :translate[$ulx, $uly];
 
     #=== border first ================================
@@ -1814,13 +1852,24 @@ sub make-glyph-box(
         .font = $fo.font, $fo.font-size;
         .text-position = $llx + 0.5 * $glyph-box-width, $lly + $glyph-box-baselineY;
         @glyph-bbox = .print: $glyph, :align<center>;
+
         # the hex code (already a string)
         .font = $fo2.font, $fo2.font-size;
         .text-position = $llx + 0.5 * $glyph-box-width, $lly + $glyph-box-baselineY2;
         @hex-bbox = .print: $s, :align<center>;
     }
-    say "\@glyph-bbox = '{@glyph-bbox.gist}'" if $debug;
-    say "\@hex-bbox   = '{@hex-bbox.gist}'" if $debug;
+
+    my $char-width = @glyph-bbox[2] - @glyph-bbox[0];
+    note "WARNING: glyph (hex code '$hex) width = '$char-width'; need to handle earlier"
+        if $char-width <= 0;
+;
+    if $debug > 1 {
+        say qq:to/HERE/;
+        DEBUG:
+            First \@glyph-bbox = '{@glyph-bbox.gist}'"
+            First \@hex-bbox   = '{@hex-bbox.gist}'
+        HERE
+    }
 
     # dimensions of a Unicode glyph box:
     #   glyph baseline 0.5 cm from cell bottom
@@ -1862,8 +1911,15 @@ sub make-glyph-box(
     # stroke the previous baseline
     my $h  = $fo.height; # $font.height * $font-size;
     my $by = $lly + $glyph-box-baselineY + $h;
-    say "DEBUG: Font height: '{$fo.height}'"; # it should be scaled
-    say "DEBUG: Previous baseline height on the page: '$by'";
+
+    if $debug > 1 {
+        say qq:to/HERE/;
+        DEBUG:
+            Font height: '{$fo.height}' # it should be scaled
+            Previous baseline height on the page: '$by'
+        HERE
+    }
+
     $g.MoveTo: $llx, $lly + $glyph-box-baselineY + $h;
     $g.LineTo: $lrx, $lly + $glyph-box-baselineY + $h;
     $g.Stroke;

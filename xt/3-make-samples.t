@@ -1,5 +1,7 @@
 use Test;
 
+use OO::Monitors;
+
 use PDF::API6; # <== required for $page
 use PDF::Content;
 use PDF::Font::Loader :load-font;
@@ -11,9 +13,11 @@ use Font::Utils;
 use Font::Utils::FaceFreeType;
 use Font::Utils::Misc;
 
-my $debug = 0;
+my $debug    = 2;
+my $compress = 0;
 
 my $file  = "/usr/share/fonts/opentype/freefont/FreeSerif.otf";
+#my $file  = "/usr/share/fonts/opentype/freefont/FreeSans.otf";
 my $file2 = "/usr/share/fonts/opentype/freefont/FreeSans.otf";
 
 my PDF::Lite $pdf .= new;
@@ -36,17 +40,47 @@ isa-ok $fo2, Font::Utils::FaceFreeType;
 
 # create a sample glyph page
 my %opts;
-%opts<ng> = 15; # show max of X glyphs per section
-%opts<ns> = 0;  # show only X sections
-%opts<sn> = 0;  # show only section X
-%opts<of> = "my-test.pdf";  # define output file name
+
+my $test1 = 0;
+my $test2 = 0;
+my $test3 = 1;
+
+is 1, 1;
+if $test1 {
+%opts<ng> = 15;  # show max of N glyphs per section
+%opts<ns> = 2;   # show only first N sections
+%opts<sn> = 1,3;  # show only "X,Y,..Z" sections
+%opts<of> = "my-test-sample.pdf";  # define output file name
 make-font-sample-doc $file, :%opts, :$debug;
+} # $test1
+
+if $test2 {
+%opts = %();
+%opts<of> = "my-complete-sample.pdf";  # define output file name
+%opts<sn> = "1,2,3,4,5,11,12";
+make-font-sample-doc $file, :%opts, :$debug;
+} # $test2
+
+if $test3 {
+
+# complete sections individually
+%opts<ng> = 0; # show max of N glyphs per section
+%opts<ns> = 0; # show only first sections
+%opts<sn> = "1,2,3"; # show only "X,Y,..Z" sections
+%opts<of> = "my-test-sample.pdf";  # define output file name
+for 1..12 -> $n {
+    %opts<sn> = $n.Str;  # show only section $n
+    %opts<of> = "section-sample$n.pdf";  # define output file name
+    make-font-sample-doc $file, :%opts, :$debug;
+}
+} # $test3
+
 
 done-testing;
 
 =finish
 
-glyph box
+# glyph box
 my $ulx = 72;
 my $uly = 10*72;
 my $hex = "A734"; # Latin Extended-D
@@ -77,7 +111,11 @@ say @bbox.gist if $debug;
 my $ofil = "xt2glyph-box.pdf";
 
 $pdf.save-as: $ofil;
-compress $ofil, :quiet, :dpi(300);
+
+if $compress {
+    compress $ofil, :quiet, :dpi(300);
+}
+
 say "See output file: '$ofil'";
 
 done-testing;
