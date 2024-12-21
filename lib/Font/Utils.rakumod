@@ -974,14 +974,62 @@ sub pdf-font-samples(
     while $next-font-index < @fonts.elems {
         $page = $pdf.add-page;
         $page.media-box = $pdf.media-box;
-        $next-font-index = make-page $next-font-index, @fonts,
+        #$next-font-index = make-page $next-font-index, @fonts,
+        $next-font-index = make-font-page $next-font-index, @fonts,
            :$page, :$size, :$orientation, :$margins, :$debug;
     }
 
 } # sub pdf-font-samples
 
+sub make-sample-page(
+    $text,
+    :$font,
+    PDF::Lite::Page :$page!,
+    :$text-is-hex = False,
+    :$font-size = 12,
+    :$debug,
+) is export {
+    my @lines = $text.lines;
+
+    # for now assume letter paper in portrait with one-inch margins
+    $page.media-box = 0, 8.5*72, 0, 11*72;
+
+    my ($x, $y) = 72, 720; 
+    my $g = $page.gfx;
+    $g.Save;
+    $g.transform: :translate($x, $y);
+    # now we're at upper-left corner of content area
+    # define a single box
+    $g.font = $font, $font-size;
+
+    if $text-is-hex {
+        my $s = "";
+        for @lines -> $line {
+            # each line is a hex word string
+            my @w = $line.words;
+            my @g = HexStrs2GlyphStrs @w;
+            for @g -> $g {
+                $s ~= $g;
+            }
+            # add a space between words
+            $s ~= " ";
+        }
+        # print the text
+        # text is space separated, and may have newlines for paras
+        $g.print: $s;
+    }
+    else {
+        # text is space separated, and may have newlines for paras
+        $g.print: $text;
+    }
+
+    $g.Restore;
+} 
+
+
 # TODO put this sub in dev/
-sub make-page(
+#sub make-page(
+sub make-font-page(
     $next-font-index is copy,
     @fonts,
     PDF::Lite::Page :$page!,
@@ -1420,7 +1468,7 @@ sub make-font-sample-doc(
     :$debug,
     ) is export {
 
-    # create lines of glyph boxes # out of a wrapped string of
+    # create lines of glyph boxes out of a wrapped string of
     # chars
 
     say "DEBUG: in make-font-sample-page..." if $debug;
