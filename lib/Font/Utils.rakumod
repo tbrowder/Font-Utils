@@ -1059,7 +1059,7 @@ sub make-page(
         @bbox = .print: $pn, :@position,
                        :font($pn-font), :font-size(10), :align<right>, :kern;
 
-        if 1 {
+        if $debug {
             say "DEBUG: \@bbox with :align\<center>: {@bbox.raku}";
         }
 
@@ -1215,8 +1215,10 @@ sub HexStrs2GlyphStrs(
     my $ng = 0;
     WORD: for @words -> $w is copy {
         $w = $w.Str;
-        say "DEBUG: input hex range word: '$w'" if $w ~~ /'-'/;
-        say "DEBUG: input hex range word: '$w'" if $debug;
+        if $debug {
+            say "DEBUG: input hex range word: '$w'" if $w ~~ /'-'/;
+            say "DEBUG: input hex range word: '$w'" if $debug;
+        }
         if $w ~~ /^:i (<[0..9A..Fa..f]>+) '-' (<[0..9A..Fa..f]>+) $/ {
             my $a = ~$0;
             my $b = ~$1;
@@ -1590,7 +1592,7 @@ sub make-font-sample-doc(
             }
             my $nsn = @sn-to-show.elems;
             my $s = $nsn > 1 ?? 's' !! '';
-            say "DEBUG: showing section $ns of $nsn section$s";
+            say "DEBUG: showing section $ns of $nsn section$s" if $debug;
             next SECTION unless $show;
         }
         elsif $ns-to-show {
@@ -1811,7 +1813,7 @@ sub make-glyph-box(
 
     # The single glyph is a single char string from the $font object
     # and is centered horizonatally in a constant-width box which is
-    # at least the the size of the total font bbox
+    # aS least the the size of the total font bbox
 
     # four-digit hex number at bottom in mono font (4 chars normally)
     my $s = $hex.uc; # ensure uppercase
@@ -1866,7 +1868,7 @@ sub make-glyph-box(
     if $debug > 1 {
         say qq:to/HERE/;
         DEBUG:
-            First \@glyph-bbox = '{@glyph-bbox.gist}'"
+            First \@glyph-bbox = '{@glyph-bbox.gist}'
             First \@hex-bbox   = '{@hex-bbox.gist}'
         HERE
     }
@@ -1939,8 +1941,6 @@ sub make-glyph-box(
     # return the glyph-box bbox
     $llx, $lly, $urx, $ury;
 }
-
-#=finish
 
 sub print-text-box(
     # text-box
@@ -2072,6 +2072,17 @@ sub rlineto(
     $g.LineTo: $xdelta, $ydelta;
 }
 
+sub show-zero-chars($file, :$debug) is export {
+    # for a font, determine zero-width and zero-height
+    # glyps
+    my $font = load-font :$file;
+    my $fo = Font::Utils::FreeFaceType.new: :$font, :size(12);
+    my @i;
+    for $fo.ignored, $fo.vignored -> $dec {
+        my $hex = dec2hex $dec;
+        say "DEBUG: dec: '$dec' => '$hex'" if $debug;
+    }
+}
 
 =begin comment
 sub font-bbox(

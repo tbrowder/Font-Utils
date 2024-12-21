@@ -7,6 +7,8 @@ use Font::Utils::Subs;
 my $debug = 0;
 my (@s, $s, @w);
 
+is 1, 1;
+
 @s = %uni<L-sym>.words;
 if $debug {
     say "DEBUG: \@s = {@s.gist}";

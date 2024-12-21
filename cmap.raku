@@ -20,13 +20,40 @@ my enum Control-Chars (
 my %control-chars = ();
 for $face.cmap {
     my $glyph-index = .key;
+    # David's $char is the decimal code point
     my $char        = .value;
     my $prop        = $char.uniprop;
+    # my code
+    my $glyph       = $char.chr;
+    my $dec         = $char;
+    my $hex         = $dec.base: 16;
+    my $name        = $char.uniname;
+    say qq:to/HERE/;
+    glyph-index: $glyph-index
+           char: $char
+          glyph: $glyph
+           name: $name
+            dec: $dec
+            hex: $hex
+           prop: $prop
+    HERE
+}
+
+done-testing;
+
+=finish
+
+    next;
+    #say "key ", .key;
+    #say "  .value ", .value;
+    #say "  .value.chr ", (.value.chr);
+#exit;
+    #my $char        = .value.chr;
     #say $prop;
     %control-chars{$prop}.push($char.uniname)
         if Control-Chars($char.uniprop);
 }
-dd %control-chars if 0;
+#dd %control-chars if 0;
 for %control-chars.keys.sort -> $k {
     say "key: |$k|";
     my @v = @(%control-chars{$k});

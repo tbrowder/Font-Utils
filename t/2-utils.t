@@ -7,6 +7,8 @@ use Font::Utils::Misc;
 my $debug = 0;
 my ($s1, $s2, $c1, $c2, @gchars, @words);
 
+is 1, 1;
+
 =begin comment
 for 1..2000 {
     my $c = $_.chr;

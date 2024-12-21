@@ -3,6 +3,9 @@ use OO::Monitors;
 #unit class Font::Utils::FaceFreeType;
 unit monitor Font::Utils::FaceFreeType;
 
+use Font::Utils::Misc;
+use Font::Utils::Subs;
+
 use PDF::Content;
 use PDF::Font::Loader :load-font;
 
@@ -11,6 +14,7 @@ use Font::FreeType::SizeMetrics;  # size-metrics object
 
 has PDF::Content::FontObj $.font is required; # a loaded font
 has $.font-size is required; 
+
 has $.file; # now avail in $font # is required;
 
 # special use for URW fonts with wierd PostScript names
@@ -27,27 +31,31 @@ has @.ignored;
 has @.vignored;
 
 submethod TWEAK {
+    my $debug = 0;
     $!face = $!font.face; # Font::FreeType.new.face: $!file.Str;
     $!face.set-char-size: $!font-size;
     $!sm = $!face.scaled-metrics;
     $!file = $!font.file;
     $!basename = $!file.IO.basename;
 
-    # create its own list of zero-width code-points to ignore when 
-    #   creating sample pages
+    # create its own list of zero-width and zero-height
+    #   code-points to ignore when creating sample pages
     for $!face.cmap {
-        say ".cmap: {$_.gist}";
+        say ".cmap: {$_.gist}" if $debug;
         my $glyph-index = .key;
-        my $char        = .value.chr;
+        # $char is the decimal code point for the glyph:
+        my $char        = .value;
+        my $glyph  = $char.chr;
         my $width  = 0;
         my $height = 0;
-        $!face.for-glyphs: $char, -> $g {
+        #$!face.for-glyphs: $glyph, -> $g {
+        $!face.forall-chars: $glyph, -> $g {
             $width  = $g.width;
             $height = $g.height;
         }
         my $prop        = $char.uniprop;
         my $name        = $char.uniname;
-        my $ord         = $char.ord;
+        my $ord         = $char;
         my $hex         = $ord.base(16);
         if $width == 0 {
             @!ignored.push: $hex;
@@ -73,7 +81,6 @@ submethod TWEAK {
         #%control-chars{$prop}.push($char.uniname)
         #    if Control-Chars($char.uniprop);
     }
-    
 
     # create the rawname
     # basename without a suffix
@@ -201,11 +208,13 @@ method stringwidth(Str $s) {
     $w
 }
 
-method is-ignored(Str $s where { $_.chars == 1}) {
+method is-ignored(HexStr $hex where { $_.chars == 1}) {
     my $dec = hex2dec $hex;
-    $dec (<) @ignored-dec-codepoints
+    $dec (<) self.ignored
 }
-method is-vignored(Str $s where { $_.chars == 1}) {
+method is-vignored(HexStr $hex where { $_.chars == 1}) {
+    my $dec = hex2dec $hex;
+    $dec (<) self.vignored
 }
 
 method top-bearing(Str $s) {
