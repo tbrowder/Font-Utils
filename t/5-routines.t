@@ -42,4 +42,9 @@ for @c {
 $s = @g.join(" ");
 @lines = $o.wrap-string($s, :width(6.5*72));
 
+@c = [];
+@c.push: 1;
+@c.push: 2;
+is 1 (<=) @c, True;
+
 done-testing;

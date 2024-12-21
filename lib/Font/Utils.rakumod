@@ -1550,17 +1550,18 @@ sub make-font-sample-doc(
     monitor Glyph-Row {
         has HexStr @.glyphs;
         method push(HexStr $glyph) {
+            note "DEBUG: hex: $glyph";
             # Reject known unwanted glyphs per Unicode.org control
             # code points, vertical affects for Latin languages, space
             # types other than for left-right languages, etc.
             self.glyphs.push($glyph)
-                unless is-ignored($glyph)
+                unless $fo.is-ignored($glyph)
         }
     }
 
     monitor Section {
-        has Str $.title;
-        has UInt$.number; # 1...Nsections;
+        has Str  $.title;
+        has UInt $.number; # 1...Nsections;
         # hexadecimal repr, number depends on
         # width of glyph-box and page content width
         has Glyph-Row @.glyph-rows;
@@ -1609,7 +1610,14 @@ sub make-font-sample-doc(
 
         # this step converts all to individual HexStr objects and
         # reduces the set to ONLY the max number of glyphs to show
-        my HexStr @gstrs = HexStrs2GlyphStrs %uni{$ukey}.words, :$ng-to-show;
+        my HexStr @gstrs = HexStrs2GlyphStrs %uni{$ukey}.words;
+        # TODO: here is where we filter out zero-width and zero-height chars
+        my @valid-gstrs;
+        for @gstrs -> $hex {
+            next if $fo.is-ignored($hex);
+            @valid-gstrs.push: $hex;
+        }
+        @gstrs = @valid-gstrs;
         if $ng-to-show and @gstrs.elems > $ng-to-show {
             @gstrs = @gstrs[0..^$ng-to-show];
         }

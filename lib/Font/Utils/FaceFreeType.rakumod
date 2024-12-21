@@ -13,7 +13,7 @@ use Font::FreeType;
 use Font::FreeType::SizeMetrics;  # size-metrics object
 
 has PDF::Content::FontObj $.font is required; # a loaded font
-has $.font-size is required; 
+has $.font-size is required;
 
 has $.file; # now avail in $font # is required;
 
@@ -58,10 +58,10 @@ submethod TWEAK {
         my $ord         = $char;
         my $hex         = $ord.base(16);
         if $width == 0 {
-            @!ignored.push: $hex;
+            @!ignored.push: $ord;
         }
         if $height == 0 {
-            @!vignored.push: $hex;
+            @!vignored.push: $ord;
         }
 
         =begin comment
@@ -208,13 +208,24 @@ method stringwidth(Str $s) {
     $w
 }
 
-method is-ignored(HexStr $hex where { $_.chars == 1}) {
+#method is-ignored(HexStr $hex where { $_.chars == 1}) {
+multi method is-ignored(HexStr $hex --> Bool) {
     my $dec = hex2dec $hex;
-    $dec (<) self.ignored
+    $dec (<=) self.ignored
 }
-method is-vignored(HexStr $hex where { $_.chars == 1}) {
+multi method is-ignored(UInt $dec --> Bool) {
+    #my $dec = hex2dec $hex;
+    $dec (<=) self.ignored
+}
+
+#method is-vignored(HexStr $hex where { $_.chars == 1}) {
+multi method is-vignored(HexStr $hex --> Bool) {
     my $dec = hex2dec $hex;
-    $dec (<) self.vignored
+    $dec (<=) self.vignored
+}
+multi method is-vignored(UInt $dec --> Bool) {
+    #my $dec = hex2dec $hex;
+    $dec (<=) self.vignored
 }
 
 method top-bearing(Str $s) {

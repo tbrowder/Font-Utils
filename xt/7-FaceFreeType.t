@@ -20,8 +20,8 @@ my $debug = 0;
 my $file  = "/usr/share/fonts/opentype/freefont/FreeSerif.otf";
 my $font  = load-font :$file;
 
-my $fo = Font::Utils::FaceFreeType;
+my $fo = Font::Utils::FaceFreeType.new: :$font, :font-size(12);
 
-is $fo, Font::Utils::FaceFreeType;
+isa-ok $fo, Font::Utils::FaceFreeType;
 
 done-testing;
