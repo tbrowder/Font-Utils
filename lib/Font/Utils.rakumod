@@ -11,6 +11,9 @@ use Compress::PDF;
 use PDF::API6;
 use PDF::Lite;
 use PDF::Font::Loader :load-font, :find-font;
+use PDF::Lite;
+use PDF::Content;
+use PDF::Content::Text::Box;
 
 use Font::Utils::Misc;
 use Font::Utils::FaceFreeType;
@@ -982,49 +985,93 @@ sub pdf-font-samples(
 } # sub pdf-font-samples
 
 sub make-sample-page(
-    $text,
-    :$font,
+    $text is copy,
+    :$font!,
     PDF::Lite::Page :$page!,
-    :$text-is-hex = False,
+    :$text-is-hex,
     :$font-size = 12,
     :$debug,
 ) is export {
     my @lines = $text.lines;
 
     # for now assume letter paper in portrait with one-inch margins
-    $page.media-box = 0, 8.5*72, 0, 11*72;
+    $page.media-box = 0, 0, 8.5*72, 11*72;
 
-    my ($x, $y) = 72, 720; 
+    my ($x, $y) = 72, 720;
     my $g = $page.gfx;
     $g.Save;
-    $g.transform: :translate($x, $y);
+
+    if 0 {
+        $g.transform: :translate($x, $y);
+        ($x, $y) = 0, 0;
+    }
+
     # now we're at upper-left corner of content area
     # define a single box
-    $g.font = $font, $font-size;
 
     if $text-is-hex {
         my $s = "";
         for @lines -> $line {
+            say "DEBUG: line: '$line'" if 0 or $debug;
             # each line is a hex word string
             my @w = $line.words;
+            if 0 or $debug {
+                say "DEBUG: word: '$_'" for @w;
+            }
+
             my @g = HexStrs2GlyphStrs @w;
+            if 0 or $debug {
+                say "DEBUG: glyph: '$_'" for @g;
+            }
+
             for @g -> $g {
-                $s ~= $g;
+                my $gs = hex2string $g;
+                say "DEBUG: gstr: '$gs'" if 0 or $debug;
+                $s ~= $gs;
             }
             # add a space between words
             $s ~= " ";
         }
         # print the text
         # text is space separated, and may have newlines for paras
-        $g.print: $s;
+        my @bbox;
+        $page.text: {
+            .text-position = $x, $y;
+            my PDF::Content::Text::Box $tb .= new(
+                :text($s), :$font, :$font-size, :height(20),
+                :WordSpacing(10)
+            );
+            @bbox = .print: $tb;
+        }
     }
     else {
         # text is space separated, and may have newlines for paras
-        $g.print: $text;
+        $page.text: {
+            .font = $font, $font-size;
+            .text-position = $x, $y;
+            .print: $text;
+        }
     }
 
+    =begin comment
+    # use a text box
+    ($x, $y) = 72, 600;
+    #$text = "here we go again";
+
+    $page.text: {
+        .text-position = $x, $y;
+        #my PDF::Content::Text::Box $tb .= new(
+        my PDF::Content::Text::Box $tb .= new(
+            :$text, :$font, :$font-size, :height(20),
+            :space-width(30)
+        );
+        #$tb.space-width(30);
+        .print: $tb;
+    }
+    =end comment
+
     $g.Restore;
-} 
+}
 
 
 # TODO put this sub in dev/
