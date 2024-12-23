@@ -16,7 +16,8 @@ use Font::Utils::Misc;
 my $debug    = 2;
 my $compress = 0;
 
-my $file  = "/usr/share/fonts/opentype/freefont/FreeSerif.otf";
+my $file  = "/usr/share/local/fonts/noto/NotoSerif-Regular.ttf";
+#my $file  = "/usr/share/fonts/opentype/freefont/FreeSerif.otf";
 #my $file  = "/usr/share/fonts/opentype/freefont/FreeSans.otf";
 my $file2 = "/usr/share/fonts/opentype/freefont/FreeSans.otf";
 
@@ -42,8 +43,8 @@ isa-ok $fo2, Font::Utils::FaceFreeType;
 my %opts;
 
 my $test1 = 0;
-my $test2 = 0;
-my $test3 = 1;
+my $test2 = 1;
+my $test3 = 0;
 
 is 1, 1;
 if $test1 {
@@ -57,7 +58,8 @@ make-font-sample-doc $file, :%opts, :$debug;
 if $test2 {
 %opts = %();
 %opts<of> = "my-complete-sample.pdf";  # define output file name
-%opts<sn> = "1,2,3,4,5,11,12";
+%opts<sn> = "1,2,3,4,5,6,7,8,9,10,11,12";
+#%opts<sn> = "1,2,3,4,5,11,12";
 make-font-sample-doc $file, :%opts, :$debug;
 } # $test2
 

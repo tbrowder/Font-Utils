@@ -1,3 +1,6 @@
 .precomp/
 /Font-Utils-*
-
+/Noto_Serif_JP/
+t.*
+*.pdf
+*.pdF
