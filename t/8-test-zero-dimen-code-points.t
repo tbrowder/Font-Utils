@@ -28,7 +28,7 @@ for $flist.lines -> $line is copy {
     my $file = @w.shift.IO.absolute;
     my $font = load-font :$file;
     my $face = $font.face;
-    note "=== Inspecting font '$basename' =========";
+    note "=== Inspecting font '$basename' =========" if $debug;
     for $face.cmap {
         my $glyph-index = .key;
         # David's $char is the decimal code point
@@ -58,11 +58,11 @@ for $flist.lines -> $line is copy {
             $width  = $g.width;
             $height = $g.height;
         }
-        if $width <= 0 {
+        if $debug and $width <= 0 {
             note "  hex $hex width = 0";
             say "  width: $width" if $debug;
         }
-        if $height <= 0 {
+        if $debug and $height <= 0 {
             note "  hex $hex height = 0";
             say " height: $height" if $debug;
         }

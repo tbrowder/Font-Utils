@@ -26,8 +26,6 @@ our $user-font-list is export;
 # |== create-user-fonts-hash $user-font-list
 our %user-fonts     is export; # key => basename, path
 constant $nfonts = 63;         # max number of fonts to collect in Build
-# |== create-ignored-dec-codepoints-list
-our @ignored-dec-codepoints is export; # dec code point => ignore
 BEGIN {
     if %*ENV<HOME>:exists {
         $HOME = %*ENV<HOME>;
@@ -49,10 +47,8 @@ INIT {
     if not $user-font-list.IO.r {
         create-user-font-list-file;
     }
-
     create-user-fonts-hash $user-font-list;
 
-    create-ignored-dec-codepoints-list;
 }
 
 =begin comment
@@ -119,54 +115,6 @@ subset HexStrRangeWords of Str is export where { $_ ~~
 }
 #=========================================================
 =end comment
-
-# |== create-ignored-dec-codepoints-list
-sub create-ignored-dec-codepoints-list(
-    :$debug,
-    ) is export {
-
-    # our @ignored-dec-codepoints is export; # hex code point => ignore
-
-    # the only space we want to show: 0x0020, # SPACE
-    # NO, don't show it either
-    constant @ignored-glyphs = [
-        # Unicode code points for unwanted glyphs to show in charts
-        0x0009, # CHARACTER TABULATION
-        0x000A, # LINE FEED (LF)              vertical
-        0x000B, # LINE TABULATION             vertical
-        0x000C, # FORM FEED (FF)              vertical
-        0x000D, # CARRIAGE RETURN (CR)        vertical
-        0x0020, # SPACE
-        0x00A0, # NO-BREAK SPACE
-        0x1680, # OGHAM SPACE MARK
-        0x180E, # MONGOLIAN VOWEL SEPARATOR
-        0x2000, # EN QUAD <= normalized to 0x2002
-        0x2001, # EM QUAD <= normalized to 0x2003
-        0x2002, # EN SPACE
-        0x2003, # EM SPACE
-        0x2004, # THREE-PER-EM SPACE
-        0x2005, # FOUR-PER-EM SPACE
-        0x2006, # SIX-PER-EM SPACE
-        0x2007, # FIGURE SPACE <= unicode considers this non-breaking
-        0x2008, # PUNCTUATION SPACE
-        0x2009, # THIN SPACE
-        0x200A, # HAIR SPACE                  <= PROBLEM
-        0x2028, # LINE SEPARATOR              vertical
-        0x2029, # PARAGRAPH SEPARATOR         vertical
-        0x202F, # NARROW NO-BREAK SPACE
-        0x205F, # MEDIUM MATHEMATICAL SPACE
-        0x2060, # WORD JOINER
-        0x3000, # IDEOGRAPHIC SPACE
-        0xFEFF, # ZERO WIDTH NO-BREAK SPACE
-    ];
-
-    for @ignored-glyphs -> UInt $dec {
-        @ignored-dec-codepoints.push: $dec;
-    }
-    unless @ignored-dec-codepoints.elems == @ignored-glyphs.elems {
-        die "FATAL: \@ignored-dec-codepoints.elems !== @ignored-glyphs.elems";
-    }
-}
 
 # our $user-font-list is export; # <== create-user-font-list-file
 # our %user-fonts     is export; # <== create-user-fonts-hash $user-font-list
@@ -1645,7 +1593,7 @@ sub make-font-sample-doc(
     monitor Glyph-Row {
         has HexStr @.glyphs;
         method push(HexStr $glyph) {
-            note "DEBUG: hex: $glyph";
+            note "DEBUG: hex: $glyph" if $debug > 2;
             # Reject known unwanted glyphs per Unicode.org control
             # code points, vertical affects for Latin languages, space
             # types other than for left-right languages, etc.
@@ -1850,15 +1798,6 @@ sub make-font-sample-doc(
     say "See output file: '$ofil'";
 }
 
-sub is-ignored(
-    HexStr $hex,
-    :$debug,
-    --> Bool
-) is export {
-    my $dec = hex2dec $hex;
-    $dec (<) @ignored-dec-codepoints
-}
-
 sub make-glyph-box(
     $ulx, $uly,          # upper-left corner of the glyph box
 
@@ -1965,9 +1904,14 @@ sub make-glyph-box(
     }
 
     my $char-width = @glyph-bbox[2] - @glyph-bbox[0];
-    note "WARNING: glyph (hex code '$hex) width = '$char-width'; need to handle earlier"
-        if $char-width <= 0;
-;
+    if 0 and $debug and $char-width <= 0 {
+        note qq:to/HERE/;
+        WARNING: glyph hex code '$hex'
+                 width = '$char-width'
+                 need to handle earlier
+        HERE
+    }
+
     if $debug > 1 {
         say qq:to/HERE/;
         DEBUG:

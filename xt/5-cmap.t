@@ -3,6 +3,8 @@ use Test;
 use Font::FreeType;
 use Font::FreeType::Face;
 
+my $debug = 0;
+
 my $file  = "/usr/share/fonts/opentype/freefont/FreeSerif.otf";
 
 my $fo   = Font::FreeType.new;
@@ -19,7 +21,7 @@ my enum Control-Chars (
 # using cmap() [FreeType v0.5.12+]
 my %control-chars = ();
 for $face.cmap {
-    say ".cmap: {$_.gist}";
+    say ".cmap: {$_.gist}" if $debug;
     my $glyph-index = .key;
     my $char        = .value.chr;
     my $width = 0;
@@ -30,6 +32,8 @@ for $face.cmap {
     my $name        = $char.uniname;
     my $ord         = $char.ord;
     my $hex         = $ord.base(16);
+
+    if $debug {
     say "glyph index: $glyph-index";
     say "       char: $char";
     say "    decimal: $ord";
@@ -37,7 +41,9 @@ for $face.cmap {
     say "      width: $width";
     say "    uniname: $name";
     say "    uniprop: $prop";
-    if $width == 0 {
+    }
+
+    if $debug and $width == 0 {
         note "WARNING: glyph '$hex' == 0";
     }
 
