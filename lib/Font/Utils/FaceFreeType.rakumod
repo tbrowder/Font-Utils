@@ -44,12 +44,13 @@ submethod TWEAK {
         say ".cmap: {$_.gist}" if $debug;
         my $glyph-index = .key;
         # $char is the decimal code point for the glyph:
+        #   i.e., $char = .ord
         my $char        = .value;
-        my $glyph  = $char.chr;
+        my $glyph  = $char.chr; # the Str of the glyph
         my $width  = 0;
         my $height = 0;
-        #$!face.for-glyphs: $glyph, -> $g {
         $!face.forall-chars: $glyph, -> $g {
+            # $g is the object of the binary glyph
             $width  = $g.width;
             $height = $g.height;
         }
