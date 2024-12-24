@@ -5,14 +5,14 @@ NAME
 
 **Font::Utils** - Provides routines and programs to interrogate font directories and individual font files. 
 
-**NOTE**: The intent is for this module to work on Linux, MacOS, and Windows. Please file an issue if you need it on your OS. The package requires use of the 'PDF::Font::Loader:ver<0.8.9>' which has recently been ported to those two systems.
+**NOTE**: The intent is for this module to work on Linux, MacOS, and Windows. Please file an issue if you need it on your OS. The package requires use of the 'PDF::Font::Loader:ver<0.8.9+>' which has recently been ported to those two systems.
 
 SYNOPSIS
 ========
 
 ```raku
 use Font::Utils;
-my $dir = "/usr/share/fonts/opentype/cantarell
+my $dir = "/usr/share/fonts/opentype/freefont
 font-utils list $dir;
 font-utils show $font-file;
 font-utils sample $font-file;
@@ -155,6 +155,8 @@ Included with the module is a hash (`%uni`) with the hexadecimal code points for
 <tr> <td>Basic Latin (ASCII)</td> <td>(two sets)</td> </tr> <tr> <td>+ Symbols</td> <td>L-sym</td> </tr> <tr> <td>+ Characters</td> <td>L-chr</td> </tr> <tr> <td>Latin-1 Supplement</td> <td>L1-Sup</td> </tr> <tr> <td>Latin Extended A</td> <td>L-Ext-A</td> </tr> <tr> <td>Latin Extended B</td> <td>L-Ext-B</td> </tr> <tr> <td>Latin Extended C</td> <td>L-Ext-C</td> </tr> <tr> <td>Latin Extended D</td> <td>L-Ext-D</td> </tr> <tr> <td>Latin Extended E</td> <td>L-Ext-E</td> </tr> <tr> <td>Latin Additional</td> <td>L-Additional</td> </tr> <tr> <td>Latin Ligatures</td> <td>L-Ligatures</td> </tr>
 </tbody>
 </table>
+
+Note that the Free Fonts do **NOT** cover all those glyphs, but the Noto fonts do if you need the largest coverage. The Free Fonts are more attractive to my eyes, but that is an artistic decision. You can most always find a free or paid font if you look for it (see [https://monotype.com](https://monotype.com) as a good example where I found a MICR bank font file for personal desktop use for a very reasonable price: about the same as a couple of six-packs of my favorite IPA.
 
 AUTHOR
 ======

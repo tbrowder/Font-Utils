@@ -1,3 +1,5 @@
+Add font license text
+
 Fix build script to force creating
   the "font-files.list" during
   GitHub workflows testing

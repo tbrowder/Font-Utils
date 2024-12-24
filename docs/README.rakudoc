@@ -7,14 +7,14 @@ and individual font files.
 
 B<NOTE>: The intent is for this module to work on Linux, MacOS, and
 Windows.  Please file an issue if you need it on your OS.  The package
-requires use of the 'V<PDF::Font::Loader:ver<0.8.9>>' which has recently
+requires use of the 'V<PDF::Font::Loader:ver<0.8.9+>>' which has recently
 been ported to those two systems.
 
 =head1 SYNOPSIS
 
 =begin code :lang<raku>
 use Font::Utils;
-my $dir = "/usr/share/fonts/opentype/cantarell
+my $dir = "/usr/share/fonts/opentype/freefont
 font-utils list $dir;
 font-utils show $font-file;
 font-utils sample $font-file;
@@ -197,6 +197,14 @@ Latin Extended E | L-Ext-E
 Latin Additional | L-Additional
 Latin Ligatures  | L-Ligatures
 =end table
+
+Note that the Free Fonts do B<NOT> cover all those glyphs, but the Noto
+fonts do if you need the largest coverage. The Free Fonts are more
+attractive to my eyes, but that is an artistic decision. You can
+most always find a free or paid font if you look for it (see L<https://monotype.com>
+as a good example where I found a MICR bank font file for personal desktop use
+for a very reasonable price:
+about the same as a couple of six-packs of my favorite IPA.
 
 =head1 AUTHOR
 
