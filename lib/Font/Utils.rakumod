@@ -1592,13 +1592,21 @@ sub make-font-sample-doc(
     #   THEN create the pages
     monitor Glyph-Row {
         has HexStr @.glyphs;
+        #has FaceFreeType $.fo;
         method push(HexStr $glyph) {
             note "DEBUG: hex: $glyph" if $debug > 2;
             # Reject known unwanted glyphs per Unicode.org control
             # code points, vertical affects for Latin languages, space
             # types other than for left-right languages, etc.
-            self.glyphs.push($glyph)
-                unless $fo.is-ignored($glyph)
+    #       self.glyphs.push($glyph) unless $!fo.is-ignored($glyph)
+
+                =begin comment
+                unless {
+                   $fo.is-ignored($glyph)
+                          or
+                   $fo.is-vignored($glyph)
+                }
+                =end comment
         }
     }
 
@@ -1673,7 +1681,7 @@ sub make-font-sample-doc(
         my $glyph-row;
         while @gstrs.elems > $maxng {
             # get a chunk of length $maxng length per row
-            $glyph-row = Glyph-Row.new;
+            $glyph-row = Glyph-Row.new: :$fo;
             for 0..^$maxng {
                 $glyph-row.push: @gstrs.shift;
                 ++$total-glyph-rows;

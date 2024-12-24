@@ -15,9 +15,9 @@ use Font::FreeType::SizeMetrics;  # size-metrics object
 has PDF::Content::FontObj $.font is required; # a loaded font
 has $.font-size is required;
 
-has $.file; # now avail in $font # is required;
+has $.file; # now avail in $font object when loaded
 
-# special use for URW fonts with wierd PostScript names
+# special use for URW fonts with weird PostScript names
 # default is the PostScript name
 # if no PostScript name, use file basename (without the file extension: "rawname")
 has $.adobe-name is rw = "";
@@ -27,7 +27,12 @@ has $.face;
 has Font::FreeType::SizeMetrics $.sm;  # size-metrics object
 has $.rawname;
 has $.basename;
+
+# can turn off width check at object instantiation
+has $width-check = True;
 has @.ignored;
+# can turn off height check at object instantiation
+has $height-check = True;
 has @.vignored;
 
 submethod TWEAK {
@@ -38,10 +43,13 @@ submethod TWEAK {
     $!file = $!font.file;
     $!basename = $!file.IO.basename;
 
-    # create its own list of zero-width and zero-height
+    # by default, create its own list of zero-width and zero-height
     #   code-points to ignore when creating sample pages
     for $!face.cmap {
         say ".cmap: {$_.gist}" if $debug;
+
+        last unless $width-check or $height-check;
+
         my $glyph-index = .key;
         # $char is the decimal code point for the glyph:
         #   i.e., $char = .ord
@@ -58,12 +66,19 @@ submethod TWEAK {
         my $name        = $char.uniname;
         my $ord         = $char;
         my $hex         = $ord.base(16);
-        if $width == 0 {
+
+        if $width <= 0 {
             @!ignored.push: $ord;
         }
-        if $height == 0 {
+
+        =begin comment
+        if $width-check and ($width <= 0) {
+            @!ignored.push: $ord;
+        }
+        if $height-check and ($height <= 0) {
             @!vignored.push: $ord;
         }
+        =end comment
 
         =begin comment
         say "glyph index: $glyph-index";

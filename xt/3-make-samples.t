@@ -47,6 +47,7 @@ my $test2 = 1;
 my $test3 = 0;
 
 is 1, 1;
+
 if $test1 {
 %opts<ng> = 15;  # show max of N glyphs per section
 %opts<ns> = 2;   # show only first N sections

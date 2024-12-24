@@ -1,4 +1,12 @@
 Add font license text
+  - see Checkwriter for some good stuff
+
+Add option to FaceFreeType to not check width or height of a glyph
+  - add separate checks for width and height inside the sample?
+
+Move graphics stuff to PDF::GraphicsUtils
+
+Tidy the sample output format
 
 Fix build script to force creating
   the "font-files.list" during

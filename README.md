@@ -56,14 +56,28 @@ If no text is supplied, and no specific number of glyphs is entered, the sample 
 Classes
 -------
 
-### FreeFontFace
+### class FaceFreeFont
 
-`class FreeFontFace {...}`
+Contains all the attributes obtained in the `$face` object created by module 'Font::FreeFont' from a font file loaded with the 'load-font routine of module 'PDF::Font::Loader'. In addition, it adds most of the font interrogation methods from its 'Font::FreeType' $face object.
 
-Contains all the attributes obtained in the `$face` object created by module 'Font::FreeFont' from a font file.
+The class is instantiated by two required attributes:
+
+  * $font - the font object created by 'PDF::Font::Loader' from a font file.
+
+  * $font-size - the desired font size in points (72 points = 1 inch).
+
+There are two other important attributes that affect the object creation and its method that selects glyphs to use from the font file:
+
+  * - has $.width-check = True;
+
+  * - has $.height-check = True;
+
+By default, any glyph that has zero width or height is ignored. Usually those are control chatacters you wouldn't want to display, but some are special typesetting characters that a using program may need. Thus the user can turn those checks on by declaring one or both True at object creation.
 
 Routines
 --------
+
+In Raku font handling we are constantly dealing with various font and typesetting parameter conversions such as length and angle units, and decimal and hexidecimal glyph code points. Those required for module internals and testing are incLuded. Some of those routines are duplicated in other modules, but having them close is useful.
 
 ### hex2string
 
