@@ -3,6 +3,7 @@ use Test;
 my @modules = <
     Font::Utils
     Font::Utils::FaceFreeType
+    Font::Utils::FaceFreeType::Ignore
     Font::Utils::Misc
     Font::Utils::Subs
 >;

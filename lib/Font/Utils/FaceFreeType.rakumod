@@ -3,6 +3,7 @@ use OO::Monitors;
 #unit class Font::Utils::FaceFreeType;
 unit monitor Font::Utils::FaceFreeType;
 
+use Font::Utils::FaceFreeType::Ignore;
 use Font::Utils::Misc;
 use Font::Utils::Subs;
 
@@ -30,10 +31,10 @@ has $.basename;
 
 # can turn off width check at object instantiation
 has $width-check = True;
-has @.ignored;
+has @.ignored is rw;
 # can turn off height check at object instantiation
 has $height-check = True;
-has @.vignored;
+has @.vignored is rw;
 
 submethod TWEAK {
     my $debug = 0;
@@ -67,18 +68,18 @@ submethod TWEAK {
         my $ord         = $char;
         my $hex         = $ord.base(16);
 
-        if $width <= 0 {
-            @!ignored.push: $ord;
-        }
+        #if $width <= 0 {
+        #    @!ignored.push: $ord;
+        #}
 
-        =begin comment
-        if $width-check and ($width <= 0) {
+        #=begin comment
+        if $width-check and $width <= 0 {
             @!ignored.push: $ord;
         }
-        if $height-check and ($height <= 0) {
+        if $height-check and $height <= 0 {
             @!vignored.push: $ord;
         }
-        =end comment
+        #=end comment
 
         =begin comment
         say "glyph index: $glyph-index";
@@ -224,6 +225,7 @@ method stringwidth(Str $s) {
     $w
 }
 
+=begin comment
 #method is-ignored(HexStr $hex where { $_.chars == 1}) {
 multi method is-ignored(HexStr $hex --> Bool) {
     my $dec = hex2dec $hex;
@@ -243,6 +245,7 @@ multi method is-vignored(UInt $dec --> Bool) {
     #my $dec = hex2dec $hex;
     $dec (<=) self.vignored
 }
+=end comment
 
 method top-bearing(Str $s) {
     my $y = 0;

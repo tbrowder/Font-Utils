@@ -1,6 +1,7 @@
 use Test;
 
 use PDF::Font::Loader;
+use PDF::Content;
 
 use Font::Utils;
 use Font::Utils::Misc;

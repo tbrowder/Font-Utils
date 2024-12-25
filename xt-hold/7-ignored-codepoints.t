@@ -1,6 +1,9 @@
 use Test;
 
+use PDF::Font::Loader :load-font;
+
 use Font::Utils;
+use Font::Utils::FaceFreeType;
 use Font::Utils::Misc;
 use Font::Utils::Subs;
 
@@ -11,8 +14,17 @@ my (@s, $s);
 my @set = 1, 2;
 is (1) (<) @set, True;
 
-#done-testing;
-#=finish
+my $file = "/usr/share/fonts/opentype/freefont/FreeSerif.otf";
+my $font = load-font :$file;
+my $fo   = Font::Utils::FaceFreeType.new: :$font, :font-size(12);
+
+isa-ok $fo, Font::Utils::FaceFreeType;
+
+my @ignored = $fo.is-ignored;
+
+done-testing;
+
+=finish
 
 my @hex-ignored = [
         # Unicode code points for unwanted glyphs to show in charts

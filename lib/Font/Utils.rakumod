@@ -17,6 +17,7 @@ use PDF::Content::Text::Box;
 
 use Font::Utils::Misc;
 use Font::Utils::FaceFreeType;
+use Font::Utils::FaceFreeType::Ignore;
 use Font::Utils::Subs;
 
 our %loaded-fonts is export;

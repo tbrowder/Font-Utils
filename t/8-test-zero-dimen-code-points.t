@@ -6,6 +6,7 @@ use Text::Utils :strip-comment;
 use Font::Utils;
 use Font::Utils::Misc;
 use Font::Utils::FaceFreeType;
+use Font::Utils::FaceFreeType::Ignore;
 
 my $debug = 0;
 is 1, 1;
