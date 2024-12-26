@@ -1,3 +1,6 @@
+Try using experimental trait "is cached" with monitor classes
++ use the monitor ignored class with it
+
 Check for using zef "linear" on Windows so can determine which module is failing
 
 Use a new monitor class for font chars

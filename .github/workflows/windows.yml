@@ -28,6 +28,7 @@ jobs:
             choco install rakudostar
             choco install wget
             choco install noto
-            zef --exclude="z" install --debug --/test --test-depends --deps-only --serial .
+            #zef --exclude="z" install --debug --/test --test-depends --deps-only --serial .
+            zef --exclude="z" install --debug --/test --test-depends --deps-only .
       - name: Run Tests
         run: zef install .
