@@ -22,8 +22,8 @@ my $compress = 0;
 
 my ($file, $fileHC, $file3, $ofil);
 if $os.is-windows {
-    $file  = find-font :family<noto>, :serif;
-    $fileHC = find-font :family<noto>, :!serif;
+    $file    = "/usr/share/fonts/truetype/noto/NotoSerif-Regular.ttf";
+    $fileHC  = "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf";
 }
 else {
     $file  = "/usr/share/local/fonts/noto/NotoSerif-Regular.ttf";
