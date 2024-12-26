@@ -1458,7 +1458,7 @@ sub make-font-sample-doc(
     $file,    # the desired font file
     #===========================================
     # defaults are provided for the rest of the args
-    :$file2 is copy, # for the hex code
+    :$fileHC is copy, # for the hex code
     :%opts,   # controls: media, font-size, embellishment
               # number of glyphs to show, etc.
     :$debug,
@@ -1482,13 +1482,13 @@ sub make-font-sample-doc(
     my         @sn-to-show = []; # show only this section
 
     my $font = load-font :$file;
-    my $font2;
-    if $file2.defined {
-        $font2 = load-font :file($file2);
+    my $fontHC;
+    if $fileHC.defined {
+        $fontHC = load-font :file($fileHC);
     }
     else {
-        $file2 = find-font :family<Helvetica>;
-        $font2 = load-font :file($file2);
+        $fileHC = find-font :family<Helvetica>;
+        $fontHC = load-font :file($fileHC);
     }
 
     my $ofil;
@@ -1572,8 +1572,8 @@ sub make-font-sample-doc(
     }
 
     # need a font to show the hex codes in the glyph boxes
-    # this is FreeSans
-    my $fo2 = FaceFreeType.new: :font-size($font-size2), :font($font2);
+    # this is FreeSans (or equiv)
+    my $foHC = FaceFreeType.new: :font-size($font-size2), :font($fontHC);
 
     # define margins, etc.
     my $lmarginw = 72; my $rmarginw = 72;
@@ -1767,7 +1767,7 @@ sub make-font-sample-doc(
                 @bbox = make-glyph-box
                     $x, $y, # upper-left corner of the glyph box
                     :$fo,       # the loaded font being sampled
-                    :$fo2,      # the loaded mono font used for the hex code
+                    :$foHC,     # the loaded mono font used for the hex code
                     :$hex,      # char to be shown
                     :%opts, :$debug, :$page;
                 # mv right for the next one
@@ -1798,11 +1798,11 @@ sub make-font-sample-doc(
 }
 
 sub make-glyph-box(
-    $ulx, $uly,          # upper-left corner of the glyph box
+    $ulx, $uly,           # upper-left corner of the glyph box
 
-    FaceFreeType :$fo!,  # the font being sampled
-    FaceFreeType :$fo2!, # the mono font used for the hex code
-    HexStr :$hex!,       # hex char to be shown
+    FaceFreeType :$fo!,   # the font being sampled
+    FaceFreeType :$foHC!, # the mono font used for the hex code
+    HexStr :$hex!,        # hex char to be shown
     :$page!,
     :%opts,
 
@@ -1897,7 +1897,7 @@ sub make-glyph-box(
         @glyph-bbox = .print: $glyph, :align<center>;
 
         # the hex code (already a string)
-        .font = $fo2.font, $fo2.font-size;
+        .font = $foHC.font, $foHC.font-size;
         .text-position = $llx + 0.5 * $glyph-box-width, $lly + $glyph-box-baselineY2;
         @hex-bbox = .print: $s, :align<center>;
     }

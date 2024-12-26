@@ -20,38 +20,37 @@ use Font::Utils::Subs;
 my $debug    = 2;
 my $compress = 0;
 
-my ($file, $file2, $file3, $ofil);
+my ($file, $fileHC, $file3, $ofil);
 if $os.is-windows {
     $file  = find-font :family<noto>, :serif;
-    $file2 = find-font :family<noto>, :!serif;
+    $fileHC = find-font :family<noto>, :!serif;
 }
 else {
     $file  = "/usr/share/local/fonts/noto/NotoSerif-Regular.ttf";
    # $file3 = "/usr/share/fonts/opentype/freefont/FreeSerif.otf";
     # this is the font for showing hex codes
-    # TODO rename it to $fileHC
-    $file2 = "/usr/share/fonts/opentype/freefont/FreeSans.otf";
+    $fileHC = "/usr/share/fonts/opentype/freefont/FreeSans.otf";
 }
 
 my PDF::Lite $pdf .= new;
 my $page = $pdf.add-page;
 
-my ($fo, $fo2, $tb, $tb2, $font, $text, $font-size);
-my ($font2, $font-size2, @bbox);
+my ($fo, $foHC, $tb, $tb2, $font, $text, $font-size);
+my ($fontHC, $font-sizeHC, @bbox);
 
 $font      = load-font :$file;
-$font2     = load-font :file($file2);
+$fontHC    = load-font :file($fileHC);
 
-$font-size  = 16;
-$font-size2 =  8;
+$font-size   = 16;
+$font-sizeHC =  8;
 
-$fo  = Font::Utils::FaceFreeType.new: :$font, :$font-size;
-$fo2 = Font::Utils::FaceFreeType.new: :font($font2) :font-size($font-size2);
+$fo   = Font::Utils::FaceFreeType.new: :$font, :$font-size;
+$foHC = Font::Utils::FaceFreeType.new: :font($fontHC) :font-size($font-sizeHC);
 
 my @ignored = $fo.ignored;
 
 isa-ok $fo, Font::Utils::FaceFreeType;
-isa-ok $fo2, Font::Utils::FaceFreeType;
+isa-ok $foHC, Font::Utils::FaceFreeType;
 
 # create a sample glyph page
 my %opts;
