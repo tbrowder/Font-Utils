@@ -11,6 +11,7 @@ use Compress::PDF;
 use Font::Utils;
 use Font::Utils::FaceFreeType;
 use Font::Utils::Misc;
+use Font::Utils::Subs;
 
 my $debug = 0;
 
@@ -38,8 +39,7 @@ $width     = 6.5*72;
 $font      = load-font :$file;
 
 # get a FaceFreeType object for comparison
-my $fo = Font::Utils::FaceFreeType.new: :$file, :$font-size, :$font;
-
+my $fo = Font::Utils::FaceFreeType.new: :$font, :$font-size;
 
 # a reusable text box:  with filled text
 # but initially empty

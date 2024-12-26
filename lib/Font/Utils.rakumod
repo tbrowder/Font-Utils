@@ -1548,7 +1548,19 @@ sub make-font-sample-doc(
     if $paper ~~ /:i letter / { $pdf.media-box = [0,0, 8.5*72, 11*72]; }
     else { $pdf.media-box = [0,0, cm2ps(21), cm2ps(29.7)]; }
 
+    say "==== DEBUG: working font file; '{$file.IO.basename}'";
     my $fo = FaceFreeType.new: :$font-size, :$font;
+    #my @ignored = $fo.get-ignored-list.list;
+
+    =begin comment
+    if 0 {
+        my $nchars = @ignored.elems;
+        note "DEBUG: ignored glyphs for font '{$file.IO.basename}' (nchars: $nchars)";
+        note "  '$_'" for @ignored;
+        note "DEBUG: ignored glyphs for font '{$file.IO.basename}' (nchars: $nchars)";
+    }
+    =end comment
+
     if not $ofil.defined {
         $ofil = $fo.adobe-name ~ "-{$fo.extension}-sample.pdf";
     }
@@ -1593,24 +1605,11 @@ sub make-font-sample-doc(
     #   THEN create the pages
     monitor Glyph-Row {
         has HexStr @.glyphs;
-        #has FaceFreeType $.fo;
-        method push(HexStr $glyph) {
+        method insert(HexStr $glyph) {
             note "DEBUG: hex: $glyph" if $debug > 2;
-            # Reject known unwanted glyphs per Unicode.org control
-            # code points, vertical affects for Latin languages, space
-            # types other than for left-right languages, etc.
-    #       self.glyphs.push($glyph) unless $!fo.is-ignored($glyph)
-
-                =begin comment
-                unless {
-                   $fo.is-ignored($glyph)
-                          or
-                   $fo.is-vignored($glyph)
-                }
-                =end comment
+            @.glyphs.push: $glyph;
         }
     }
-
     monitor Section {
         has Str  $.title;
         has UInt $.number; # 1...Nsections;
@@ -1618,7 +1617,7 @@ sub make-font-sample-doc(
         # width of glyph-box and page content width
         has Glyph-Row @.glyph-rows;
 
-        method push(Glyph-Row $glyph-row) {
+        method insert(Glyph-Row $glyph-row) {
             self.glyph-rows.push($glyph-row);
         }
     }
@@ -1630,9 +1629,9 @@ sub make-font-sample-doc(
 
     my $total-glyphs     = 0;
     my $total-glyph-rows = 0;
-    my @sections;
+    my Section @sections;
 
-    my $section;
+    my Section $section;
     my $ns = 0; # number of sections (titles)
     SECTION: for %uni-titles.keys.sort -> $k {
         ++$ns;
@@ -1666,9 +1665,18 @@ sub make-font-sample-doc(
         # TODO: here is where we filter out zero-width and zero-height chars
         my @valid-gstrs;
         for @gstrs -> $hex {
-            next if $fo.is-ignored($hex);
-            @valid-gstrs.push: $hex;
+            # TODO how to handle properly???
+            # get its char
+            my $char = HexStr2Char $hex;
+            my $w = $fo.stringwidth($char);
+            =begin comment
+            if ($hex (<=) @ignored) {
+                next;
+            }
+            =end comment
+            @valid-gstrs.push($hex) if $w > 0;
         }
+
         @gstrs = @valid-gstrs;
         if $ng-to-show and @gstrs.elems > $ng-to-show {
             @gstrs = @gstrs[0..^$ng-to-show];
@@ -1684,17 +1692,17 @@ sub make-font-sample-doc(
             # get a chunk of length $maxng length per row
             $glyph-row = Glyph-Row.new: :$fo;
             for 0..^$maxng {
-                $glyph-row.push: @gstrs.shift;
+                $glyph-row.insert: @gstrs.shift;
                 ++$total-glyph-rows;
             }
             # and finished with this row
-            @sections.tail.push: $glyph-row;
+            @sections.tail.insert: $glyph-row;
         }
         if @gstrs.elems {
             $glyph-row = Glyph-Row.new;
-            $glyph-row.push($_) for @gstrs;
+            $glyph-row.insert($_) for @gstrs;
             # and finished with this row
-            @sections.tail.push: $glyph-row;
+            @sections.tail.insert: $glyph-row;
         }
 
         if $debug {

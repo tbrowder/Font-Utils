@@ -2,9 +2,12 @@ use Test;
 
 use OO::Monitors;
 
+use QueryOS;
+my $os = OS.new;
+
 use PDF::API6; # <== required for $page
 use PDF::Content;
-use PDF::Font::Loader :load-font;
+use PDF::Font::Loader :load-font, :find-font;
 use PDF::Lite;
 use PDF::Content::Text::Box;
 
@@ -12,14 +15,25 @@ use Compress::PDF;
 use Font::Utils;
 use Font::Utils::FaceFreeType;
 use Font::Utils::Misc;
+use Font::Utils::Subs;
 
 my $debug    = 2;
 my $compress = 0;
 
-my $file  = "/usr/share/local/fonts/noto/NotoSerif-Regular.ttf";
-#my $file  = "/usr/share/fonts/opentype/freefont/FreeSerif.otf";
+my ($file, $file2, $file3, $ofil);
+if $os.is-windows {
+    $file  = find-font :family<noto>, :serif;
+    $file2 = find-font :family<noto>, :!serif;
+}
+else {
+    $file  = "/usr/share/local/fonts/noto/NotoSerif-Regular.ttf";
+    $file3 = "/usr/share/fonts/opentype/freefont/FreeSerif.otf";
+    # this is the font for showing hex codes
+    # TODO rename it to $fileHC
+    $file2 = "/usr/share/fonts/opentype/freefont/FreeSans.otf";
+}
+
 #my $file  = "/usr/share/fonts/opentype/freefont/FreeSans.otf";
-my $file2 = "/usr/share/fonts/opentype/freefont/FreeSans.otf";
 
 my PDF::Lite $pdf .= new;
 my $page = $pdf.add-page;
@@ -36,6 +50,8 @@ $font-size2 =  8;
 $fo  = Font::Utils::FaceFreeType.new: :$font, :$font-size;
 $fo2 = Font::Utils::FaceFreeType.new: :font($font2) :font-size($font-size2);
 
+my @ignored = $fo.ignored;
+
 isa-ok $fo, Font::Utils::FaceFreeType;
 isa-ok $fo2, Font::Utils::FaceFreeType;
 
@@ -49,35 +65,52 @@ my $test3 = 0;
 is 1, 1;
 
 if $test1 {
-%opts<ng> = 15;  # show max of N glyphs per section
-%opts<ns> = 2;   # show only first N sections
-%opts<sn> = 1,3;  # show only "X,Y,..Z" sections
-%opts<of> = "my-test-sample.pdf";  # define output file name
-make-font-sample-doc $file, :%opts, :$debug;
+    %opts<ng> = 15;  # show max of N glyphs per section
+    %opts<ns> = 2;   # show only first N sections
+    %opts<sn> = 1,3;  # show only "X,Y,..Z" sections
+    %opts<of> = "test1-sample.pdf";  # define output file name
+    make-font-sample-doc $file, :%opts, :$debug;
 } # $test1
 
 if $test2 {
-%opts = %();
-%opts<of> = "my-complete-sample.pdf";  # define output file name
-%opts<sn> = "1,2,3,4,5,6,7,8,9,10,11,12";
-#%opts<sn> = "1,2,3,4,5,11,12";
-make-font-sample-doc $file, :%opts, :$debug;
+    # use basename in title
+    my $f = $file;
+    my $bnam = $f.IO.basename;
+    my $ofilX = "{$bnam}-sample";
+    $ofilX ~~ s:g/'.'/-/;
+    $ofilX = $ofilX ~ '.pdf';
+    %opts = %();
+    %opts<of> = $ofilX ;  # define output file name
+    %opts<sn> = "1,2,3,4,5,6,7,8,9,10,11,12";
+    make-font-sample-doc $f, :%opts, :$debug;
+
+    unless $os.is-windows {
+        # sample the Free Font
+        $f = $file3;
+        $bnam = $f.IO.basename;
+        my $ofilX = "{$bnam}-sample";
+        $ofilX ~~ s:g/'.'/-/;
+        $ofilX = $ofilX ~ '.pdf';
+        %opts = %();
+        %opts<of> = $ofilX ;  # define output file name
+        %opts<sn> = "1,2,3,4,5,6,7,8,9,10,11,12";
+        make-font-sample-doc $f, :%opts, :$debug;
+    }
+
 } # $test2
 
 if $test3 {
-
-# complete sections individually
-%opts<ng> = 0; # show max of N glyphs per section
-%opts<ns> = 0; # show only first sections
-%opts<sn> = "1,2,3"; # show only "X,Y,..Z" sections
-%opts<of> = "my-test-sample.pdf";  # define output file name
-for 1..12 -> $n {
-    %opts<sn> = $n.Str;  # show only section $n
-    %opts<of> = "section-sample$n.pdf";  # define output file name
-    make-font-sample-doc $file, :%opts, :$debug;
-}
+    # complete sections individually
+    %opts<ng> = 0; # show max of N glyphs per section
+    %opts<ns> = 0; # show only first sections
+    %opts<sn> = "1,2,3"; # show only "X,Y,..Z" sections
+    %opts<of> = "test3-sample.pdf";  # define output file name
+    for 1..12 -> $n {
+        %opts<sn> = $n.Str;  # show only section $n
+        %opts<of> = "section-sample$n.pdf";  # define output file name
+        make-font-sample-doc $file, :%opts, :$debug;
+    }
 } # $test3
-
 
 done-testing;
 

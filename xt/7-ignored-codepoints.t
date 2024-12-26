@@ -20,8 +20,6 @@ my $fo   = Font::Utils::FaceFreeType.new: :$font, :font-size(12);
 
 isa-ok $fo, Font::Utils::FaceFreeType;
 
-my @ignored = $fo.is-ignored;
-
 done-testing;
 
 =finish

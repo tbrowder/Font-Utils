@@ -4,6 +4,8 @@ use Test;
 use PDF::Font::Loader :load-font;
 use Font::Utils;
 use Font::Utils::FaceFreeType;
+use Font::Utils::Misc;
+use Font::Utils::Subs;
 
 my $debug = 0;
 

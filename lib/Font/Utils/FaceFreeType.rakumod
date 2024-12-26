@@ -3,15 +3,17 @@ use OO::Monitors;
 #unit class Font::Utils::FaceFreeType;
 unit monitor Font::Utils::FaceFreeType;
 
-use Font::Utils::FaceFreeType::Ignore;
 use Font::Utils::Misc;
 use Font::Utils::Subs;
+use Font::Utils::Classes;
 
 use PDF::Content;
 use PDF::Font::Loader :load-font;
 
 use Font::FreeType;
 use Font::FreeType::SizeMetrics;  # size-metrics object
+
+my $debug = 0;
 
 has PDF::Content::FontObj $.font is required; # a loaded font
 has $.font-size is required;
@@ -31,10 +33,13 @@ has $.basename;
 
 # can turn off width check at object instantiation
 has $width-check = True;
-has @.ignored is rw;
 # can turn off height check at object instantiation
 has $height-check = True;
+#=begin comment
+has @.ignored is rw;
 has @.vignored is rw;
+#=end comment
+#has Ignore $.ignored;
 
 submethod TWEAK {
     my $debug = 0;
@@ -44,13 +49,12 @@ submethod TWEAK {
     $!file = $!font.file;
     $!basename = $!file.IO.basename;
 
+    =begin comment
     # by default, create its own list of zero-width and zero-height
     #   code-points to ignore when creating sample pages
     for $!face.cmap {
         say ".cmap: {$_.gist}" if $debug;
-
-        last unless $width-check or $height-check;
-
+        #last unless $width-check or $height-check;
         my $glyph-index = .key;
         # $char is the decimal code point for the glyph:
         #   i.e., $char = .ord
@@ -67,20 +71,12 @@ submethod TWEAK {
         my $name        = $char.uniname;
         my $ord         = $char;
         my $hex         = $ord.base(16);
-
-        #if $width <= 0 {
-        #    @!ignored.push: $ord;
-        #}
-
-        #=begin comment
         if $width-check and $width <= 0 {
             @!ignored.push: $ord;
         }
         if $height-check and $height <= 0 {
             @!vignored.push: $ord;
         }
-        #=end comment
-
         =begin comment
         say "glyph index: $glyph-index";
         say "       char: $char";
@@ -93,11 +89,11 @@ submethod TWEAK {
             note "WARNING: glyph '$hex' == 0";
         }
         =end comment
-
         #say $prop;
         #%control-chars{$prop}.push($char.uniname)
         #    if Control-Chars($char.uniprop);
     }
+    =end comment
 
     # create the rawname
     # basename without a suffix
@@ -225,27 +221,96 @@ method stringwidth(Str $s) {
     $w
 }
 
-=begin comment
-#method is-ignored(HexStr $hex where { $_.chars == 1}) {
-multi method is-ignored(HexStr $hex --> Bool) {
-    my $dec = hex2dec $hex;
-    $dec (<=) self.ignored
-}
-multi method is-ignored(UInt $dec --> Bool) {
-    #my $dec = hex2dec $hex;
-    $dec (<=) self.ignored
-}
+#method get-ignored-list(--> List) {
+method get-ignored-list(Bool :$show-ord) {
+    my @ignored;
+    #my @hex-ignored;
 
-#method is-vignored(HexStr $hex where { $_.chars == 1}) {
-multi method is-vignored(HexStr $hex --> Bool) {
-    my $dec = hex2dec $hex;
-    $dec (<=) self.vignored
+    for $!face.cmap {
+        say ".cmap: {$_.gist}" if $debug;
+        #last unless $width-check or $height-check;
+        my $glyph-index = .key;
+        # $char is the decimal code point for the glyph:
+        #   i.e., $char = .ord
+        my $char        = .value;
+        my $glyph  = $char.chr; # the Str of the glyph
+        my $width  = 0;
+        my $height = 0;
+        $!face.forall-chars: $glyph, -> $g {
+            # $g is the object of the binary glyph
+            $width  = $g.width;
+            $height = $g.height;
+        }
+
+
+        my $prop        = $char.uniprop;
+        my $name        = $char.uniname;
+        my $ord         = $char;
+        my $hex         = $ord.base(16);
+
+        my $w = 0;
+        $!face.for-glyphs($glyph, {
+            my $x = .horizontal-advance;
+            $w += $x;
+        });
+
+        if $width-check and $w <= 0 {
+            if $show-ord {
+                @ignored.push: $ord;
+            }
+            else {
+                @ignored.push: $hex;
+            }
+        }
+
+        if $width-check and $glyph eq '' {
+            if $show-ord {
+                @ignored.push: $ord;
+            }
+            else {
+                @ignored.push: $hex;
+            }
+        }
+        if $height-check and $glyph eq '' {
+            if $show-ord {
+                @ignored.push: $ord;
+            }
+            else {
+                @ignored.push: $hex;
+            }
+        }
+
+        if $width-check and $width <= 0 {
+            if $show-ord {
+                @ignored.push: $ord;
+            }
+            else {
+                @ignored.push: $hex;
+            }
+        }
+        if $height-check and $height <= 0 {
+            if $show-ord {
+                @ignored.push: $ord;
+            }
+            else {
+                @ignored.push: $hex;
+            }
+        }
+        =begin comment
+        say "glyph index: $glyph-index";
+        say "       char: $char";
+        say "    decimal: $ord";
+        say "        hex: $hex";
+        say "      width: $width";
+        say "    uniname: $name";
+        say "    uniprop: $prop";
+        if $width == 0 {
+            note "WARNING: glyph '$hex' == 0";
+        }
+        =end comment
+    }
+    @ignored.unique;
 }
-multi method is-vignored(UInt $dec --> Bool) {
-    #my $dec = hex2dec $hex;
-    $dec (<=) self.vignored
-}
-=end comment
 
 method top-bearing(Str $s) {
     my $y = 0;

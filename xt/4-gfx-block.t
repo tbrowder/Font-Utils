@@ -2,9 +2,7 @@ use Test;
 
 use PDF::API6; # <== required for $page
 use PDF::Content;
-use PDF::Font::Loader :load-font;
 use PDF::Lite;
-use PDF::Content::Text::Box;
 
 my $debug = 0;
 
@@ -21,6 +19,7 @@ $g.ClosePath;
 $g.Stroke;
 $g.Restore;
 
+$page = $pdf.add-page;
 $page.graphics: {
 .Save;
 .transform: :translate[0, 10];
@@ -30,7 +29,6 @@ $page.graphics: {
 .Stroke;
 .Restore;
 }
-
 
 my $ofil = "gfx.pdf";
 $pdf.save-as: $ofil;
