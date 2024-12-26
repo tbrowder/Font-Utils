@@ -1,14 +1,34 @@
 unit module Font::Utils::Classes;
 
 use Font::Utils::Misc;
+use Font::Utils::Subs;
 
 use OO::Monitors;
 
 my $debug = 0;
 
 our monitor Ignore is export {
-    has @.ignored;
-    has @.vignored;
+    has UInt @.ignored;
+    has UInt @.vignored;
+
+    multi method insert-ignored(UInt $ord) {
+        @.ignored.push: $ord;
+    }
+    multi method insert-ignored(HexStr $hex) {
+        # convert to UInt
+        my $ord = hex2dec $hex;
+        @.ignored.push: $ord;
+    }
+
+    # do same for vignored
+    multi method insert-vignored(UInt $ord) {
+        @.vignored.push: $ord;
+    }
+    multi method insert-vignored(HexStr $hex) {
+        # convert to UInt
+        my $ord = hex2dec $hex;
+        @.vignored.push: $ord;
+    }
 }
 
 our monitor Glyph-Row is export {
