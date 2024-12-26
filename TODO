@@ -1,3 +1,7 @@
+Check for using zef "linear" on Windows so can determine which module is failing
+
+Use a new monitor class for font chars
+
 See chinesenotes.com for chinese texts on xml  pages. How to extract?
   http://chinesenotes.com/zuozhuan/001.html
 
