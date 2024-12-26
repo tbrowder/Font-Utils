@@ -23,12 +23,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: Raku/setup-raku@v1
+      - name: Install noto fonts
+        run: |
+            choco install noto
       - name: Install Dependencies
         run: |
             choco install rakudostar
             choco install wget
-            choco install noto
-            #zef --exclude="z" install --debug --/test --test-depends --deps-only --serial .
             zef --exclude="z" install --debug --/test --test-depends --deps-only .
       - name: Run Tests
         run: zef install .
