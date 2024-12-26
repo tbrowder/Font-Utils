@@ -26,6 +26,7 @@ jobs:
       - name: Install noto fonts
         run: |
             choco install noto
+            find /usr/share/fonts -type f -name "*Noto*"
       - name: Install Dependencies
         run: |
             choco install rakudostar
