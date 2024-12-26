@@ -1,12 +1,12 @@
-See chinese.com for chinese texts on xml  pages. How to extract?
+See chinesenotes.com for chinese texts on xml  pages. How to extract?
   http://chinesenotes.com/zuozhuan/001.html
 
-Fix all tests in xt-hold
+DONE Fix all tests in xt-hold
 
 Add font license text
   - see Checkwriter for some good stuff
 
-Add option to FaceFreeType to not check width or height of a glyph
+DONE Add option to FaceFreeType to not check width or height of a glyph
   - add separate checks for width and height inside the sample?
 
 Move graphics stuff to PDF::GraphicsUtils
@@ -17,7 +17,7 @@ Fix build script to force creating
   the "font-files.list" during
   GitHub workflows testing
 
-Create a routine to make a glyph showing box with each
+DONE Create a routine to make a glyph showing box with each
 glyph's hex code, glyph, font bbox, origin, bearings,
 horizontal advance, and baseline. Each glyph should
 be inside a box outlined by the font bbox.
@@ -35,12 +35,15 @@ describe the use of:
 
 Do as above for printing a line.
 
-Get a list of different font file types for testing in xt
+DONE Get a list of different font file types for testing in xt
 
 Add info for MacOS and Windows
   see unpublished FontFactory for OS installation code
+
 Add more font collections
+
 Add scripts to install fonts by root user
   use Auth::Utils linter or do by hand for downloadable script
+
 Ensure *.yml files load required font files
   see FontFactory for some examples

@@ -4,6 +4,7 @@ use Font::FreeType;
 use Font::FreeType::Face;
 
 my $file  = "/usr/share/fonts/opentype/freefont/FreeSerif.otf";
+#my $file  = "/usr/share/local/fonts/noto/NotoSerif-Regular.ttf";
 
 my $fo   = Font::FreeType.new;
 my $face = $fo.face: $file;
@@ -15,6 +16,27 @@ my enum Control-Chars (
         :Private<Co>,
         :Unassigned<Cn>
  );
+
+my enum PChars (
+    :P1<Lu>,
+    :P2<Ll>,
+    :P3<Lt>,
+
+    :P4<Nd>,
+    :P5<Nl>,
+    :P6<No>,
+
+    :P7<Pc>,
+    :P8<Pd>,
+    :P9<Ps>,
+    :Pa<Pe>,
+    :Pb<Pi>,
+    :Pc<Pf>,
+    :Pd<Po>,
+
+    :Pe<Sm>,
+    :Pf<Sc>,
+);
 
 # using cmap() [FreeType v0.5.12+]
 my %control-chars = ();
@@ -28,6 +50,12 @@ for $face.cmap {
     my $dec         = $char;
     my $hex         = $dec.base: 16;
     my $name        = $char.uniname;
+
+    if $prop ~~ /^ :i [L|N|P|S] / {
+        note "$hex";
+    }
+
+    =begin comment
     say qq:to/HERE/;
     glyph-index: $glyph-index
            char: $char
@@ -37,9 +65,10 @@ for $face.cmap {
             hex: $hex
            prop: $prop
     HERE
+    =end comment
 }
 
-done-testing;
+#done-testing;
 
 =finish
 

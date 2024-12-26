@@ -68,6 +68,10 @@ submethod TWEAK {
             $height = $g.height;
         }
         my $prop        = $char.uniprop;
+
+        if $prop ~~ /^ :i [LNPS] / {
+        }
+
         my $name        = $char.uniname;
         my $ord         = $char;
         my $hex         = $ord.base(16);

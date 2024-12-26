@@ -1603,6 +1603,12 @@ sub make-font-sample-doc(
 
     # create ALL the input data as Section objects FIRST
     #   THEN create the pages
+
+    # TODO move the two classes to /Classes.rakumod
+    if 0 {
+        use Font::Utils::Classes;
+    }
+    else {
     monitor Glyph-Row {
         has HexStr @.glyphs;
         method insert(HexStr $glyph) {
@@ -1621,6 +1627,7 @@ sub make-font-sample-doc(
             self.glyph-rows.push($glyph-row);
         }
     }
+    } # elsif
 
     # max boxes on a line are limited by content width
     my $maxng = $cwidth div $glyph-box-width;
