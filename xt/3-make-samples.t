@@ -27,13 +27,11 @@ if $os.is-windows {
 }
 else {
     $file  = "/usr/share/local/fonts/noto/NotoSerif-Regular.ttf";
-    $file3 = "/usr/share/fonts/opentype/freefont/FreeSerif.otf";
+   # $file3 = "/usr/share/fonts/opentype/freefont/FreeSerif.otf";
     # this is the font for showing hex codes
     # TODO rename it to $fileHC
     $file2 = "/usr/share/fonts/opentype/freefont/FreeSans.otf";
 }
-
-#my $file  = "/usr/share/fonts/opentype/freefont/FreeSans.otf";
 
 my PDF::Lite $pdf .= new;
 my $page = $pdf.add-page;
@@ -84,6 +82,7 @@ if $test2 {
     %opts<sn> = "1,2,3,4,5,6,7,8,9,10,11,12";
     make-font-sample-doc $f, :%opts, :$debug;
 
+    =begin comment
     unless $os.is-windows {
         # sample the Free Font
         $f = $file3;
@@ -96,6 +95,7 @@ if $test2 {
         %opts<sn> = "1,2,3,4,5,6,7,8,9,10,11,12";
         make-font-sample-doc $f, :%opts, :$debug;
     }
+    =end comment
 
 } # $test2
 

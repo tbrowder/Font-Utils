@@ -15,10 +15,10 @@ use PDF::Lite;
 use PDF::Content;
 use PDF::Content::Text::Box;
 
-use Font::Utils::Misc;
 use Font::Utils::FaceFreeType;
-use Font::Utils::FaceFreeType::Ignore;
+use Font::Utils::Misc;
 use Font::Utils::Subs;
+use Font::Utils::Classes;
 
 our %loaded-fonts is export;
 our $HOME is export = 0;
@@ -1603,31 +1603,6 @@ sub make-font-sample-doc(
 
     # create ALL the input data as Section objects FIRST
     #   THEN create the pages
-
-    # TODO move the two classes to /Classes.rakumod
-    if 0 {
-        use Font::Utils::Classes;
-    }
-    else {
-    monitor Glyph-Row {
-        has HexStr @.glyphs;
-        method insert(HexStr $glyph) {
-            note "DEBUG: hex: $glyph" if $debug > 2;
-            @.glyphs.push: $glyph;
-        }
-    }
-    monitor Section {
-        has Str  $.title;
-        has UInt $.number; # 1...Nsections;
-        # hexadecimal repr, number depends on
-        # width of glyph-box and page content width
-        has Glyph-Row @.glyph-rows;
-
-        method insert(Glyph-Row $glyph-row) {
-            self.glyph-rows.push($glyph-row);
-        }
-    }
-    } # elsif
 
     # max boxes on a line are limited by content width
     my $maxng = $cwidth div $glyph-box-width;
