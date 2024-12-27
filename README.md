@@ -74,6 +74,14 @@ There are two other important attributes that affect the object creation and its
 
 By default, any glyph that has zero width or height is ignored. Usually those are control chatacters you wouldn't want to display, but some are special typesetting characters that a using program may need. Thus the user can turn those checks on by declaring one or both True at object creation.
 
+### class Glyp-Str 
+
+### class Glyph-Row
+
+### class Section
+
+### class Ignore
+
 Routines
 --------
 
@@ -104,28 +112,6 @@ Given a list of decimal code points, convert them to a string. You may indicate 
     my $s = dec2string @symbols;
     say $s;
     !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
-
-### write-line
-
-    sub write-line(
-        $page,
-        :$font!,  # DocFont object
-        :$text!,
-        :$x!, :$y!,
-        :$align = "left", # left, right, center
-        :$valign = "baseline", # baseline, top, bottom
-        :$debug,
-    ) is export {
-
-### rescale
-
-    sub rescale(
-        $font,
-        :$debug,
-        --> Numeric
-        ) is export {...}
-
-Given a font object with its size setting (.size) and a string of text you want to be an actual height X, returns the calculated setting size to achieve that top bearing.
 
 ### hex2dec
 

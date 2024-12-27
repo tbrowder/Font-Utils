@@ -92,6 +92,14 @@ those are control chatacters you wouldn't want to display, but
 some are special typesetting characters that a using program may need. Thus the user
 can turn those checks on by declaring one or both True at object creation.
 
+=head3 class Glyp-Str 
+
+=head3 class Glyph-Row
+
+=head3 class Section
+
+=head3 class Ignore
+
 =head2 Routines
 
 In Raku font handling we are constantly dealing with various font and typesetting
@@ -138,32 +146,6 @@ my $s = dec2string @symbols;
 say $s;
 !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
 =end code
-
-=head3 write-line
-=begin code
-sub write-line(
-    $page,
-    :$font!,  # DocFont object
-    :$text!,
-    :$x!, :$y!,
-    :$align = "left", # left, right, center
-    :$valign = "baseline", # baseline, top, bottom
-    :$debug,
-) is export {
-=end code
-
-=head3 rescale
-=begin code
-sub rescale(
-    $font,
-    :$debug,
-    --> Numeric
-    ) is export {...}
-=end code
-
-Given a font object with its size setting (.size) and a string of text you
-want to be an actual height X, returns the calculated setting
-size to achieve that top bearing.
 
 =head3 hex2dec
 =begin code

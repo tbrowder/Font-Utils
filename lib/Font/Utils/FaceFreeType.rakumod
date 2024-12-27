@@ -226,6 +226,9 @@ method stringwidth(Str $s) {
 }
 
 #method get-ignored-list(--> List) {
+method get-ignored-object(Bool :$show-ord) {
+}
+
 method get-ignored-list(Bool :$show-ord) {
     my @ignored;
     #my @hex-ignored;
