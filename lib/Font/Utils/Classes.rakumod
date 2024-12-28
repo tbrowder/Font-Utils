@@ -1,5 +1,6 @@
 unit module Font::Utils::Classes;
 
+
 use Font::Utils::Misc;
 use Font::Utils::Subs;
 
@@ -7,27 +8,80 @@ use OO::Monitors;
 
 my $debug = 0;
 
-our monitor Ignore is export {
-    has UInt @.ignored;
-    has UInt @.vignored;
+# From my study of code-point properties, 
+# these should be printable chars:
+my enum PrintChars (
+    :P1<Lu>, :P2<Ll>, :P3<Lt>,
+    :P4<Nd>, :P5<Nl>, :P6<No>,
+    :P7<Pc>, :P8<Pd>, :P9<Ps>, :Pa<Pe>, :Pb<Pi>, :Pc<Pf>, :Pd<Po>,
+    :Pe<Sm>, :Pf<Sc>,
+);
 
-    multi method insert-ignored(UInt $ord) {
-        @.ignored.push: $ord;
+our monitor Ignore is export {
+    use Font::FreeType;
+    use Font::FreeType::Face;
+
+    # Note the caller determines whether width or height is inserted
+
+    has $.file is required; # The font file
+    has $.width-limit  = True;
+    has $.height-limit = True;
+
+    # a hash of UInts (the $char.ord value, referred to as $dec here)
+    has %.ignored; 
+
+    my ($fo, $face, $dec);
+    submethod TWEAK {
+        $fo   = Font::FreeType.new;
+        $face = $fo.face: $!file;
+        for $face.cmap {
+            say ".cmap: {$_.gist}" if $debug;
+            my $glyph-index = .key;
+            # David's ($char = .value) yields the decimal code point
+            #   i.e., $char = .ord (= $dec)
+            my $char  = .value;
+            my $glyph = $char.chr; # the Str of the glyph
+            my $dec   = $char;
+
+            =begin comment
+            my $width  = 0;
+            my $height = 0;
+            $!face.forall-chars: $glyph, -> $g {
+                # $g is the object of the binary glyph
+                $width  = $g.width;
+                $height = $g.height;
+            }
+            =end comment
+
+            # I want only printable glyphs:
+            if not PrintChars($char.uniprop) {
+                # add it to the hash
+                %!ignored{$dec} = 1;
+            }
+        }
+    }
+
+    =begin comment
+    # Not needed now
+    # build methods
+    multi method insert-ignored(UInt $dec) {
+        %.ignored{$dec} = 1;
     }
     multi method insert-ignored(HexStr $hex) {
         # convert to UInt
-        my $ord = hex2dec $hex;
-        @.ignored.push: $ord;
+        my $dec = hex2dec $hex;
+        %.ignored{$dec} = 1;
     }
+    =end comment
 
-    # do same for vignored
-    multi method insert-vignored(UInt $ord) {
-        @.vignored.push: $ord;
+    # interrogation methods
+    multi method is-ignored(UInt $dec --> Bool) {
+        %.ignored{$dec}:exists
     }
-    multi method insert-vignored(HexStr $hex) {
+    multi method is-ignored(HexStr $hex --> Bool) {
         # convert to UInt
-        my $ord = hex2dec $hex;
-        @.vignored.push: $ord;
+        my $dec = hex2dec $hex;
+        %.ignored{$dec}:exists
     }
 }
 

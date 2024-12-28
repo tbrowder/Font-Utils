@@ -68,10 +68,6 @@ submethod TWEAK {
             $height = $g.height;
         }
         my $prop        = $char.uniprop;
-
-        if $prop ~~ /^ :i [LNPS] / {
-        }
-
         my $name        = $char.uniname;
         my $ord         = $char;
         my $hex         = $ord.base(16);
@@ -225,17 +221,14 @@ method stringwidth(Str $s) {
     $w
 }
 
-#method get-ignored-list(--> List) {
-method get-ignored-object(Bool :$show-ord) {
-}
+=begin comment
+method get-ignored-object(
+    Bool :$decimal
+    --> Ignore) {
 
-method get-ignored-list(Bool :$show-ord) {
-    my @ignored;
-    #my @hex-ignored;
+    my $ig = Ignore.new;
 
     for $!face.cmap {
-        say ".cmap: {$_.gist}" if $debug;
-        #last unless $width-check or $height-check;
         my $glyph-index = .key;
         # $char is the decimal code point for the glyph:
         #   i.e., $char = .ord
@@ -248,60 +241,74 @@ method get-ignored-list(Bool :$show-ord) {
             $width  = $g.width;
             $height = $g.height;
         }
-
-
         my $prop        = $char.uniprop;
         my $name        = $char.uniname;
         my $ord         = $char;
         my $hex         = $ord.base(16);
 
-        my $w = 0;
-        $!face.for-glyphs($glyph, {
-            my $x = .horizontal-advance;
-            $w += $x;
-        });
-
-        if $width-check and $w <= 0 {
-            if $show-ord {
+        if $width-check and $width == 0 {
+            if $decimal { 
                 @ignored.push: $ord;
+            } 
+            else { 
+                @ignored.push: $hex; 
             }
-            else {
-                @ignored.push: $hex;
+        }
+        if $height-check and $height == 0 {
+            if $decimal { 
+                @ignored.push: $ord; 
+            }
+            else { 
+                @ignored.push: $hex; 
             }
         }
 
-        if $width-check and $glyph eq '' {
-            if $show-ord {
-                @ignored.push: $ord;
-            }
-            else {
-                @ignored.push: $hex;
-            }
+        =begin comment
+        say "glyph index: $glyph-index";
+        say "       char: $char";
+        say "    decimal: $ord";
+        say "        hex: $hex";
+        say "      width: $width";
+        say "    uniname: $name";
+        say "    uniprop: $prop";
+        if $width == 0 {
+            note "WARNING: glyph '$hex' == 0";
         }
-        if $height-check and $glyph eq '' {
-            if $show-ord {
-                @ignored.push: $ord;
-            }
-            else {
-                @ignored.push: $hex;
-            }
-        }
+        =end comment
+    }
+    @ignored.unique;
 
-        if $width-check and $width <= 0 {
-            if $show-ord {
-                @ignored.push: $ord;
-            }
-            else {
-                @ignored.push: $hex;
-            }
+    $ig
+}
+=end comment
+
+
+method get-ignored-list(Bool :$show-ord) {
+    my @ignored;
+    for $!face.cmap {
+        my $glyph-index = .key;
+        # $char is the decimal code point for the glyph:
+        #   i.e., $char = .ord
+        my $char        = .value;
+        my $glyph  = $char.chr; # the Str of the glyph
+        my $width  = 0;
+        my $height = 0;
+        $!face.forall-chars: $glyph, -> $g {
+            # $g is the object of the binary glyph
+            $width  = $g.width;
+            $height = $g.height;
         }
-        if $height-check and $height <= 0 {
-            if $show-ord {
-                @ignored.push: $ord;
-            }
-            else {
-                @ignored.push: $hex;
-            }
+        my $prop        = $char.uniprop;
+        my $name        = $char.uniname;
+        my $ord         = $char;
+        my $hex         = $ord.base(16);
+        if $width-check and $width == 0 {
+            if $show-ord { @ignored.push: $ord;
+            } else { @ignored.push: $hex; }
+        }
+        if $height-check and $height == 0 {
+            if $show-ord { @ignored.push: $ord; }
+            else { @ignored.push: $hex; }
         }
         =begin comment
         say "glyph index: $glyph-index";

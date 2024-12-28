@@ -17,35 +17,39 @@ my enum Control-Chars (
         :Unassigned<Cn>
  );
 
-my enum PChars (
-    :P1<Lu>,
-    :P2<Ll>,
-    :P3<Lt>,
-
-    :P4<Nd>,
-    :P5<Nl>,
-    :P6<No>,
-
-    :P7<Pc>,
-    :P8<Pd>,
-    :P9<Ps>,
-    :Pa<Pe>,
-    :Pb<Pi>,
-    :Pc<Pf>,
-    :Pd<Po>,
-
-    :Pe<Sm>,
-    :Pf<Sc>,
+# From my study of code-point properties, 
+# these should be printable chars:
+my enum PrintChars (
+    :P1<Lu>, :P2<Ll>, :P3<Lt>,
+    :P4<Nd>, :P5<Nl>, :P6<No>,
+    :P7<Pc>, :P8<Pd>, :P9<Ps>, :Pa<Pe>, :Pb<Pi>, :Pc<Pf>, :Pd<Po>,
+    :Pe<Sm>, :Pf<Sc>,
 );
+
+=begin comment
+# David uses the code this way:
+    %control-chars{$prop}.push($char.uniname)
+        if Control-Chars($char.uniprop);
+# rearranging that:
+    if Control-Chars($char.uniprop) {
+        %control-chars{$prop}.push($char.uniname)
+    }
+# I want only printable glyphs:
+    if not PrintChars($char.uniprop) {
+        next;
+    }
+ 
+=end comment
+
 
 # using cmap() [FreeType v0.5.12+]
 my %control-chars = ();
 for $face.cmap {
     my $glyph-index = .key;
-    # David's $char is the decimal code point
+    # David's ($char = .value) yields the decimal code point
     my $char        = .value;
     my $prop        = $char.uniprop;
-    # my code
+    # my added code
     my $glyph       = $char.chr;
     my $dec         = $char;
     my $hex         = $dec.base: 16;
