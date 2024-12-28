@@ -1,3 +1,9 @@
+Note there is a problem with the opentype version of Free Fonts:
++ trying to sort is out:
+  - check Unicode tables for the boxed question mark
+  - review input ranges (see Misc.rakumod)
+  - check for "overlayed" or "combined" code-points
+
 Add a pdf copy to workflows file?
 
 Try using experimental trait "is cached" with monitor classes

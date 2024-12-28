@@ -22,8 +22,8 @@ my $compress = 0;
 
 my ($file, $fileHC, $file3, $ofil);
 
-my $ftest1 = 1; # all noto ttf (OK)
-my $ftest2 = 0; # all freefont otf (lots of missing glyphs)
+my $ftest1 = 0; # all noto ttf (OK)
+my $ftest2 = 1; # all freefont otf (lots of missing glyphs)
 my $ftest3 = 0; # all freefont ttf (almost OK)
 
 if $os.is-windows {

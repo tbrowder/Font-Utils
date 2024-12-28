@@ -3,8 +3,8 @@
 use Font::FreeType;
 use Font::FreeType::Face;
 
-my $file  = "/usr/share/fonts/opentype/freefont/FreeSerif.otf";
-#my $file  = "/usr/share/local/fonts/noto/NotoSerif-Regular.ttf";
+#my $file  = "/usr/share/fonts/opentype/freefont/FreeSerif.otf";
+my $file  = "/usr/share/local/fonts/noto/NotoSerif-Regular.ttf";
 
 my $fo   = Font::FreeType.new;
 my $face = $fo.face: $file;
@@ -17,7 +17,7 @@ my enum Control-Chars (
         :Unassigned<Cn>
  );
 
-# From my study of code-point properties, 
+# From my study of code-point properties,
 # these should be printable chars:
 my enum PrintChars (
     :P1<Lu>, :P2<Ll>, :P3<Lt>,
@@ -38,7 +38,7 @@ my enum PrintChars (
     if not PrintChars($char.uniprop) {
         next;
     }
- 
+
 =end comment
 
 
@@ -54,6 +54,12 @@ for $face.cmap {
     my $dec         = $char;
     my $hex         = $dec.base: 16;
     my $name        = $char.uniname;
+
+    if not PrintChars($char.uniprop) {
+        note "$hex";
+        next;
+    }
+
 
     if $prop ~~ /^ :i [L|N|P|S] / {
         note "$hex";

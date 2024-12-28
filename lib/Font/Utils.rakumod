@@ -1551,6 +1551,19 @@ sub make-font-sample-doc(
     say "==== DEBUG: working font file; '{$file.IO.basename}'";
     my $fo = FaceFreeType.new: :$font-size, :$font;
     #my @ignored = $fo.get-ignored-list.list;
+    my $ig = Ignore.new: :$file;
+    if 1 or $debug {
+        my @h;
+        note "Contents of the Ignore instance:";
+        my @i = $ig.ignored;
+        for @i -> $dec {
+            my $hex = dec2hex $dec.UInt;
+            $hex = $hex.uc;
+            @h.push: $hex;
+        }
+        @h = @h.unique;
+        note "  $_" for @h.sort;
+    }
 
     =begin comment
     if 0 {
@@ -1647,16 +1660,9 @@ sub make-font-sample-doc(
         # TODO: here is where we filter out zero-width and zero-height chars
         my @valid-gstrs;
         for @gstrs -> $hex {
+            next if $ig.is-ignored: $hex.uc;
             # TODO how to handle properly???
-            # get its char
-            my $char = HexStr2Char $hex;
-            my $w = $fo.stringwidth($char);
-            =begin comment
-            if ($hex (<=) @ignored) {
-                next;
-            }
-            =end comment
-            @valid-gstrs.push($hex) if $w > 0;
+            @valid-gstrs.push($hex.uc);
         }
 
         @gstrs = @valid-gstrs;

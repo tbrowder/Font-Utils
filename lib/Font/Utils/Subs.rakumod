@@ -45,7 +45,7 @@ sub is-font-file(
 }
 
 sub dec2hex(
-    $dec,
+    UInt $dec,
     :$debug
     --> HexStr
     ) is export {
