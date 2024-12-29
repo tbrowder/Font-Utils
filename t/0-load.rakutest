@@ -6,6 +6,7 @@ my @modules = <
     Font::Utils::Misc
     Font::Utils::Subs
     Font::Utils::Classes
+    Font::Utils::FontX
 >;
 
 #   Font::Utils::FaceFreeType::Ignore

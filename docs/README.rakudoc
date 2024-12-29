@@ -29,7 +29,7 @@ B<Font::Utils> contains the following installed program, classes, and routines:
 =head3 font-utils
 
 =begin code
-font-utils <mode> [...options...]
+$ font-utils <mode> [...options...]
 =end code
 
 =head3 Modes
@@ -40,7 +40,8 @@ C<list $directory, :$out = $*OUT>
 
 Uses routine C<list> to provide a list
 of font families and their fonts in the input directory.
-Any other entry will show the user's list.
+Any other entry will show the user's font list:
+'\$HOME/.Font-Utils/font-files.list'.
 
 =head4 show 
 
@@ -55,14 +56,28 @@ sample $font-file, :$media = 'Letter',
                         :$out = "sample.pdf"
 =end code
 
-Uses routine C<sample> to create a PDF document showing each
+Uses routine C<sample> to create a PDF document showing the
 input font at a default size of 12 points on Letter paper
-in Portrait orientation.
+in Portrait orientation. The glyphs printed will be from
+the Latin blocks as shown at L<https://unicode.org>. 
 
-If no text is supplied, and no specific number of glyphs is
-entered, the sample will show as many glyphs as can be shown
-on a single line of the alphanumeric
-glyphs in that font.
+Note not all fonts have valid glyphs for each code point.
+This module attempts to block those glyphs that are not
+normally used for printing such as controls and various
+glyph modifiers, but ultimately each font may have
+substitute glyphs the user may not want to see in
+the sample. Thus the user can block use of code points by hex number
+in his '$HOME/.Font-Utils/font-ignores.list' file.
+That file looks like this:
+
+=begin code
+# family | type | hex code points to ignore (case insensitive)
+FreeSerif  otf  ac0-acf d123 e200-f390 # <= note ranges of codes
+=end code
+
+The author has included some entries for fonts he uses, but the
+user can modify it at will. After initial creation, it will
+not be modified by this package.
 
 =head2 Classes
 
@@ -80,25 +95,26 @@ The class is instantiated by two required attributes:
 
 =item $font-size - the desired font size in points (72 points = 1 inch).
 
-There are two other important attributes that affect the object creation
+There is one other important attribute that affect the object creation
 and its method that selects glyphs to use from the font file:
 
-=item -  has $.width-check = True;
+=item -  has $.limit-glyphs = False;
 
-=item -  has $.height-check = True;
+When True, several checks are made to eliminate some glyphs
+at creation time. Any glyph that has zero width or height is ignored for the samples. 
+Glyphs that are known control characters or space related are ignored.
+(But the user can always declare glyphs to be ignored at all times for
+certain conditions.)
 
-By default, any glyph that has zero width or height is ignored. Usually
-those are control chatacters you wouldn't want to display, but
-some are special typesetting characters that a using program may need. Thus the user
-can turn those checks on by declaring one or both True at object creation.
+=head3 Other classes
 
-=head3 class Glyp-Str 
+The rollowing classes aren't user classes and won't be discussed. Peruse
+the source code for more information:
 
-=head3 class Glyph-Row
-
-=head3 class Section
-
-=head3 class Ignore
+=item class Glyp-Str 
+=item class Glyph-Row
+=item class Section
+=item class Ignore
 
 =head2 Routines
 
@@ -205,13 +221,13 @@ Latin Additional | L-Additional
 Latin Ligatures  | L-Ligatures
 =end table
 
-Note that the Free Fonts do B<NOT> cover all those glyphs, but the Noto
-fonts do if you need the largest coverage. The Free Fonts are more
+Note that the Free Fonts do not cover all those glyphs, but the Noto
+fonts do cover most if you need the largest coverage. The Free Fonts are more
 attractive to my eyes, but that is an artistic decision. You can
-most always find a free or paid font if you look for it (see L<https://monotype.com>
+most always find a suitable free or paid font if you look for it. 
+See L<https://monotype.com>
 as a good example where I found a MICR bank font file for personal desktop use
-for a very reasonable price:
-about the same as a couple of six-packs of my favorite IPA.
+for a very reasonable price  (about the same as a couple of six-packs of my favorite IPA).
 
 =head1 AUTHOR
 

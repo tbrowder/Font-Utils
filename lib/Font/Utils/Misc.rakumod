@@ -120,7 +120,7 @@ constant %uni-titles is export = %(
 constant %uni is export = %(
 
 # Basic Latin (ASCII)
-L-sym => "21-2f 3a-40 5b-60 7b-7e", # 32?
+L-sym => "21-2f 3a-40 5b-60 7b-7e", 
 L-chr => "30-39 41-5a 61-7a",
 
 # Latin-1 Supplement

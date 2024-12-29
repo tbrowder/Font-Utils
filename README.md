@@ -28,7 +28,7 @@ Program
 
 ### font-utils
 
-    font-utils <mode> [...options...]
+    $ font-utils <mode> [...options...]
 
 ### Modes
 
@@ -36,7 +36,7 @@ Program
 
 `list $directory, :$out = $*OUT`
 
-Uses routine `list` to provide a list of font families and their fonts in the input directory. Any other entry will show the user's list.
+Uses routine `list` to provide a list of font families and their fonts in the input directory. Any other entry will show the user's font list: '\$HOME/.Font-Utils/font-files.list'.
 
 #### show 
 
@@ -49,9 +49,14 @@ Uses routine `show` to provide a list of the input font's attributes.
     sample $font-file, :$media = 'Letter', 
                             :$out = "sample.pdf"
 
-Uses routine `sample` to create a PDF document showing each input font at a default size of 12 points on Letter paper in Portrait orientation.
+Uses routine `sample` to create a PDF document showing the input font at a default size of 12 points on Letter paper in Portrait orientation. The glyphs printed will be from the Latin blocks as shown at [https://unicode.org](https://unicode.org). 
 
-If no text is supplied, and no specific number of glyphs is entered, the sample will show as many glyphs as can be shown on a single line of the alphanumeric glyphs in that font.
+Note not all fonts have valid glyphs for each code point. This module attempts to block those glyphs that are not normally used for printing such as controls and various glyph modifiers, but ultimately each font may have substitute glyphs the user may not want to see in the sample. Thus the user can block use of code points by hex number in his '$HOME/.Font-Utils/font-ignores.list' file. That file looks like this:
+
+    # family | type | hex code points to ignore (case insensitive)
+    FreeSerif  otf  ac0-acf d123 e200-f390 # <= note ranges of codes
+
+The author has included some entries for fonts he uses, but the user can modify it at will. After initial creation, it will not be modified by this package.
 
 Classes
 -------
@@ -66,21 +71,23 @@ The class is instantiated by two required attributes:
 
   * $font-size - the desired font size in points (72 points = 1 inch).
 
-There are two other important attributes that affect the object creation and its method that selects glyphs to use from the font file:
+There is one other important attribute that affect the object creation and its method that selects glyphs to use from the font file:
 
-  * - has $.width-check = True;
+  * - has $.limit-glyphs = False;
 
-  * - has $.height-check = True;
+When True, several checks are made to eliminate some glyphs at creation time. Any glyph that has zero width or height is ignored for the samples. Glyphs that are known control characters or space related are ignored. (But the user can always declare glyphs to be ignored at all times for certain conditions.)
 
-By default, any glyph that has zero width or height is ignored. Usually those are control chatacters you wouldn't want to display, but some are special typesetting characters that a using program may need. Thus the user can turn those checks on by declaring one or both True at object creation.
+### Other classes
 
-### class Glyp-Str 
+The rollowing classes aren't user classes and won't be discussed. Peruse the source code for more information:
 
-### class Glyph-Row
+  * class Glyp-Str 
 
-### class Section
+  * class Glyph-Row
 
-### class Ignore
+  * class Section
+
+  * class Ignore
 
 Routines
 --------
@@ -156,7 +163,7 @@ Included with the module is a hash (`%uni`) with the hexadecimal code points for
 </tbody>
 </table>
 
-Note that the Free Fonts do **NOT** cover all those glyphs, but the Noto fonts do if you need the largest coverage. The Free Fonts are more attractive to my eyes, but that is an artistic decision. You can most always find a free or paid font if you look for it (see [https://monotype.com](https://monotype.com) as a good example where I found a MICR bank font file for personal desktop use for a very reasonable price: about the same as a couple of six-packs of my favorite IPA.
+Note that the Free Fonts do not cover all those glyphs, but the Noto fonts do cover most if you need the largest coverage. The Free Fonts are more attractive to my eyes, but that is an artistic decision. You can most always find a suitable free or paid font if you look for it. See [https://monotype.com](https://monotype.com) as a good example where I found a MICR bank font file for personal desktop use for a very reasonable price (about the same as a couple of six-packs of my favorite IPA).
 
 AUTHOR
 ======

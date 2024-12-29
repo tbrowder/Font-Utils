@@ -117,8 +117,21 @@ subset HexStrRangeWords of Str is export where { $_ ~~
 #=========================================================
 =end comment
 
+# our $user-font-ignores-list is export; # <== create-user-font-ignores-file
+# our %user-font-ignores      is export; # <== create-user-font-ignores-hash 
+sub create-user-font-ignores-file(
+    :$debug,
+    ) is export {
+    # created only if it doesn't exist, checks otherwise
+}
+sub create-user-font-ignores-hash(
+    :$debug,
+    ) is export {
+    # always created from the user's list
+}
+
 # our $user-font-list is export; # <== create-user-font-list-file
-# our %user-fonts     is export; # <== create-user-fonts-hash $user-font-list
+# our %user-fonts     is export; # <== create-user-fonts-hash 
 sub create-user-font-list-file(
     :$debug,
     ) is export {

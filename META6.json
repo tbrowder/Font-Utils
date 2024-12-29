@@ -32,6 +32,7 @@
     "Font::Utils::Classes": "lib/Font/Utils/Classes.rakumod",
     "Font::Utils::FaceFreeType": "lib/Font/Utils/FaceFreeType.rakumod",
     "Font::Utils::FaceFreeType::Ignore": "lib/Font/Utils/FaceFreeType/Ignore.rakumod",
+    "Font::Utils::FontX": "lib/Font/Utils/FontX.rakumod",
     "Font::Utils::Misc": "lib/Font/Utils/Misc.rakumod",
     "Font::Utils::NameTags": "lib/Font/Utils/NameTags.rakumod",
     "Font::Utils::Subs": "lib/Font/Utils/Subs.rakumod"
