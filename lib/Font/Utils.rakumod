@@ -2163,7 +2163,7 @@ Add ps2pdf Ghostscript fix as used in the moon script to
 =end comment
 
 sub asc2ps(
-    IO::Path $file,
+    $file,
     $out?,
     :$debug,
     --> IO::Path
@@ -2173,6 +2173,9 @@ sub asc2ps(
         $ps = $out;
     }
     else {
+        if not $file.IO.r {
+            die "FATAL: Input file '$file' does not exist";
+        }
         $ps = $file.IO;
         my $ext = $ps.IO.extension;
         $ps ~~ s/$ext $/ps/;

@@ -14,10 +14,18 @@ shell "a2ps -o a.ps xt/data/sample.asc ";
 my $ps = "a.ps";
 say "see file $ps";
 
+# test turning a text file into a PostScript file (.ps)
+#   first a real while
 my $ps2;
 lives-ok {
-     $ps2 = asc2ps $asc.IO; 
+     $ps2 = asc2ps $asc; 
 }, "running asc2ps on file '$asc'";
+
+#   then a non-file
+my $nofile = "some string";
+dies-ok {
+     $ps2 = asc2ps $nofile; 
+}, "running asc2ps on file '$nofile'";
 
 exit;
 
