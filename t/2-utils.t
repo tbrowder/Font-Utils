@@ -9,6 +9,18 @@ my ($s1, $s2, $c1, $c2, @gchars, @words);
 
 is 1, 1;
 
+my $asc = "xt/data/sample.asc";
+shell "a2ps -o a.ps xt/data/sample.asc ";
+my $ps = "a.ps";
+say "see file $ps";
+
+my $ps2;
+lives-ok {
+     $ps2 = asc2ps $asc.IO; 
+}, "running asc2ps on file '$asc'";
+
+exit;
+
 =begin comment
 for 1..2000 {
     my $c = $_.chr;

@@ -2150,6 +2150,83 @@ sub show-zero-chars($file, :$debug) is export {
 }
 
 =begin comment
+Add ps2pdf Ghostscript fix as used in the moon script to
+  lib routines.
+  + sub asc2ps($text, $ofil? --> IO::Path) 
+      uses a2ps to convert a text file to PostScript (PS)
+  + sub ps2pdf($ps, :$ofil?, --> IO::Path)
+      uses Ghostscript's ps2pdf
+      the output is reproducible for the same input
+  + sub pdf2pdf($pdf, :$ofil?, --> IO::Path)
+      uses Ghostscript's pdf2ps and ps2pdf
+      the output is reproducible for the same input
+=end comment
+
+sub asc2ps(
+    IO::Path $file,
+    $out?,
+    :$debug,
+    --> IO::Path
+    ) is export {
+    my $ps;
+    if $out.defined {
+        $ps = $out;
+    }
+    else {
+        $ps = $file.IO;
+        my $ext = $ps.IO.extension;
+        $ps ~~ s/$ext $/ps/;
+    }
+
+    shell "a2ps -o $ps $file";
+    $ps.= IO
+}
+
+sub ps2pdf(
+    $psfil,
+    :$pdfoutname,
+    :$force,
+    :$debug,
+    --> Str # output pdf file name
+    ) is export {
+    my $pdf;
+    if $pdfoutname.defined {
+        $pdf = $pdfoutname;
+    }
+    else {
+        # get the name from input name (should do that but we do it
+        # anyway for ease in the Ghostscript pipeline)
+        $pdf = $psfil;
+        $pdf ~~ s/:i '.' ps $/.pdf/;
+    }
+    =begin comment
+    # use Ghostscript fix for reproducible runs in ps2pdf
+    my $gs-pdf-settings = "-dPDFSETTINGS=/prepress";
+    # my $f   = 't.ps';
+    shell "ps2pdf $gs-pdf-settings $f $pdf";
+    =end comment
+    my $gs-pdf-settings = "-dPDFSETTINGS=/prepress";
+
+    # should use a temp file or dir? nah
+    # but check for existence or check force
+    if $pdf.IO.r {
+        if not $force {
+            say qq:to/HERE/;
+            ERROR: Output file '$pdf' exists. Move it or use the 'force' option.
+            HERE
+        }
+        else {
+            shell "ps2pdf $gs-pdf-settings $psfil $pdf";
+        }
+    }
+    else {
+        shell "ps2pdf $gs-pdf-settings $psfil $pdf";
+    }
+
+    $pdf # show the output filename
+}
+
+=begin comment
 sub font-bbox(
     Font::Utils::FaceFreeType $fo,
     :$debug

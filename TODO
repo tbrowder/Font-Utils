@@ -1,8 +1,23 @@
+Add ps2pdf Ghostscript fix as used in the moon script to
+  lib routines.
+  + sub asc2ps($text, $ofil? --> IO::Path) 
+  + sub ps2pdf($ps, :$ofil?, --> IO::Path)
+      uses Ghostscript's ps2pdf
+      the output is reproducible for the same input
+  + sub pdf2pdf($pdf, :$ofil?, --> IO::Path)
+      uses Ghostscript's pdf2ps and ps2pdf
+      the output is reproducible for the same input
+
+Add convert-all.ff script and info (see our private xmas project)
++ improve it with help and other options
++ drive with a Raku script?
+
 Note there is a problem with the opentype version of Free Fonts:
-+ trying to sort is out:
++ trying to sort it out:
   - check Unicode tables for the boxed question mark
   - review input ranges (see Misc.rakumod)
   - check for "overlayed" or "combined" code-points
+  - adding user ignore code points
 
 Add a pdf copy to workflows file?
 
