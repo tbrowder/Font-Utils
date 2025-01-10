@@ -118,7 +118,7 @@ subset HexStrRangeWords of Str is export where { $_ ~~
 =end comment
 
 # our $user-font-ignores-list is export; # <== create-user-font-ignores-file
-# our %user-font-ignores      is export; # <== create-user-font-ignores-hash 
+# our %user-font-ignores      is export; # <== create-user-font-ignores-hash
 sub create-user-font-ignores-file(
     :$debug,
     ) is export {
@@ -131,7 +131,7 @@ sub create-user-font-ignores-hash(
 }
 
 # our $user-font-list is export; # <== create-user-font-list-file
-# our %user-fonts     is export; # <== create-user-fonts-hash 
+# our %user-fonts     is export; # <== create-user-fonts-hash
 sub create-user-font-list-file(
     :$debug,
     ) is export {
@@ -2152,7 +2152,7 @@ sub show-zero-chars($file, :$debug) is export {
 =begin comment
 Add ps2pdf Ghostscript fix as used in the moon script to
   lib routines.
-  + sub asc2ps($text, $ofil? --> IO::Path) 
+  + sub asc2ps($text, $ofil? --> IO::Path)
       uses a2ps to convert a text file to PostScript (PS)
   + sub ps2pdf($ps, :$ofil?, --> IO::Path)
       uses Ghostscript's ps2pdf
@@ -2165,16 +2165,41 @@ Add ps2pdf Ghostscript fix as used in the moon script to
 sub pdf2pdf(
     $file,
     $out?,
+    :$force is copy,
     :$debug,
     --> IO::Path
-    ) is export {
-    say qq:to/HERE/;
-    FATAL: sub 'pdf2pdf' is not yet available. File an issue if you need it.
-           It's easy to do, I just ran out of time.
-    HERE
-    exit;
+) is export {
+
+    # need two file names
+    my ($pstmp, $pdf);
+    $force = True if $force.defined;
+
+    if $out.defined { #and $out.IO.f {
+        $pdf = $out;
+    }
+    else {
+        if not $file.IO.f {
+            die "FATAL: Input file '$file' does not exist";
+        }
+        $pdf = $file;
+    }
+    # check for the output file existence
+    if $pdf.IO.f {
+        if not $force {
+            die qq:to/HERE/;
+            FATAL: Output file '$pdf' exists. Use the 'force' option to allow that.
+            HERE
+        }
+    }
+
+    $pstmp .= IO;
+    shell "pdf2ps $file $pstmp";
+    # convert back to the original pdf name
+    $pdf = ps2pdf $pstmp, $pdf, :$force;
+
+    $pdf.IO;
 }
- 
+
 sub asc2ps(
     $file,
     $out?,
@@ -2189,7 +2214,7 @@ sub asc2ps(
         $ps = $out;
     }
     else {
-        if not $file.IO.e {
+        if not $file.IO.f {
             die "FATAL: Input file '$file' does not exist";
         }
         $ps = $file.IO;
@@ -2197,7 +2222,7 @@ sub asc2ps(
         $ps ~~ s/$ext $/ps/;
     }
     # check for the output file existence
-    if $ps.IO.e {
+    if $ps.IO.f {
         if not $force {
             die qq:to/HERE/;
             FATAL: Output file '$ps' exists. Use the 'force' option to allow that.
@@ -2215,15 +2240,17 @@ sub ps2pdf(
     :$force is copy,
     :$debug,
     --> IO::Path
-    ) is export {
+) is export {
+
     # need two file names
     my ($ps, $pdf);
+    $force = True if $force.defined;
 
-    if $out.defined {
-        $pdf = $out;
+    if $out.defined { #and $out.IO.f {
+        $pdf   = $out;
     }
     else {
-        if not $file.IO.r {
+        if not $file.IO.f {
             die "FATAL: Input file '$file' does not exist";
         }
         $ps  = $file;
@@ -2232,7 +2259,7 @@ sub ps2pdf(
         $pdf ~~ s/$ext $/pdf/;
     }
     # check for the output file existence
-    if $pdf.IO.e {
+    if $pdf.IO.f {
         if not $force {
             die qq:to/HERE/;
             FATAL: Output file '$pdf' exists. Use the 'force' option to allow that.

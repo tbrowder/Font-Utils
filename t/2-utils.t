@@ -5,38 +5,87 @@ use Font::Utils::Subs;
 use Font::Utils::Misc;
 
 my $debug = 0;
+my @tmpfils; # files to clean before and after
+BEGIN {
+@tmpfils = <
+    $goodasc
+    $goodasc2
+    $goodasc3
+
+    $goodps
+    $goodps2
+    $goodps3
+
+    $goodpdf
+    $goodpd2f
+    $goodpd3f
+    >;
+    for @tmpfils {
+        unlink $_ if $_.IO.e;
+    }
+} # BEGIN
+
 my ($s1, $s2, $c1, $c2, @gchars, @words);
 
-my $asc = "xt/data/sample.asc";
-shell "a2ps -o a.ps xt/data/sample.asc ";
-my $ps = "a.ps";
-say "see file $ps";
+# create some known good files
+my $permasc = "xt/data/sample.asc".IO;
+my $goodasc = "good.asc";
+copy $permasc, $goodasc;
+
+my $goodps = "good.ps";
+shell "a2ps -o '$goodps' '$goodasc'";
+
+shell "ps2pdf $goodps";
+my $goodpdf = "good.pdf".IO;
 
 # test turning a text file into a PostScript file (.ps)
-#   first a real file
-my $force = 1;
+#   first the default
+my $goodasc2 = "good2.asc";
+copy $goodasc, $goodasc2;
 lives-ok {
-    if $ps.defined {
-        asc2ps $asc, :force;
+        asc2ps $goodasc2, :force;
+}, "test 1, running asc2ps on file '$goodasc'";
+# expected output: "good2.ps";
+
+#   then try to overwrite an existing file
+my $force = 1;
+my $goodasc3 = "good3.asc";
+copy $goodasc, $goodasc3;
+
+lives-ok {
+    if $goodasc3.defined {
+        asc2ps $goodasc3, :force;
     }
     else {
-        asc2ps $asc; 
+        asc2ps $goodasc3;
     }
-}, "test 1, running asc2ps on file '$asc'";
+}, "test 2, running asc2ps on file '$goodasc3'";
 
 #   then a non-file
-my $nofile = "some string";
+my $nofile = "some-string";
+my $ps;
 dies-ok {
-     $ps = asc2ps $nofile; 
-}, "test 2, running asc2ps on file '$nofile'";
+     $ps = asc2ps $nofile;
+}, "test 3, running asc2ps on file '$nofile'";
 
 # test ps2pdf
 $ps = $nofile;
+my $pdf;
 dies-ok {
-     $ps = asc2ps $nofile; 
-}, "test 3, running ps2pdf '$nofile'";
+     $pdf = ps2pdf $nofile;
+}, "test 4, running ps2pdf '$nofile'";
 
-exit;
+$pdf = $goodpdf;
+lives-ok {
+    if $pdf.defined {
+        $pdf = ps2pdf $goodps, :force;
+    }
+    else {
+        $pdf = ps2pdf $goodps;
+    }
+}, "test 5, running ps2pdf '$ps', '$pdf'";
+
+say "DEBUG: early exit"; exit;
 
 =begin comment
 for 1..2000 {
