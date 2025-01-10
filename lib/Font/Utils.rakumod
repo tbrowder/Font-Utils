@@ -2181,7 +2181,7 @@ sub pdf2pdf(
         if not $file.IO.f {
             die "FATAL: Input file '$file' does not exist";
         }
-        $pdf = $file;
+        $pdf = $file.IO;
     }
     # check for the output file existence
     if $pdf.IO.f {

@@ -4,28 +4,19 @@ use Font::Utils;
 use Font::Utils::Subs;
 use Font::Utils::Misc;
 
-my $debug = 0;
+my $debug = 1;
+
 my @tmpfils; # files to clean before and after
 BEGIN {
 @tmpfils = <
-    good.asc
-    good2.asc
-    good3.asc
-
-    good.ps
-    good.ps~
-    good2.ps
-    good2.ps~
-    good3.ps
-    good3.ps~
-
-    good.pdf
-    good2.pdf
-    good3.pdf
-    >;
+    good.asc good2.asc good3.asc
+    good.ps  good2.ps  good3.ps 
+      good.ps~ good2.ps~ good3.ps~
+    good.pdf good2.pdf good3.pdf 
+>;
 } # BEGIN
-INIT { for @tmpfils { unlink $_ if $_.IO.f; } }
-END  { for @tmpfils { unlink $_ if $_.IO.f; } }
+INIT { unless $debug { for @tmpfils { unlink $_ if $_.IO.f; } } }
+END  { unless $debug { for @tmpfils { unlink $_ if $_.IO.f; } } }
 
 my ($s1, $s2, $c1, $c2, @gchars, @words);
 
@@ -33,17 +24,22 @@ my ($s1, $s2, $c1, $c2, @gchars, @words);
 my $permasc = "xt/data/sample.asc".IO;
 my $goodasc = "good.asc";
 copy $permasc, $goodasc;
+isa-ok $permasc, IO::Path;
+isa-ok $goodasc, IO::Path;
 
 my $goodps = "good.ps";
 shell "a2ps -o '$goodps' '$goodasc'";
 
 shell "ps2pdf $goodps";
 my $goodpdf = "good.pdf".IO;
+isa-ok $goodpdf, IO::Path;
 
 # test turning a text file into a PostScript file (.ps)
 #   first the default
 my $goodasc2 = "good2.asc";
 copy $goodasc, $goodasc2;
+isa-ok $goodasc2, IO::Path;
+
 lives-ok {
         asc2ps $goodasc2, :force;
 }, "test 1, running asc2ps on file '$goodasc'";
@@ -72,12 +68,12 @@ dies-ok {
 
 # test ps2pdf
 $ps = $nofile;
-my $pdf;
+my $pdf0;
 dies-ok {
-     $pdf = ps2pdf $nofile;
+     $pdf0 = ps2pdf $nofile;
 }, "test 4, running ps2pdf '$nofile'";
 
-$pdf = $goodpdf;
+my $pdf = "t.pdf".IO;
 lives-ok {
     if $pdf.defined {
         $pdf = ps2pdf $goodps, :force;
@@ -86,6 +82,20 @@ lives-ok {
         $pdf = ps2pdf $goodps;
     }
 }, "test 5, running ps2pdf '$ps', '$pdf'";
+isa-ok $pdf, IO::Path;
+
+# test pdf2pdf
+isa-ok $goodpdf, IO::Path;
+
+#copy $goodpdf, $pdf;
+lives-ok {
+    if $pdf.defined {
+        $pdf = pdf2pdf $goodpdf, :force;
+    }
+    else {
+        $pdf = pdf2pdf $goodpdf;
+    }
+}, "test 6, running pdf2pdf, '$goodpdf'";
 
 say "DEBUG: early exit"; exit;
 
