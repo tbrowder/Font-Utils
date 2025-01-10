@@ -8,22 +8,24 @@ my $debug = 0;
 my @tmpfils; # files to clean before and after
 BEGIN {
 @tmpfils = <
-    $goodasc
-    $goodasc2
-    $goodasc3
+    good.asc
+    good2.asc
+    good3.asc
 
-    $goodps
-    $goodps2
-    $goodps3
+    good.ps
+    good.ps~
+    good2.ps
+    good2.ps~
+    good3.ps
+    good3.ps~
 
-    $goodpdf
-    $goodpd2f
-    $goodpd3f
+    good.pdf
+    good2.pdf
+    good3.pdf
     >;
-    for @tmpfils {
-        unlink $_ if $_.IO.e;
-    }
 } # BEGIN
+INIT { for @tmpfils { unlink $_ if $_.IO.f; } }
+END  { for @tmpfils { unlink $_ if $_.IO.f; } }
 
 my ($s1, $s2, $c1, $c2, @gchars, @words);
 
