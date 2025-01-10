@@ -7,25 +7,34 @@ use Font::Utils::Misc;
 my $debug = 0;
 my ($s1, $s2, $c1, $c2, @gchars, @words);
 
-is 1, 1;
-
 my $asc = "xt/data/sample.asc";
 shell "a2ps -o a.ps xt/data/sample.asc ";
 my $ps = "a.ps";
 say "see file $ps";
 
 # test turning a text file into a PostScript file (.ps)
-#   first a real while
-my $ps2;
+#   first a real file
+my $force = 1;
 lives-ok {
-     $ps2 = asc2ps $asc; 
-}, "running asc2ps on file '$asc'";
+    if $ps.defined {
+        asc2ps $asc, :force;
+    }
+    else {
+        asc2ps $asc; 
+    }
+}, "test 1, running asc2ps on file '$asc'";
 
 #   then a non-file
 my $nofile = "some string";
 dies-ok {
-     $ps2 = asc2ps $nofile; 
-}, "running asc2ps on file '$nofile'";
+     $ps = asc2ps $nofile; 
+}, "test 2, running asc2ps on file '$nofile'";
+
+# test ps2pdf
+$ps = $nofile;
+dies-ok {
+     $ps = asc2ps $nofile; 
+}, "test 3, running ps2pdf '$nofile'";
 
 exit;
 

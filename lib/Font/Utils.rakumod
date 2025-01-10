@@ -2162,23 +2162,47 @@ Add ps2pdf Ghostscript fix as used in the moon script to
       the output is reproducible for the same input
 =end comment
 
-sub asc2ps(
+sub pdf2pdf(
     $file,
     $out?,
     :$debug,
     --> IO::Path
     ) is export {
+    say qq:to/HERE/;
+    FATAL: sub 'pdf2pdf' is not yet available. File an issue if you need it.
+           It's easy to do, I just ran out of time.
+    HERE
+    exit;
+}
+ 
+sub asc2ps(
+    $file,
+    $out?,
+    :$force is copy,
+    :$debug,
+    --> IO::Path
+    ) is export {
+    $force = True if $force.defined;
     my $ps;
+
     if $out.defined {
         $ps = $out;
     }
     else {
-        if not $file.IO.r {
+        if not $file.IO.e {
             die "FATAL: Input file '$file' does not exist";
         }
         $ps = $file.IO;
         my $ext = $ps.IO.extension;
         $ps ~~ s/$ext $/ps/;
+    }
+    # check for the output file existence
+    if $ps.IO.e {
+        if not $force {
+            die qq:to/HERE/;
+            FATAL: Output file '$ps' exists. Use the 'force' option to allow that.
+            HERE
+        }
     }
 
     shell "a2ps -o $ps $file";
@@ -2186,47 +2210,47 @@ sub asc2ps(
 }
 
 sub ps2pdf(
-    $psfil,
-    :$pdfoutname,
-    :$force,
+    $file,
+    $out?,
+    :$force is copy,
     :$debug,
-    --> Str # output pdf file name
+    --> IO::Path
     ) is export {
-    my $pdf;
-    if $pdfoutname.defined {
-        $pdf = $pdfoutname;
+    # need two file names
+    my ($ps, $pdf);
+
+    if $out.defined {
+        $pdf = $out;
     }
     else {
-        # get the name from input name (should do that but we do it
-        # anyway for ease in the Ghostscript pipeline)
-        $pdf = $psfil;
-        $pdf ~~ s/:i '.' ps $/.pdf/;
+        if not $file.IO.r {
+            die "FATAL: Input file '$file' does not exist";
+        }
+        $ps  = $file;
+        $pdf = $ps;
+        my $ext = $pdf.IO.extension;
+        $pdf ~~ s/$ext $/pdf/;
     }
+    # check for the output file existence
+    if $pdf.IO.e {
+        if not $force {
+            die qq:to/HERE/;
+            FATAL: Output file '$pdf' exists. Use the 'force' option to allow that.
+            HERE
+        }
+    }
+
     =begin comment
     # use Ghostscript fix for reproducible runs in ps2pdf
     my $gs-pdf-settings = "-dPDFSETTINGS=/prepress";
     # my $f   = 't.ps';
     shell "ps2pdf $gs-pdf-settings $f $pdf";
+    shell "ps2pdf $gs-pdf-settings $ps $pdf";
     =end comment
+
     my $gs-pdf-settings = "-dPDFSETTINGS=/prepress";
-
-    # should use a temp file or dir? nah
-    # but check for existence or check force
-    if $pdf.IO.r {
-        if not $force {
-            say qq:to/HERE/;
-            ERROR: Output file '$pdf' exists. Move it or use the 'force' option.
-            HERE
-        }
-        else {
-            shell "ps2pdf $gs-pdf-settings $psfil $pdf";
-        }
-    }
-    else {
-        shell "ps2pdf $gs-pdf-settings $psfil $pdf";
-    }
-
-    $pdf # show the output filename
+    shell "ps2pdf $gs-pdf-settings $ps $pdf";
+    $pdf.= IO
 }
 
 =begin comment
