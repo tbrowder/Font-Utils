@@ -6,7 +6,7 @@ enum Paper < A4 A5 Legal Letter >;
 
 # define which Moon illumination fraction we're talking about
 enum Phase <Waxing Waning>;
-
+Y
 # The circle representing the Moon's 2D shape to an Earth observer:
 my $r = 1;
 # The area of the circle:
