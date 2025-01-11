@@ -1,4 +1,7 @@
+use v6.e.PREVIEW;
+
 use Test;
+
 
 use Font::Utils;
 use Font::Utils::Subs;
@@ -6,48 +9,74 @@ use Font::Utils::Misc;
 
 my $debug = 1;
 
+sub fill-ascii-file(
+    $path,
+    :$text = "some text",
+    :$debug,
+    --> Int) {
+    # returns: status: 0 good, 1 failure
+    return 1 if $path.IO.e;
+    my $fh = open $path, :w;
+    $fh.say: $text;
+    $fh.close;
+}
+
 my @tmpfils; # files to clean before and after
 BEGIN {
 @tmpfils = <
+    permasc
     good.asc good2.asc good3.asc
-    good.ps  good2.ps  good3.ps 
+    good.ps  good2.ps  good3.ps
       good.ps~ good2.ps~ good3.ps~
-    good.pdf good2.pdf good3.pdf 
+    good.pdf good2.pdf good3.pdf
 >;
 } # BEGIN
 INIT { unless $debug { for @tmpfils { unlink $_ if $_.IO.f; } } }
 END  { unless $debug { for @tmpfils { unlink $_ if $_.IO.f; } } }
 
+#sub fill-ascii-file {...}
 my ($s1, $s2, $c1, $c2, @gchars, @words);
 
-# create some known good files
-my $permasc = "xt/data/sample.asc".IO;
-my $goodasc = "good.asc";
-copy $permasc, $goodasc;
-isa-ok $permasc, IO::Path;
-isa-ok $goodasc, IO::Path;
+# create some known good ASCII files to start
+# NOTE pdf files MUST have some text line(s)
+my $perm-asc = "perma.asc".IO;
+fill-ascii-file $perm-asc;
+my $good-asc = "good.asc".IO;
+fill-ascii-file $good-asc;
 
-my $goodps = "good.ps";
-shell "a2ps -o '$goodps' '$goodasc'";
+#copy $permasc.basename, $goodasc;
+isa-ok $perm-asc, IO::Path;
+isa-ok $good-asc, IO::Path;
 
-shell "ps2pdf $goodps";
-my $goodpdf = "good.pdf".IO;
-isa-ok $goodpdf, IO::Path;
+my $good-ps = "good.ps".IO;
+shell "a2ps -o '$good-ps' '$good-asc'";
+isa-ok $good-ps, IO::Path;
+
+shell "ps2pdf $good-ps";
+my $good-pdf = "good.pdf".IO;
+isa-ok $good-pdf, IO::Path;
 
 # test turning a text file into a PostScript file (.ps)
 #   first the default
-my $goodasc2 = "good2.asc";
-copy $goodasc, $goodasc2;
-isa-ok $goodasc2, IO::Path;
+my $good2-asc = "good2-asc".IO;
+copy $good-asc, $good2-asc;
+isa-ok $good-asc, IO::Path;
 
+my $outfil;
 lives-ok {
-        asc2ps $goodasc2, :force;
-}, "test 1, running asc2ps on file '$goodasc'";
-# expected output: "good2.ps";
+        $outfil = asc2ps $good2-asc, :force;
+}, "test 1, running asc2ps on file '$good2-asc'";
+# expected output: "good2-asc.ps";
+isa-ok $outfil, IO::Path, "asc2ps: in: '$good2-asc', out: '$outfil'";
+is $out, "good2-asc.ps";
+
+exit;
+
+=finish
 
 #   then try to overwrite an existing file
 my $force = 1;
-my $goodasc3 = "good3.asc";
+my $goodasc3 = "good3.asc".IO;
 copy $goodasc, $goodasc3;
 
 lives-ok {
@@ -87,7 +116,20 @@ isa-ok $pdf, IO::Path;
 # test pdf2pdf
 isa-ok $goodpdf, IO::Path;
 
-#copy $goodpdf, $pdf;
+$pdf = $goodpdf;
+isa-ok $pdf, IO::Path;
+
+if 1 {
+    say "DEBUG: file '$pdf' lines";
+    for $pdf.IO.lines {
+        .say;
+    }
+    say "DEBUG : file '$pdf' lines";
+    say "DEBUG exit";
+    exit;
+}
+
+say $pdf.spurt; exit;
 lives-ok {
     if $pdf.defined {
         $pdf = pdf2pdf $goodpdf, :force;

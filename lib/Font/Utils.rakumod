@@ -2175,6 +2175,8 @@ sub pdf2pdf(
     $force = True if $force.defined;
 
 note "DEBUG 1";
+
+>>>>>>> Stashed changes
     if $out.defined { #and $out.IO.f {
         $pdf = $out.IO;
     }
@@ -2186,7 +2188,8 @@ note "DEBUG 2";
         $pdf = $file.IO;
     }
     # check for the output file existence
-note "DEBUG 3";
+
+    note "DEBUG 3";
     if $pdf.IO.f {
         if not $force {
             die qq:to/HERE/;
