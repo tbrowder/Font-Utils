@@ -2206,7 +2206,7 @@ note "DEBUG 4";
 
 sub asc2ps(
     $file,
-    $out?,
+    $outfile?,
     :$force is copy,
     :$debug,
     --> IO::Path
@@ -2214,15 +2214,16 @@ sub asc2ps(
     $force = True if $force.defined;
     my $ps;
 
-    if $out.defined {
-        $ps = $out;
+    my $ext = ""; # for debugging
+    if $outfile.defined {
+        $ps = $outfile;
     }
     else {
         if not $file.IO.f {
             die "FATAL: Input file '$file' does not exist";
         }
         $ps = $file.IO;
-        my $ext = $ps.IO.extension;
+        $ext = $ps.IO.extension;
         $ps ~~ s/$ext $/ps/;
     }
     # check for the output file existence
@@ -2237,10 +2238,10 @@ sub asc2ps(
     DEBUG 6: asc2ps
       input file: '$file'
       \$ext:      '$ext'
-      \$outfil:   '$outfil                        
+      \$outfil:   '$outfile'
     HERE
     shell "a2ps -o $ps $file";
-    $ps .= IO
+    $ps .= IO;
 }
 
 sub ps2pdf(
