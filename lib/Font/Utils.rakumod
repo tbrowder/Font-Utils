@@ -2174,16 +2174,19 @@ sub pdf2pdf(
     my ($pstmp, $pdf);
     $force = True if $force.defined;
 
+note "DEBUG 1";
     if $out.defined { #and $out.IO.f {
-        $pdf = $out;
+        $pdf = $out.IO;
     }
     else {
         if not $file.IO.f {
             die "FATAL: Input file '$file' does not exist";
         }
+note "DEBUG 2";
         $pdf = $file.IO;
     }
     # check for the output file existence
+note "DEBUG 3";
     if $pdf.IO.f {
         if not $force {
             die qq:to/HERE/;
@@ -2192,7 +2195,8 @@ sub pdf2pdf(
         }
     }
 
-    $pstmp .= IO;
+note "DEBUG 4";
+    $pstmp = "".IO;
     shell "pdf2ps $file $pstmp";
     # convert back to the original pdf name
     $pdf = ps2pdf $pstmp, $pdf, :$force;
@@ -2229,9 +2233,14 @@ sub asc2ps(
             HERE
         }
     }
-
+    note qq:to/HERE/;
+    DEBUG 6: asc2ps
+      input file: '$file'
+      \$ext:      '$ext'
+      \$outfil:   '$outfil                        
+    HERE
     shell "a2ps -o $ps $file";
-    $ps.= IO
+    $ps .= IO
 }
 
 sub ps2pdf(
