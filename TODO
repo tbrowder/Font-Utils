@@ -1,3 +1,5 @@
+Use "use v6.e.PREVIEW;" to get $f.IO.stem
+
 Add ps2pdf Ghostscript fix as used in the moon script to
   lib routines.
   + sub asc2ps($text, $ofil? --> IO::Path) 
