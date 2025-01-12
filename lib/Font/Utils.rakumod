@@ -2164,7 +2164,7 @@ Add ps2pdf Ghostscript fix as used in the moon script to
 
 sub pdf2pdf(
     $file,
-    $out?,
+    $outfile?,
     :$force is copy,
     :$debug,
     --> IO::Path
@@ -2176,9 +2176,8 @@ sub pdf2pdf(
 
 note "DEBUG 1";
 
->>>>>>> Stashed changes
-    if $out.defined { #and $out.IO.f {
-        $pdf = $out.IO;
+    if $outfile.defined { 
+        $pdf = $outfile.IO;
     }
     else {
         if not $file.IO.f {
@@ -2219,7 +2218,7 @@ sub asc2ps(
 
     my $ext = ""; # for debugging
     if $outfile.defined {
-        $ps = $outfile;
+        $ps = $outfile.IO;
     }
     else {
         if not $file.IO.f {
@@ -2237,11 +2236,12 @@ sub asc2ps(
             HERE
         }
     }
-    note qq:to/HERE/;
+
+    note qq:to/HERE/ if 0 or $debug;
     DEBUG 6: asc2ps
       input file: '$file'
       \$ext:      '$ext'
-      \$outfil:   '$outfile'
+      \$ps:       '$ps'     
     HERE
     shell "a2ps -o $ps $file";
     $ps .= IO;
@@ -2249,7 +2249,7 @@ sub asc2ps(
 
 sub ps2pdf(
     $file,
-    $out?,
+    $outfile?,
     :$force is copy,
     :$debug,
     --> IO::Path
@@ -2259,8 +2259,8 @@ sub ps2pdf(
     my ($ps, $pdf);
     $force = True if $force.defined;
 
-    if $out.defined { #and $out.IO.f {
-        $pdf   = $out;
+    if $outfile.defined { 
+        $pdf   = $outfile
     }
     else {
         if not $file.IO.f {
