@@ -13,9 +13,8 @@ sub fill-ascii-file(
     $path,
     :$text = "some text",
     :$debug,
-    --> Int) {
-    # returns: status: 0 good, 1 failure
-    return 1 if $path.IO.e;
+    ) {
+    # creates or overwrites the $path
     my $fh = open $path, :w;
     $fh.say: $text;
     $fh.close;
@@ -44,7 +43,6 @@ fill-ascii-file $perm-asc;
 my $good-asc = "good.asc".IO;
 fill-ascii-file $good-asc;
 
-#copy $permasc.basename, $goodasc;
 isa-ok $perm-asc, IO::Path;
 isa-ok $good-asc, IO::Path;
 
@@ -56,37 +54,27 @@ shell "ps2pdf $good-ps";
 my $good-pdf = "good.pdf".IO;
 isa-ok $good-pdf, IO::Path;
 
+#==================================
 # test turning a text file into a PostScript file (.ps)
 #   first the default
-my $good2-asc = "good2-asc".IO;
+my $good2-asc = "good2.asc".IO;
 copy $good-asc, $good2-asc;
 isa-ok $good-asc, IO::Path;
 
-my $outfil;
+my $good2-ps;;
 lives-ok {
-        $outfil = asc2ps $good2-asc, :force;
+    $good2-ps = asc2ps $good2-asc, :force;
 }, "test 1, running asc2ps on file '$good2-asc'";
-# expected output: "good2-asc.ps";
-isa-ok $outfil, IO::Path, "asc2ps: in: '$good2-asc', out: '$outfil'";
-is $out, "good2-asc.ps";
-
-exit;
-
-=finish
+# expected output: "good2.ps";
+is $good2-ps, "good2.ps";
+isa-ok $good2-ps, IO::Path, "asc2ps: in: '$good2-asc', out: '$good2-ps'";
 
 #   then try to overwrite an existing file
 my $force = 1;
-my $goodasc3 = "good3.asc".IO;
-copy $goodasc, $goodasc3;
-
 lives-ok {
-    if $goodasc3.defined {
-        asc2ps $goodasc3, :force;
-    }
-    else {
-        asc2ps $goodasc3;
-    }
-}, "test 2, running asc2ps on file '$goodasc3'";
+    die unless $good2-ps.defined;
+    asc2ps $good2-asc, :force;
+}, "test 2, running asc2ps on file '$good2-asc'";
 
 #   then a non-file
 my $nofile = "some-string";
@@ -95,6 +83,7 @@ dies-ok {
      $ps = asc2ps $nofile;
 }, "test 3, running asc2ps on file '$nofile'";
 
+#==================================
 # test ps2pdf
 $ps = $nofile;
 my $pdf0;
@@ -102,17 +91,29 @@ dies-ok {
      $pdf0 = ps2pdf $nofile;
 }, "test 4, running ps2pdf '$nofile'";
 
-my $pdf = "t.pdf".IO;
+# on an existing ps file
+my $pdf;
 lives-ok {
-    if $pdf.defined {
-        $pdf = ps2pdf $goodps, :force;
-    }
-    else {
-        $pdf = ps2pdf $goodps;
-    }
-}, "test 5, running ps2pdf '$ps', '$pdf'";
+    $pdf = ps2pdf $good-ps, :force;
+}
 isa-ok $pdf, IO::Path;
 
+# on an existing pdf file without force
+die unless $pdf.defined;
+dies-ok {
+    $pdf = ps2pdf $good-ps;
+}
+
+# on an existing pdf file WITH force
+lives-ok {
+    $pdf = ps2pdf $good-ps, :force;
+}
+isa-ok $pdf, IO::Path;
+
+
+=finish
+
+#==================================
 # test pdf2pdf
 isa-ok $goodpdf, IO::Path;
 
