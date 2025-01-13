@@ -60,14 +60,14 @@ our monitor Ignore is export {
             # I want only printable glyphs:
             if Control-Chars($char.uniprop) {
                 # add it to the array
-                note "DEBUG: ignoring hex code point '$hex'";
+                note "DEBUG: ignoring hex code point '$hex'" if $debug;
                 @!ignored.push: $dec;
                 #next FACE-CMAP;
             }
 
             if not PrintChars($char.uniprop) {
                 # add it to the array
-                note "DEBUG: ignoring hex code point '$hex'";
+                note "DEBUG: ignoring hex code point '$hex'" if $debug;
                 @!ignored.push: $dec;
                 #next FACE-CMAP;
             }
@@ -82,12 +82,12 @@ our monitor Ignore is export {
             }
 
             if $width == 0 {
-                note "DEBUG: ignoring hex code point '$hex'";
+                note "DEBUG: ignoring hex code point '$hex'" if $debug;
                 @!ignored.push: $dec;
                 #next FACE-CMAP;
             }
             if $height == 0 {
-                note "DEBUG: ignoring hex code point '$hex'";
+                note "DEBUG: ignoring hex code point '$hex'" if $debug;
                 @!ignored.push: $dec;
                 #next FACE-CMAP;
             }
