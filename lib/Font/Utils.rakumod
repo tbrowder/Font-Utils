@@ -2205,10 +2205,16 @@ sub pdf2pdf(
     }
 
     # need some temporary file names
-    my $tdir = tempdir;
+    my $tdir;
+    if $debug {
+        $tdir = tempdir;
+    }
+    else {
+        $tdir = "test-dir";
+    }
 
-    my $pstmp  = "$tdir/file.ps";
-    my $pdftmp = "$tdir/file.pdf";
+    my $pstmp  = "$tdir/file5.ps";
+    my $pdftmp = "$tdir/file5.pdf";
 
     my $omsg  = "See updated file '$pdf'";
     my $omsg2;
@@ -2265,7 +2271,7 @@ sub pdf2pdf(
 }
 
 sub asc2ps(
-    $file,
+    IO::Path $file,
     $outfile?,
     :$force is copy,
     :$debug,

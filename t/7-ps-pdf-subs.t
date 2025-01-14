@@ -8,9 +8,11 @@ use lib "./t";
 use MyTestHelpers;
 
 my $debug = 1;
-my $tdir = $debug ?? mkdir("./test-dir") !! tempdir
+
+my $tdir = $debug ?? mkdir("./test-dir") !! tempdir;
 
 my @tmpfils; # files to clean before and after
+=begin comment
 BEGIN {
 @tmpfils = <
     permasc
@@ -22,26 +24,33 @@ BEGIN {
 } # BEGIN
 INIT { unless $debug { for @tmpfils { unlink $_ if $_.IO.f; } } }
 END  { unless $debug { for @tmpfils { unlink $_ if $_.IO.f; } } }
+=end comment
 
 my ($s1, $s2, $c1, $c2, @gchars, @words);
 
 # create some known good ASCII files to start
 # NOTE pdf files MUST have some text line(s)
-my $perm-asc = "perma.asc".IO;
+
+my $perm-asc = "$tdir/perma.asc".IO;
 make-ascii-file $perm-asc;
 isa-ok $perm-asc, IO::Path;
+#ok file-isa-ascii($perm-asc, :$debug);
+ok file-isa-ascii($perm-asc), "checking for an ascii file";
 
-my $good-asc = "good.asc".IO;
+my $good-asc = "$tdir/good.asc".IO;
 make-ascii-file $good-asc;
 isa-ok $good-asc, IO::Path;
+ok file-isa-ascii($good-asc), "checking for an ascii file";
 
-my $good-ps = "good.ps".IO;
-shell "a2ps -o '$good-ps' '$good-asc'";
+my $good-ps = "$tdir/good.ps".IO;
+make-ps-file $good-ps;
 isa-ok $good-ps, IO::Path;
 
 shell "ps2pdf $good-ps";
-my $good-pdf = "good.pdf".IO;
+my $good-pdf = "$tdir/good.pdf".IO;
 isa-ok $good-pdf, IO::Path;
+
+#done-testing; say "DEBUG early exit"; exit;
 
 #==================================
 # test turning a text file into a PostScript file (.ps)
@@ -123,10 +132,11 @@ dies-ok {
 
 # overwrite the input file with Force=true
 my $pdftest = "$tdir/pdftest.pdf".IO;
+make-pdf-file $pdftest, :$debug;
 lives-ok {
-    pdf2pdf $pdftest, :force;
+    pdf2pdf $pdftest, :force, :$debug;
 }, "running pdf2pdf on '$pdftest'";
-isa-ok $pdfin, IO::Path;
-ok file-isa-pdf($pdftest);
+isa-ok $pdftest, IO::Path;
+#ok file-isa-pdf($pdftest, :$debug), "is '$pdftest' a PDF file?";
 
-done-testing; exit;
+done-testing;
