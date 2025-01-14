@@ -7,6 +7,7 @@ use Font::FreeType::SizeMetrics;
 use Font::FreeType::Glyph;
 use Font::FreeType::Raw::Defs;
 
+use File::Temp;
 use Compress::PDF;
 use PDF::API6;
 use PDF::Lite;
@@ -1565,7 +1566,7 @@ sub make-font-sample-doc(
     my $fo = FaceFreeType.new: :$font-size, :$font;
     #my @ignored = $fo.get-ignored-list.list;
     my $ig = Ignore.new: :$file;
-    if 1 or $debug {
+    if 0 or $debug {
         my @h;
         note "Contents of the Ignore instance:";
         my @i = $ig.ignored;
@@ -1945,7 +1946,7 @@ sub make-glyph-box(
     #   hex code font height: 0.15 cm
     #   hex code stroke gray 0.5
 
-    if not $embellish {
+    if $debug and not $embellish {
         say "DEBUG: Finish embellish";
     }
     my $V-len      = 3; # vertical tick
@@ -2163,47 +2164,104 @@ Add ps2pdf Ghostscript fix as used in the moon script to
 =end comment
 
 sub pdf2pdf(
-    $file,
-    $outfile?,
+    IO::Path $pdf,
+    $pdfout?,
     :$force is copy,
+    :$warn = False, # if true, user DOES want to hear about the overwrite
     :$debug,
-    --> IO::Path
 ) is export {
 
-    # need two file names
-    my ($pstmp, $pdf);
-    $force = True if $force.defined;
+    =begin comment
+    Designed usage:
+        give help if no input
+        :$warn by default and require manual response
+        require :$force for unattended use
+        write output to another file
+    =end comment
 
-note "DEBUG 1";
+    $force = $force.defined ?? True !! False;
 
-    if $outfile.defined { 
-        $pdf = $outfile.IO;
+    if $pdfout.defined {
+        if $pdfout eq $pdf {
+            say qq:to/HERE/;
+            ERROR: Do not select the input file as the output
+                   file (i.e., modify the input file in place).
+                   That is the default action.
+
+                   Exiting without further action.
+            HERE
+            exit;
+        }
+        elsif $pdfout.IO.e {
+            say qq:to/HERE/;
+            ERROR: The selected output file exists.
+                   Do not select an existing file
+                   for separate output.
+
+                   Exiting without further action.
+            HERE
+            exit;
+        }
+    }
+
+    # need some temporary file names
+    my $tdir = tempdir;
+
+    my $pstmp  = "$tdir/file.ps";
+    my $pdftmp = "$tdir/file.pdf";
+
+    my $omsg  = "See updated file '$pdf'";
+    my $omsg2;
+    if $pdfout {
+        $omsg2 = "See converted file '$pdfout'";
+    }
+
+    say qq:to/HERE/;
+    Note: The default is to update the input file in place
+          without warning and without specifying the output
+          file.
+    HERE
+
+    if $warn {
+        my $wmsg = qq:to/HERE/;
+        File '$pdf' will be modified in place, overwrite? (Y/n)
+        HERE
+
+        my $res = prompt "$wmsg ";
+        if $res ~~ /:i y/ {
+            say "Exiting without further action.";
+            exit;
+        }
+        else {
+            $force = True;
+            say "Proceeding with overwrite...";
+        }
+    }
+    # continue
+
+    =begin comment
+    This is where the action is:
+      + convert $pdf to $pstmp
+      + run ps2pdf on it with a special option
+        - result is $pdftmp
+      + copy or move $pdftmp to $pdf
+    =end comment
+
+    # at this point, $force should be True
+    unless $force {
+        die "FATAL: Unexpected event: \$force is False";
+    }
+
+    shell "pdf2ps $pdf $pstmp";
+    # convert back to the original pdf name or the pdfout
+    if $pdfout {
+        shell "ps2pdf -dPDFSETTING=/prepress $pstmp $pdfout";
+        say $omsg2;
     }
     else {
-        if not $file.IO.f {
-            die "FATAL: Input file '$file' does not exist";
-        }
-note "DEBUG 2";
-        $pdf = $file.IO;
+        shell "ps2pdf -dPDFSETTING=/prepress $pstmp $pdf";
+        say $omsg;
     }
-    # check for the output file existence
-
-    note "DEBUG 3";
-    if $pdf.IO.f {
-        if not $force {
-            die qq:to/HERE/;
-            FATAL: Output file '$pdf' exists. Use the 'force' option to allow that.
-            HERE
-        }
-    }
-
-note "DEBUG 4";
-    $pstmp = "".IO;
-    shell "pdf2ps $file $pstmp";
-    # convert back to the original pdf name
-    $pdf = ps2pdf $pstmp, $pdf, :$force;
-
-    $pdf.IO;
 }
 
 sub asc2ps(

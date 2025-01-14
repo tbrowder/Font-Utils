@@ -1,11 +1,14 @@
 use Test;
 
+use File::Temp;
+
 use Font::Utils;
 
+use lib "./t";
+use MyTestHelpers;
 
-my $debug = 0;
-
-sub fill-ascii-file {...}
+my $debug = 1;
+my $tdir = $debug ?? mkdir("./test-dir") !! tempdir
 
 my @tmpfils; # files to clean before and after
 BEGIN {
@@ -20,17 +23,16 @@ BEGIN {
 INIT { unless $debug { for @tmpfils { unlink $_ if $_.IO.f; } } }
 END  { unless $debug { for @tmpfils { unlink $_ if $_.IO.f; } } }
 
-#sub fill-ascii-file {...}
 my ($s1, $s2, $c1, $c2, @gchars, @words);
 
 # create some known good ASCII files to start
 # NOTE pdf files MUST have some text line(s)
 my $perm-asc = "perma.asc".IO;
-fill-ascii-file $perm-asc;
-my $good-asc = "good.asc".IO;
-fill-ascii-file $good-asc;
-
+make-ascii-file $perm-asc;
 isa-ok $perm-asc, IO::Path;
+
+my $good-asc = "good.asc".IO;
+make-ascii-file $good-asc;
 isa-ok $good-asc, IO::Path;
 
 my $good-ps = "good.ps".IO;
@@ -99,32 +101,32 @@ isa-ok $pdf, IO::Path;
 
 #==================================
 # test pdf2pdf
-my $pdfout; # just a name
+my $pdfout = "$tdir/pdfout.pdf"; # just a name
 my $pdfin = $pdf; # known good;
 
-# overwrite the input file
-lives-ok {
-    $pdfout = pdf2pdf $pdfin, $pdfout;
+# write to another pdf file
+my $pdfout4 = "$tdir/file4.pdf"; #.IO;
+dies-ok {
+    pdf2pdf $pdfin, $pdfout4;
+}, "running pdf2pdf on '$pdfin', out: '$pdfout4'";
+
+# write to another pdf file
+dies-ok {
+    pdf2pdf $pdfin, $pdfout;
 }, "running pdf2pdf on '$pdf'";
-isa-ok $pdfout, IO::Path;
 
-# use a copy of the the input file
-my $copy = "some text".IO;;
-copy $pdf, $copy;
+# attempt to overwrite the input file
+# without force=true
+dies-ok {
+    pdf2pdf $pdfin;
+}, "running pdf2pdf on '$pdfin'";
+
+# overwrite the input file with Force=true
+my $pdftest = "$tdir/pdftest.pdf".IO;
 lives-ok {
-    $pdfout = pdf2pdf $copy, $pdfout, :$force;
-}, "running pdf2pdf on '$pdf'";
-isa-ok $pdfout, IO::Path;
+    pdf2pdf $pdftest, :force;
+}, "running pdf2pdf on '$pdftest'";
+isa-ok $pdfin, IO::Path;
+ok file-isa-pdf($pdftest);
 
-done-testing;
-
-sub fill-ascii-file(
-    $path,
-    :$text = "some text",
-    :$debug,
-    ) {
-    # creates or overwrites the $path
-    my $fh = open $path, :w;
-    $fh.say: $text;
-    $fh.close;
-}
+done-testing; exit;
