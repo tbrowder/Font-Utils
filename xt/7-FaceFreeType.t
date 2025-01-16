@@ -24,4 +24,16 @@ my $fo = Font::Utils::FaceFreeType.new: :$font, :font-size(12);
 
 isa-ok $fo, Font::Utils::FaceFreeType;
 
+my @lines = [
+    "T. M. Browder, Jr.",
+    "114 Shoreline Dr",
+    "Gulf Breeze, FL 32561";
+];
+
+
+lives-ok {
+    my $bbox = $fo.lines-bbox(@lines);
+    say "{$bbox.gist}";
+}, "testing method lines-bbox";
+
 done-testing;

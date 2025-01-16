@@ -247,19 +247,19 @@ method get-ignored-object(
         my $hex         = $ord.base(16);
 
         if $width-check and $width == 0 {
-            if $decimal { 
+            if $decimal {
                 @ignored.push: $ord;
-            } 
-            else { 
-                @ignored.push: $hex; 
+            }
+            else {
+                @ignored.push: $hex;
             }
         }
         if $height-check and $height == 0 {
-            if $decimal { 
-                @ignored.push: $ord; 
+            if $decimal {
+                @ignored.push: $ord;
             }
-            else { 
-                @ignored.push: $hex; 
+            else {
+                @ignored.push: $hex;
             }
         }
 
@@ -352,6 +352,50 @@ method right-bearing(Str $s) {
 }
 method string-bbox(Str $s) {
 }
+
+method lines-bbox(
+    @lines,
+    :$line-height is copy,
+    :$debug,
+    --> List) {
+    # simulates a Text::Box but preserves lines
+    # get total width and height
+    my $bwidth  = 0;
+    my $bheight = 0;
+    my $nlines  = @lines.elems;
+
+    unless $line-height.defined {
+        $line-height = self.height; #
+    }
+
+    for @lines.kv -> $i, $line {
+        my $sw = self.stringwidth: $line;
+        $bwidth = $sw if $sw > $bwidth;
+
+        # get the height
+        my $sh;
+        if $i == 0 {
+            # use top-bearing
+            $sh = self.top-bearing: $line;
+            if $nlines == 1 {
+                # special case
+                my $bb = self.bottom-bearing;
+                $sh -= $bb;
+            }
+        }
+        elsif $i == $nlines - 1 {  # the last line
+            # use bottom bearing
+            $sh = self.bottom-bearing: $line;
+        }
+        else {
+            # use line-hight
+            $sh = $line-height;
+        }
+        $bheight = $sh if $sh > $bheight;
+    }
+    0, 0, $bwidth, $bheight;
+}
+
 
 #method wrap-string(Str $s, :$font-size!, :$width! --> List) {
 method wrap-string(Str $s, :$width! --> List) {
