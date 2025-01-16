@@ -1,5 +1,6 @@
 #!/usr/bin/env raku
-use PDF::Reader;
+use PDF;
+use PDF::IO::Reader;
 
 #| strip non-deterministic data from ps2pdf output.
 #| Ensure multiple runs produce exactly the same binary output
