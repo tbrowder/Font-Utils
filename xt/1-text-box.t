@@ -129,9 +129,7 @@ else {
     };
 }
 
-
-# I get the width of a ' ' character
-# render it as $page.text
+# I get the width of a ' ' character render it as $page.text
 $page.text: {
     # first line baseline
     .text-position = 72, 200;
@@ -144,7 +142,21 @@ $pdf.save-as: $ofil;
 compress $ofil, :dpi(300), :quiet, :force;
 say "See output file: '$ofil'";
 
+# testing $fo.string-bbox
+$pdf .= new;
+$page = $pdf.add-page;
+
+my $word  = "Mr Abernathy";
+my $sbbox = $fo.string-bbox: $word;
+say "sbbox: {$sbbox.gist}";
+
+
+$ofil = "xt3test-box.pdf";
+$pdf.save-as: $ofil;
+say "See output file: '$ofil'";
+
 done-testing;
+
 
 =finish
 

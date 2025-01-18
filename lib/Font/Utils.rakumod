@@ -2305,7 +2305,7 @@ sub asc2ps(
     DEBUG 6: asc2ps
       input file: '$file'
       \$ext:      '$ext'
-      \$ps:       '$ps'     
+      \$ps:       '$ps'
     HERE
     shell "a2ps -o $ps $file";
     $ps .= IO;
@@ -2323,7 +2323,7 @@ sub ps2pdf(
     my ($ps, $pdf);
     $force = True if $force.defined;
 
-    if $outfile.defined { 
+    if $outfile.defined {
         $pdf   = $outfile
     }
     else {

@@ -30,7 +30,6 @@ my @lines = [
     "Gulf Breeze, FL 32561";
 ];
 
-
 lives-ok {
     my $bbox = $fo.lines-bbox(@lines);
     say "{$bbox.gist}";

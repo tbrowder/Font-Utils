@@ -326,34 +326,90 @@ method get-ignored-list(Bool :$show-ord) {
     @ignored.unique;
 }
 
-method top-bearing(Str $s) {
+method top-bearing(Str $s --> Numeric) {
     my $y = 0;
-    $!face.for-glyphs($s, {
-        my $t = .top-bearing;
-        $y = $t if $t > $y;
-    });
+    for $s.comb -> $g {
+        $!face.for-glyphs($g, {
+            my $bbox = .bounding-box;
+            # get the ury of the bbox
+            my $ury   = $bbox[3];
+            $y = $ury if $ury > $y;
+        });
+    }
     $y
 }
 
-method bottom-bearing(Str $s) {
+method bottom-bearing(Str $s --> Numeric) {
     my $y = 0;
-    $!face.for-glyphs($s, {
-        my $h = .height;
-        my $t = .top-bearing;
-        my $b = $h - $t;
-        $y = $b if $b < $y;
-    });
+    for $s.comb -> $g {
+        $!face.for-glyphs($g, {
+            my $bbox = .bounding-box;
+            # get the lly of the bbox
+            my $lly = $bbox[1];
+            $y = $lly if $lly < $y;
+        });
+    }
     $y
 }
 
-method left-bearing(Str $s) {
+method left-bearing(Str $s --> Numeric) {
+    my $x = 0;
+    for $s.comb -> $g {
+        $!face.for-glyphs($g, {
+            my $bbox = .bounding-box;
+            # get the llx of the bbox
+            my $llx = $bbox[0];
+            $x = $llx if $llx < $x;
+        });
+    }
+    $x
 }
-method right-bearing(Str $s) {
+
+method right-bearing(Str $s --> Numeric) {
+    my $x = 0;
+    for $s.comb -> $g {
+        $!face.for-glyphs($g, {
+            my $bbox = .bounding-box;
+            # get the urx of the bbox
+            my $urx = $bbox[2];
+            $x = $urx if $urx > $x;
+        });
+    }
+    $x
 }
-method string-bbox(Str $s) {
+
+method string-bbox(Str $s --> List) {
+    my ($LLX, $LLY, $URX, $URY) = 0, 0, 0, 0;
+    for $s.comb -> $g {
+        $!face.for-glyphs($g, {
+            my $bbox = .bounding-box;
+            my $llx = $bbox[0];
+            my $lly = $bbox[1];
+            $LLX = $llx if $llx < $LLX;
+            $LLY = $lly if $lly < $LLY;
+
+
+            my $urx = $bbox[2];
+            my $ury = $bbox[3];
+            $URX = $urx if $urx > $URX;
+            $URY = $ury if $ury > $URY;
+        });
+    }
+    $LLX, $LLY, $URX, $URY
 }
+
+=begin comment
+multi method text-box(
+    :$text,
+    :$debug,
+    --> List) {
+    # the traditional Text::Box
+}
+=end comment
 
 method lines-bbox(
+    # from PDF::Content::Text::Box method render
+    #| render a text box to a content stream at current or given text position
     @lines,
     :$line-height is copy,
     :$debug,
@@ -395,7 +451,6 @@ method lines-bbox(
     }
     0, 0, $bwidth, $bheight;
 }
-
 
 #method wrap-string(Str $s, :$font-size!, :$width! --> List) {
 method wrap-string(Str $s, :$width! --> List) {
