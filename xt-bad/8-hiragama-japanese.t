@@ -19,7 +19,7 @@ my $compress = 0;
 
 #my $file  = "Noto_Serif_JP/NotoSerifJP-VariableFont_wght.ttf";
 #my $file  = "Noto_Serif_JP/static/NotoSerifJP-ExtraBold.ttf";
-my $file  = "Noto_Serif_JP/static/NotoSerifJP-Bold.ttf";
+my $file  = "/usr/share/fonts/truetype/noto/NotoSerifJP-Bold.ttf";
 
 my PDF::Lite $pdf .= new;
 my $page = $pdf.add-page;

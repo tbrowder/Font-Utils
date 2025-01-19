@@ -1,0 +1,12 @@
+Installing Google fonts with 'fnt'
+==================================
+
+sudo aptitude install fnt
+
+Running:
+-------
+
+fnt search noto # see "noto.list"
+
+fnt install <from the search list>
+

@@ -18,6 +18,27 @@ font-utils show $font-file;
 font-utils sample $font-file;
 ```
 
+Pre-installation
+----------------
+
+On Debian and MacOS systems, install the following font-related packages:
+
+  * fnt
+
+  * fontforge
+
+  * fonttools
+
+  * woff-tools
+
+Package 'fnt' installs program 'fnt' which is a font installer. As root, use it to install some special fonts:
+
+    fnt install google-notoserif
+    fnt install google-notosans
+    fnt install google-notosansmono
+    fnt install google-notoserifjp
+    fnt install google-notosansjp
+
 DESCRIPTION
 ===========
 
@@ -61,7 +82,7 @@ The author has included some entries for fonts he uses, but the user can modify 
 Classes
 -------
 
-### class FaceFreeFont
+### class FaceFreeType
 
 Contains all the attributes obtained in the `$face` object created by module 'Font::FreeFont' from a font file loaded with the 'load-font routine of module 'PDF::Font::Loader'. In addition, it adds most of the font interrogation methods from its 'Font::FreeType' $face object.
 
@@ -92,7 +113,7 @@ The rollowing classes aren't user classes and won't be discussed. Peruse the sou
 Routines
 --------
 
-In Raku font handling we are constantly dealing with various font and typesetting parameter conversions such as length and angle units, and decimal and hexidecimal glyph code points. Those required for module internals and testing are incLuded. Some of those routines are duplicated in other modules, but having them close is useful.
+In Raku font handling we are constantly dealing with various font and typesetting parameter conversions such as length and angle units, and decimal and hexidecimal glyph code points. Those required for module internals and testing are incLuded. Some of those routines are duplicated in other modules, but having them close by is useful.
 
 ### hex2string
 
