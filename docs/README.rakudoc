@@ -81,7 +81,7 @@ not be modified by this package.
 
 =head2 Classes
 
-=head3 class FaceFreeFont
+=head3 class FaceFreeType
 
 Contains all the attributes obtained in the C<$face> object created by module
 'Font::FreeFont' from a font file loaded with the 'load-font routine 
@@ -122,7 +122,7 @@ In Raku font handling we are constantly dealing with various font and typesettin
 parameter conversions such as length and angle units, and decimal and hexidecimal 
 glyph code points. Those required for module internals and testing 
 are incLuded. Some of those routines are duplicated in other
-modules, but having them close is useful.
+modules, but having them close by is useful.
 
 =head3 hex2string
 
