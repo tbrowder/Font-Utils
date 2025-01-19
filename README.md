@@ -36,8 +36,8 @@ Package 'fnt' installs program 'fnt' which is a font installer. As root, use it 
     fnt install google-notoserif
     fnt install google-notosans
     fnt install google-notosansmono
-    fnt install google-notoserifjp
-    fnt install google-notosansjp
+
+For developers, there is also a special test file in directory './xt' that requires a Japanese font, 'NotoSerifJP-Bold', which has to be obtained and installed manually. The font can be found and downloaded from [https://fonts.google.com](https://fonts.google.com). As root, copy or move that file to directory '/usr/share/fonts/truetype/noto'.
 
 DESCRIPTION
 ===========

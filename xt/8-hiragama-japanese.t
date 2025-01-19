@@ -1,6 +1,5 @@
 use Test;
 
-
 use OO::Monitors;
 
 use PDF::API6; # <== required for $page
@@ -17,8 +16,6 @@ use Font::Utils::Misc;
 my $debug    = 0;
 my $compress = 0;
 
-#my $file  = "Noto_Serif_JP/NotoSerifJP-VariableFont_wght.ttf";
-#my $file  = "Noto_Serif_JP/static/NotoSerifJP-ExtraBold.ttf";
 my $file  = "/usr/share/fonts/truetype/noto/NotoSerifJP-Bold.ttf";
 
 my PDF::Lite $pdf .= new;
