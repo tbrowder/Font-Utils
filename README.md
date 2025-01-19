@@ -18,6 +18,27 @@ font-utils show $font-file;
 font-utils sample $font-file;
 ```
 
+Pre-installation
+----------------
+
+On Debian and MacOS systems, install the following font-related packages:
+
+  * fnt
+
+  * fontforge
+
+  * fonttools
+
+  * woff-tools
+
+Package 'fnt' installs program 'fnt' which is a font installer. As root, use it to install some special fonts:
+
+    fnt install google-notoserif
+    fnt install google-notosans
+    fnt install google-notosansmono
+    fnt install google-notoserifjp
+    fnt install google-notosansjp
+
 DESCRIPTION
 ===========
 

@@ -20,6 +20,28 @@ font-utils show $font-file;
 font-utils sample $font-file;
 =end code
 
+=head2 Pre-installation
+
+On Debian and MacOS systems, install the following font-related
+ packages:
+
+=item fnt
+=item fontforge
+=item fonttools
+=item woff-tools
+
+Package 'fnt' installs program 'fnt' which is
+a font installer. As root, use it to install
+some special fonts:
+
+=begin code
+fnt install google-notoserif
+fnt install google-notosans
+fnt install google-notosansmono
+fnt install google-notoserifjp
+fnt install google-notosansjp
+=end code
+
 =head1 DESCRIPTION
 
 B<Font::Utils> contains the following installed program, classes, and routines:

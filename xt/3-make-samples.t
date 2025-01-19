@@ -28,13 +28,14 @@ my $ftest3 = 0; # all freefont ttf (almost OK)
 
 if $os.is-windows {
     $file    = "/usr/share/fonts/truetype/noto/NotoSerif-Regular.ttf";
+    # this is the font for showing hex codes:
     $fileHC  = "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf";
 }
 else {
     if $ftest1 {
-        $file   = "/usr/share/local/fonts/noto/NotoSerif-Regular.ttf";
+        $file   = "/usr/share/fonts/truetype/noto/NotoSerif-Regular.ttf";
         # this is the font for showing hex codes:
-        $fileHC = "/usr/share/local/fonts/noto/NotoSans-Regular.ttf";
+        $fileHC = "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf";
     }
     elsif $ftest2 {
         $file  = "/usr/share/fonts/opentype/freefont/FreeSerif.otf";
