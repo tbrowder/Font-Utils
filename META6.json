@@ -6,7 +6,7 @@
   "build-depends": [
   ],
   "depends": [
-    "FontConfig",
+    "FontConfig:ver<0.1.5>",
     "MIME::Types",
     "OO::Monitors",
     "PathTools",
