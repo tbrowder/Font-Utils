@@ -1451,11 +1451,13 @@ sub text-box(
     :$bidi,
 
 ) is export {
-    my PDF::Content::Text::Box $tb .= new:
+    # TODO fix :justify to correct the last line
+	    my PDF::Content::Text::Box $tb .= new:
         :$text,
         :$font, :$font-size, :$kern, # <== note font information is rw
         #:$squish, # valign shouldn't be used with a text-box
-        :$align, :$width, # :$height, # not directly constraining it
+        :$align, 
+        :$width, # :$height, # not directly constraining it
         :$indent,
         #:$verbatim,
     ;
