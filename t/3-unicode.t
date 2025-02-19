@@ -93,5 +93,29 @@ is '61'.parse-base(16), 97;
 is '61'.parse-base(16).chr, 'a';
 
 #==========================
+# Create some mixed steings of codepoints and text
+my $un = "latin small letter c with cedilla".uc;
+
+my $cx = "\xe7"; # cedilla
+is $cx.uniname, $un, "test unicode hex entry";
+
+my $cd = "\c[231]"; # cedilla
+is $cd.uniname, $un, "test unicode decimal entry";
+
+my $co = "\o347"; # cedilla
+is $co.uniname, $un, "test unicode octal entry";
+
+is "231".parse-base(10).uniname, $un;
+is "e7".parse-base(16).uniname, $un;
+is "347".parse-base(8).uniname, $un;
+
+is "231".parse-base(10), 231;
+is "e7".parse-base(16), 231;
+is "347".parse-base(8), 231;
+
+is "231".parse-base(10).base(16), "e7".uc;
+is "e7".parse-base(16).base(8), 347;
+is "e7".parse-base(16).base(8), "347";
+
 #==========================
 done-testing;
