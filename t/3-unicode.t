@@ -102,7 +102,7 @@ is $cx.uniname, $un, "test unicode hex entry";
 my $cd = "\c[231]"; # cedilla
 is $cd.uniname, $un, "test unicode decimal entry";
 
-my $s = "My string with embeded \c[231] codepoints";
+$s = "My string with embeded \c[231] codepoints";
 isa-ok $s, Str;
 say "mixed string: '$s'";
 
