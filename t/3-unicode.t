@@ -94,7 +94,8 @@ is '61'.parse-base(16).chr, 'a';
 
 #==========================
 # Create some mixed steings of codepoints and text
-my $un = "latin small letter c with cedilla".uc;
+my $un  = "latin small letter c with cedilla".uc;
+my $un2 = "latin small letter e with acute".uc;
 
 my $cx = "\xe7"; # cedilla
 is $cx.uniname, $un, "test unicode hex entry";
@@ -108,6 +109,9 @@ say "mixed string: '$s'";
 
 my $co = "\o347"; # cedilla
 is $co.uniname, $un, "test unicode octal entry";
+
+my $co2 = "\o351"; # acute
+is $co2.uniname, $un2, "test unicode octal entry";
 
 is "231".parse-base(10).uniname, $un;
 is "e7".parse-base(16).uniname, $un;
